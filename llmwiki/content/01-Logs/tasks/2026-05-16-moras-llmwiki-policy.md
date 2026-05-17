@@ -24,6 +24,6 @@ LLMWiki 문서를 작성한 뒤 다음을 실행한다.
 
 ## upstream 통합
 
-Moras 로컬 repo는 개인 private repo로 유지한다. 공유 가능한 지식만 별도로 upstream `NSoft-LLMWiki`에 반영한다.
+Moras 로컬 repo는 개인 private repo로 유지한다. 각 프로젝트에서 생성된 작업 지식은 통합 LLMWiki인 upstream `NSoft-LLMWiki`에 모이는 것을 기본값으로 한다.
 
-개인정보, 참가자 데이터, 민감한 운영 정보는 upstream에 올리지 않는다.
+개인정보, 참가자 데이터, 민감한 운영 정보는 upstream에 올리지 않는다. 이런 내용이 섞인 문서는 정제본을 만들어 통합하고, 정제해도 공유할 수 없으면 완료 보고서에 skip 사유를 남긴다.

@@ -71,18 +71,22 @@ candidate review warning은 현재 허용한다. 이는 SwarmVault가 생성한 
 
 Moras 로컬 repo는 개인 private repo로 유지한다.
 
-NSoft 통합 지식체계에 반영할 내용은 다음 흐름을 따른다.
+NSoft 통합 지식체계에 반영하는 것을 기본값으로 한다. 단, 개인정보, 참가자 데이터, 비밀값, 민감한 운영 정보는 그대로 반영하지 않는다.
+
+통합 흐름은 다음과 같다.
 
 1. Moras 로컬 `llmwiki/content/`에 먼저 기록한다.
 2. 로컬 ingest/compile/query로 검증한다.
 3. upstream `NSoft-LLMWiki` 임시 sparse checkout에서 같은 문서를 테스트한다.
 4. 통합 검색에서 기존 NStack/Graphify/LLMWiki 문서와 함께 잡히는지 확인한다.
-5. 공유해도 되는 문서만 upstream에 별도 PR 또는 push로 반영한다.
+5. 민감 정보가 없거나 정제된 문서만 upstream에 별도 PR 또는 push로 반영한다.
 
 주의:
 
 - Moras private repo 전체를 upstream LLMWiki에 병합하지 않는다.
 - 개인정보, 참가자 데이터, 민감한 운영 정보는 upstream에 올리지 않는다.
+- 민감 정보가 섞인 작업 문서는 정제본을 만들어 통합한다.
+- 정제해도 통합할 수 없는 경우 완료 보고서에 skip 사유를 명시한다.
 - upstream ingest 중 기존 문서 frontmatter 오류가 발견될 수 있다. 이는 Moras 통합 실패와 구분해서 기록한다.
 
 ## NStack 파일럿 검증 항목

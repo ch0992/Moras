@@ -4,11 +4,14 @@
 
 이 문서는 Moras에서 생성되는 문서가 어디에서 시작해서, 어떤 폴더와 GitHub 저장소를 거쳐, 어떻게 LLMWiki와 NStack 통합 지식체계로 들어가는지 정의한다.
 
+Moras만의 특수 규칙이 아니라, NStack 기반 프로젝트들이 공통으로 따라야 할 문서 통합 모델을 Moras 파일럿에서 검증하는 문서다.
+
 핵심 원칙은 다음과 같다.
 
 - 사람이 작성한 원천 문서와 SwarmVault 생성물을 분리한다.
-- Moras private repo와 upstream `NSoft-LLMWiki` repo의 역할을 분리한다.
-- 개인정보나 이벤트 운영 민감 정보는 upstream 통합 대상에서 제외한다.
+- 각 프로젝트의 작업 문서는 최종적으로 통합 LLMWiki에 들어가는 것을 기본값으로 한다.
+- 프로젝트 private repo와 upstream `NSoft-LLMWiki` repo의 역할을 분리한다.
+- 개인정보나 이벤트 운영 민감 정보만 upstream 통합 대상에서 제외한다.
 - 모든 주요 문서 흐름은 NStack 파일럿 검증 근거가 된다.
 
 ## 대상 저장소와 로컬 경로
@@ -19,19 +22,20 @@
 | Moras GitHub repo | `https://github.com/yeonggyuchoi-usa/Moras` | Moras private 원천 저장소 | 개인 계정 private, 본인만 접근 |
 | Moras 로컬 LLMWiki | `/Users/yg/workspace/Moras/llmwiki` | Moras 전용 지식 vault | 로컬 + Moras private repo 일부 |
 | NStack 로컬 기준 repo | `/Users/yg/workspace/NStack` | NStack 규칙, 스킬, 기준 문서 참조 | 로컬 |
-| upstream 통합 LLMWiki repo | `NSoft-America-Inc/NSoft-LLMWiki` | 조직 통합 지식체계 | private, 공유 가능한 문서만 선별 반영 |
+| upstream 통합 LLMWiki repo | `NSoft-America-Inc/NSoft-LLMWiki` | 조직 통합 지식체계 | private, 각 프로젝트의 공유 가능/정제 문서가 모이는 최종 지식 저장소 |
 | upstream 임시 테스트 checkout | `/private/tmp/moras-llmwiki-upstream-test` | upstream 반영 전 통합 테스트 | 로컬 임시 |
 
 ## 문서 종류
 
-| 문서 종류 | 출발 위치 | Moras repo 커밋 | LLMWiki content 반영 | upstream 반영 |
+| 문서 종류 | 출발 위치 | Moras repo 커밋 | 로컬 LLMWiki 반영 | upstream 통합 LLMWiki 반영 |
 |---|---|---:|---:|---:|
-| 제품 브리프 | `docs/product/` | 예 | 필요 시 요약본 반영 | 보통 아니오 |
-| 프로젝트 계획 | `docs/` | 예 | 예 | 공유 가능하면 예 |
-| LLMWiki 운영 정책 | `docs/` | 예 | 예 | 공유 가능하면 예 |
-| 작업 지시서 | `tasks/orders/` | 예 | 작업 완료 후 요약 반영 | 선별 |
-| 완료 보고서 | `tasks/reports/` | 예 | 중요한 결과만 요약 반영 | 선별 |
-| 개발 의사결정 | `docs/` 또는 `tasks/reports/` | 예 | 예 | 공유 가능하면 예 |
+| 제품 브리프 | `docs/product/` | 예 | 요약본 반영 | 원칙적으로 예, 민감 정보 제거 후 |
+| 프로젝트 계획 | `docs/` | 예 | 예 | 예 |
+| LLMWiki 운영 정책 | `docs/` | 예 | 예 | 예 |
+| 작업 지시서 | `tasks/orders/` | 예 | archive order로 반영 | 예 |
+| 완료 보고서 | `tasks/reports/` | 예 | archive report로 반영 | 예 |
+| 작업 지식 문서 | `llmwiki/content/01-Logs/tasks/` | 예 | 예 | 예 |
+| 개발 의사결정 | `docs/` 또는 `tasks/reports/` | 예 | 예 | 예 |
 | 홍보 이미지/자산 | `assets/` | 예 | 설명만 필요 시 반영 | 보통 아니오 |
 | 참가자 데이터 | Supabase | 아니오 | 아니오 | 절대 아니오 |
 | 비밀값/환경변수 | `.env*`, Netlify env, Supabase secret | 아니오 | 아니오 | 절대 아니오 |
@@ -74,14 +78,26 @@ flowchart TD
   I --> J["swarmvault doctor"]
   J --> K["swarmvault query로 검색 확인"]
 
-  K --> L{"조직 통합 지식체계에 공유해도 되는가?"}
-  L -- "아니오" --> M["Moras private repo에만 유지"]
-  L -- "예" --> N["upstream 임시 checkout에 같은 문서 적용<br/>/private/tmp/moras-llmwiki-upstream-test"]
+  K --> L{"upstream 제외 사유가 있는가?<br/>개인정보/비밀값/민감 운영 정보"}
+  L -- "예" --> M["Moras private repo에만 유지<br/>보고서에 제외 사유 기록"]
+  L -- "아니오" --> N["upstream 임시 checkout에 같은 문서 적용<br/>/private/tmp/moras-llmwiki-upstream-test"]
   N --> O["upstream 환경에서 ingest/compile/query 테스트"]
   O --> P{"통합 검색 성공 및 민감 정보 없음"}
   P -- "예" --> Q["NSoft-LLMWiki에 PR 또는 push<br/>NSoft-America-Inc/NSoft-LLMWiki"]
   P -- "아니오" --> R["문서 수정 또는 upstream 반영 보류"]
 ```
+
+## NStack 표준 3파일 세트
+
+NStack 기준으로 한 작업은 다음 세 파일이 통합 지식체계의 기본 단위가 된다.
+
+| 단계 | Moras 로컬 출발점 | Moras LLMWiki 반영 위치 | upstream NSoft-LLMWiki 반영 위치 |
+|---|---|---|---|
+| 지시서 승인 직후 | `tasks/orders/YYYY-MM/DD/{slug}.md` | `llmwiki/content/01-Logs/archive/YYYY-MM/{slug}/order.md` | `content/01-Logs/archive/YYYY-MM/{slug}/order.md` |
+| 완료 보고서 작성 직후 | `tasks/reports/YYYY-MM/DD/{slug}.md` | `llmwiki/content/01-Logs/archive/YYYY-MM/{slug}/report.md` | `content/01-Logs/archive/YYYY-MM/{slug}/report.md` |
+| 지식화 문서 작성 | `llmwiki/content/01-Logs/tasks/YYYY-MM-DD-{slug}.md` | 동일 경로 | `content/01-Logs/tasks/YYYY-MM-DD-{slug}.md` |
+
+이 세 파일 중 upstream에 올릴 수 없는 내용이 있으면, 민감 정보를 제거한 정제본을 만들어 반영한다. 정제해도 공유할 수 없다면 보고서에 skip 사유를 기록한다.
 
 ## Moras private repo 내부 흐름
 
@@ -140,14 +156,18 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-  A["Moras에서 공유 가능한 LLMWiki source 선정<br/>llmwiki/content/01-Logs/tasks/*.md"] --> B["upstream 임시 checkout 준비<br/>/private/tmp/moras-llmwiki-upstream-test"]
-  B --> C["NSoft-LLMWiki content 구조에 문서 복사<br/>content/01-Logs/tasks/*.md"]
-  C --> D["swarmvault ingest content/... --no-guide"]
-  D --> E["swarmvault compile"]
-  E --> F["swarmvault query로 Moras 문서 검색 확인"]
-  F --> G{"기존 NStack/Graphify/LLMWiki 문서와 함께 검색되는가?"}
-  G -- "예" --> H["upstream 반영 가능<br/>PR 또는 push 검토"]
-  G -- "아니오" --> I["문서 제목/요약/키워드 보강 후 재검증"]
+  A["Moras 로컬 LLMWiki source 선정<br/>archive order/report + tasks knowledge"] --> B{"민감 정보가 있는가?"}
+  B -- "예" --> C["정제본 작성<br/>개인정보/비밀값/운영 민감 정보 제거"]
+  B -- "아니오" --> D["원문 사용"]
+  C --> E["upstream 임시 checkout 준비<br/>/private/tmp/moras-llmwiki-upstream-test"]
+  D --> E
+  E --> F["NSoft-LLMWiki content 구조에 문서 복사<br/>content/01-Logs/archive/... 또는 content/01-Logs/tasks/..."]
+  F --> G["swarmvault ingest content/... --no-guide"]
+  G --> H["swarmvault compile"]
+  H --> I["swarmvault query로 프로젝트 문서 검색 확인"]
+  I --> J{"기존 NStack/Graphify/LLMWiki 문서와 함께 검색되는가?"}
+  J -- "예" --> K["upstream 반영 가능<br/>PR 또는 push 검토"]
+  J -- "아니오" --> L["문서 제목/요약/키워드 보강 후 재검증"]
 ```
 
 ## 현재 기준 문서
@@ -165,6 +185,7 @@ flowchart TD
 
 - 기능 작업마다 `tasks/orders/`에 지시서를 만든다.
 - 완료 후 `tasks/reports/`에 보고서를 만든다.
+- 지시서와 보고서는 `llmwiki/content/01-Logs/archive/YYYY-MM/{slug}/`에 archive한다.
 - 다음 작업에 재사용할 지식은 `llmwiki/content/01-Logs/tasks/`에 남긴다.
 - LLMWiki 검증은 순차 실행한다.
-- upstream 통합은 공유 가능한 문서만 별도 테스트 후 진행한다.
+- upstream 통합은 기본값이며, 제외 시 민감 정보 또는 명시적 skip 사유를 남긴다.
