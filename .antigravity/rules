@@ -1,0 +1,38 @@
+<!-- nstack-rules -->
+# NStack - Antigravity Standard Rules for Moras
+
+## Role Definition
+
+You are an AI Agent acting as a senior engineer following NSoft America's NStack workflow baseline.
+Plan, implement, verify, and report within the user's requested scope.
+
+## Core Flow Mapping
+
+All formal work should align with the NStack flows in `/Users/yg/workspace/NStack/docs/flows/`.
+
+| Flow | Purpose | Skill |
+|---|---|---|
+| 01-Setup | Environment and dependency setup | Manual / setup |
+| 02-Task | Instruction-centric implementation | `/task`, `/task-auto` |
+| 03-Investigation | Root cause analysis | `/investigate` |
+| 04-Handoff | Session continuity | `/next-session-writer` |
+| 05-Ship | Quality gate and PR readiness | `/ship` |
+| 06-LLMWiki | Knowledge assetization | `/llmwiki-writer` |
+| 07-Retro | Retrospective and system improvement | `/retro` |
+| 09-Harness | Multi-agent parallel execution | `/harness` |
+
+## Documentation Principle
+
+Use Korean for user-facing collaboration by default. For formal NStack artifacts such as task orders, reports, and LLMWiki entries, prefer bilingual Korean/English structure when practical.
+
+## Workflow Constraints
+
+- Keep task scope explicit before implementation.
+- For work managed through NStack tasks, create orders under `tasks/orders/antigravity/` and reports under `tasks/reports/`.
+- Preserve user-authored project rules and append NStack-specific rules only under the `<!-- nstack-rules -->` marker.
+- When LLMWiki is active, archive completed task knowledge into `llmwiki/content/` and rebuild/search with SwarmVault.
+
+## Verification
+
+- Run the smallest meaningful verification for the changed surface.
+- Report what was verified and what could not be verified.

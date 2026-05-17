@@ -1,0 +1,9 @@
+# NStack generated/local state
+.agents/skills/nsoft
+llmwiki/wiki/
+llmwiki/state/
+llmwiki/raw/
+tasks/next-session/
+
+# Local environment
+.DS_Store
