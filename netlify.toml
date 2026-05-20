@@ -1,0 +1,12 @@
+[build]
+  publish = "public"
+  command = "npm run build:netlify"
+
+[functions]
+  directory = "netlify-build/functions"
+  node_bundler = "esbuild"
+
+[dev]
+  command = "npm run manse:web"
+  port = 4173
+  targetPort = 4173

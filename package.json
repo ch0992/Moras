@@ -1,0 +1,33 @@
+{
+  "name": "moras",
+  "version": "1.0.0",
+  "description": "> MBTI + 사주 기반 이벤트 매칭 웹 애플리케이션",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "build:netlify": "mkdir -p public/assets/marketing/upcoming-event netlify-build/functions && printf 'Moras runs through Netlify Functions.\\n' > public/index.html && cp assets/marketing/upcoming-event/moras-upcoming-event-mbti-saju-v1.png public/assets/marketing/upcoming-event/moras-upcoming-event-mbti-saju-v1.png && esbuild netlify/functions/moras.mjs --bundle --platform=node --format=esm --outfile=netlify-build/functions/moras.mjs",
+    "manse:web": "node scripts/manse-web.js",
+    "manse:validate": "node scripts/validate-manseryeok.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yeonggyuchoi-usa/Moras.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/yeonggyuchoi-usa/Moras/issues"
+  },
+  "homepage": "https://github.com/yeonggyuchoi-usa/Moras#readme",
+  "dependencies": {
+    "@fullstackfamily/manseryeok": "^1.0.8"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0"
+  }
+}

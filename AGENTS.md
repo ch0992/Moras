@@ -11,6 +11,14 @@
 
 Moras는 제품 개발 프로젝트이면서 NStack 검증용 파일럿 애플리케이션이다. 모든 주요 작업은 기능 구현 결과와 함께 NStack 흐름 자체의 유효성도 남겨야 한다.
 
+### 임시 비활성: LLMWiki 연동
+
+현재 Moras의 NStack 한 사이클 테스트에서는 LLMWiki 저장/업스트림/SwarmVault 갱신을 사용하지 않는다.
+
+- 작업 플로우에서 LLMWiki 기록을 필수 단계로 요구하지 않는다.
+- `llmwiki-writer`, `nstack-codex-llmwiki`, `swarmvault` workflow는 사용자가 명시적으로 “LLMWiki 다시 연결” 또는 “LLMWiki 기록 실행”을 요청하기 전까지 사용하지 않는다.
+- 작업 보고서에는 `LLMWiki: 임시 비활성`으로 기록한다.
+
 ### SwarmVault Vault
 
 | Vault | 위치 | 대상 | 용도 |
@@ -18,12 +26,11 @@ Moras는 제품 개발 프로젝트이면서 NStack 검증용 파일럿 애플�
 | LLMWiki vault | `llmwiki/` | `content/` | Knowledge, docs, task history |
 | Project vault | project root | Code files | Code structure and symbol search |
 
-규칙:
+현재 상태:
 
-- 아키텍처나 코드베이스 질문에 답하기 전 `llmwiki/wiki/graph/report.md`가 있으면 먼저 읽고, 없으면 `llmwiki/wiki/index.md`에서 시작한다.
-- 작업 히스토리, 의사결정, 버그 패턴은 vault가 빌드되어 있을 때 `cd llmwiki && swarmvault query "{keyword}"`로 찾는다.
-- 코드 구조는 project vault가 빌드되어 있을 때 프로젝트 루트에서 `swarmvault graph query "{keyword}"`로 찾는다.
-- 의미 있는 코드 변경 후 SwarmVault indexing이 활성화되어 있으면 `swarmvault ingest .`를 실행한다.
+- 이번 NStack 한 사이클 테스트에서는 SwarmVault/LLMWiki 명령을 실행하지 않는다.
+- 아키텍처, 작업 히스토리, 코드 구조 질문도 우선 일반 파일 탐색과 기존 문서로 답한다.
+- 사용자가 명시적으로 “SwarmVault 다시 연결”, “LLMWiki 기록 실행”, “swarmvault 실행”을 요청한 경우에만 이 섹션의 vault를 사용한다.
 
 ## 코딩 행동 원칙
 
@@ -51,5 +58,25 @@ Moras는 오픈채팅 커뮤니티 이벤트용 웹 애플리케이션이다.
 - 구현 결과
 - 실행한 검증
 - 완료 보고서
-- LLMWiki 지식 기록 또는 명시적 skip 사유
+- LLMWiki: 임시 비활성 상태 기록
 - NStack 흐름에서 발견한 개선점
+
+## Codex 전용 NStack 자산
+
+Antigravity와 Claude가 물리적으로 분리된 자산 구조를 갖는 것처럼, Codex도 Moras 안에서 별도 자산 구조를 가진다.
+
+| 구분 | 위치 | 용도 |
+|---|---|---|
+| Codex 상시 규칙 | `.codex/rules/` | Codex 전용 NStack rule 원본 |
+| Codex 워크플로우 | `.codex/workflows/` | Codex 전용 NStack workflow 원본 |
+| Codex 스킬 | `.codex/skills/` | Codex 전용 NStack skill 원본 |
+| 런타임 진입점 | `AGENTS.md` | Codex가 우선 읽는 프로젝트 지침 |
+
+규칙:
+
+- `.codex/`는 Codex 전용 NStack 자산의 물리적 원본으로 관리한다.
+- `.agents/skills/nsoft`는 현재 NStack 호환 및 기존 스킬 참조를 위해 유지하되, Codex 전용 신규 스킬은 `.codex/skills/`에 작성한다.
+- Antigravity 전용 `.antigravity/rules`는 Codex 자산으로 복사하지 않는다.
+- Antigravity의 `.agents/rules`와 `.agents/workflows`에 해당하는 핵심 내용은 Codex에서는 `.codex/rules`와 `.codex/workflows`로 분리한다.
+- Codex 런타임에서 자동 발견이 확인되지 않은 자산은 `AGENTS.md`에서 명시적으로 참조한다.
+- GitHub, Git workflow, ship, retro, handoff, devlog, noffice, scope, qa, investigate, harness도 Codex 전용 스킬 원본을 `.codex/skills/` 아래에 둔다.

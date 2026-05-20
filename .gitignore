@@ -7,3 +7,8 @@ tasks/next-session/
 
 # Local environment
 .DS_Store
+node_modules/
+data/*.json
+.netlify/
+netlify-build/
+.claude/
