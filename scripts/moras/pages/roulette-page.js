@@ -35,9 +35,12 @@ function roulettePage() {
     main { width:min(100vw - 32px, 960px); margin:0 auto; padding-top:14px; }
 
     /* ── SHOW HEAD ──────────────────────────────── */
-    .show-head { display:grid; grid-template-columns:140px 140px 1fr 140px; gap:12px; align-items:center; margin:16px 0 10px; }
+    .show-head { display:grid; grid-template-columns:200px 1fr 200px; gap:12px; align-items:center; margin:16px 0 10px; }
     .show-side { padding:12px 16px; border:1px solid var(--line); border-radius:14px; background:var(--panel); }
     .show-side.right { text-align:right; }
+    .show-side.stats { display:flex; gap:20px; align-items:center; }
+    .show-side.stats .stat-item { display:flex; flex-direction:column; }
+    .show-side.stats .stat-divider { width:1px; height:36px; background:var(--line); flex-shrink:0; }
     .show-title-wrap { padding:16px 28px; border:1px solid rgba(255,232,163,.34); border-radius:16px; background:linear-gradient(135deg,rgba(255,232,163,.14),rgba(8,12,26,.9)); box-shadow:0 0 28px rgba(255,232,163,.2),inset 0 0 32px rgba(255,232,163,.07); position:relative; overflow:hidden; }
     .show-title-wrap::before { content:""; position:absolute; inset:-60%; background:conic-gradient(from 0deg,transparent,rgba(255,255,255,.22),transparent 28%); animation:glint 2.2s linear infinite; }
     .show-title-wrap h1 { position:relative; margin:0; color:var(--gold); font-size:clamp(20px,3.2vw,44px); line-height:1.1; text-align:center; text-shadow:0 0 16px rgba(255,232,163,.44); word-break:keep-all; }
@@ -153,6 +156,7 @@ function roulettePage() {
       .show-head { grid-template-columns:1fr 1fr; gap:8px; }
       .show-title-wrap { grid-column:1 / -1; order:3; }
       .show-side.right { order:4; }
+      .show-side.stats { gap:14px; }
       .seg-name { font-size:9px; max-width:66px; margin-left:-33px; }
       main { padding-top:10px; }
       .wheel-wrap { width:min(94vw,640px); }
@@ -169,15 +173,18 @@ function roulettePage() {
   <a class="logo" href="/">MORAS</a>
   <main>
     <section class="show-head">
-      <div class="show-side">
-        <div class="lbl">Target</div>
-        <div class="big-num" id="target-count">–</div>
-        <div class="lbl" style="margin-top:2px">대상 인원</div>
-      </div>
-      <div class="show-side">
-        <div class="lbl">Online</div>
-        <div class="big-num" id="viewer-count">–</div>
-        <div class="lbl" style="margin-top:2px">접속중인 인원</div>
+      <div class="show-side stats">
+        <div class="stat-item">
+          <div class="lbl">Target</div>
+          <div class="big-num" id="target-count">–</div>
+          <div class="lbl" style="margin-top:2px">대상 인원</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="lbl">Online</div>
+          <div class="big-num" id="viewer-count">–</div>
+          <div class="lbl" style="margin-top:2px">접속중인 인원</div>
+        </div>
       </div>
       <div class="show-title-wrap">
         <h1 id="event-title">Moras 룰렛 이벤트</h1>
