@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build:netlify": "mkdir -p public/assets/marketing/upcoming-event netlify-build/functions && printf 'Moras runs through Netlify Functions.\\n' > public/index.html && cp assets/marketing/upcoming-event/moras-upcoming-event-mbti-saju-v1.png public/assets/marketing/upcoming-event/moras-upcoming-event-mbti-saju-v1.png && esbuild netlify/functions/moras.mjs --bundle --platform=node --format=esm --outfile=netlify-build/functions/moras.mjs",
-    "manse:web": "node scripts/manse-web.js",
+    "manse:web": "node --env-file=.env scripts/manse-web.js",
     "manse:validate": "node scripts/validate-manseryeok.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

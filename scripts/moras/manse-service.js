@@ -10,7 +10,13 @@
 const crypto = require("node:crypto");
 const { buildResult, formatDate, formatLunar } = require("../validate-manseryeok");
 const { analyzeManseWithGemini } = require("./gemini");
-const { saveSubmission } = require("./storage");
+const {
+  findRosterParticipantById,
+  hasSubmissionForRosterParticipant,
+  readRosterParticipants,
+  readSubmissions,
+  saveSubmission,
+} = require("./storage");
 
 const CITIES = [
   { name: "서울특별시", longitude: 127, timezone: "Asia/Seoul" },
@@ -78,6 +84,8 @@ function buildViewModel(result, input) {
   return {
     submissionId: input.submissionId,
     name: input.name || "테스트 사용자",
+    gender: normalizeGender(input.gender),
+    maritalStatus: normalizeMaritalStatus(input.maritalStatus),
     mbti: normalizeMbti(input.mbti),
     profileTitle: `${result.saju.dayPillar}(${stemColorName(result.pillars.day.stem.hangul)} ${result.pillars.day.branch.animal})`,
     cells,
@@ -93,8 +101,11 @@ function buildViewModel(result, input) {
 function buildSubmission(input, birthPlace, result, geminiAnalysis) {
   return {
     id: crypto.randomUUID(),
+    rosterParticipantId: nullableString(input.rosterParticipantId),
     submittedAt: new Date().toISOString(),
     displayName: nullableString(input.name),
+    gender: normalizeGender(input.gender),
+    maritalStatus: normalizeMaritalStatus(input.maritalStatus),
     mbti: normalizeMbti(input.mbti),
     birthDate: input.date,
     birthTime: input.timeUnknown ? null : input.time,
@@ -126,6 +137,16 @@ function normalizeMbti(value) {
   return /^[IE][NS][TF][JP]$/.test(mbti) ? mbti : null;
 }
 
+function normalizeGender(value) {
+  const gender = String(value || "").trim();
+  return ["남", "여"].includes(gender) ? gender : null;
+}
+
+function normalizeMaritalStatus(value) {
+  const maritalStatus = String(value || "").trim();
+  return ["미혼", "기혼", "돌싱"].includes(maritalStatus) ? maritalStatus : null;
+}
+
 function nullableString(value) {
   const text = String(value || "").trim();
   return text || null;
@@ -152,30 +173,44 @@ function stemColorName(stem) {
 }
 
 async function handleManseApi(body) {
+  const rosterParticipant = await findRosterParticipantById(body.rosterParticipantId);
+  if (!rosterParticipant || rosterParticipant.isActive === false) {
+    throw new Error("참가자 명단에서 신청자를 선택해주세요.");
+  }
+  if (await hasSubmissionForRosterParticipant(rosterParticipant.id)) {
+    throw new Error("이미 이벤트 신청이 완료된 참가자입니다.");
+  }
+
+  const normalizedBody = {
+    ...body,
+    rosterParticipantId: rosterParticipant.id,
+    name: rosterParticipant.displayName,
+    gender: rosterParticipant.gender,
+  };
   const birthPlace = resolveBirthPlace(body.birthPlace, body.customBirthPlace);
   const result = buildResult({
-    date: body.date,
-    time: body.timeUnknown ? "unknown" : body.time,
-    calendar: body.calendar || "solar",
-    leapMonth: Boolean(body.leapMonth),
+    date: normalizedBody.date,
+    time: normalizedBody.timeUnknown ? "unknown" : normalizedBody.time,
+    calendar: normalizedBody.calendar || "solar",
+    leapMonth: Boolean(normalizedBody.leapMonth),
     longitude: birthPlace.longitude,
     timezone: birthPlace.timezone,
     timeCorrection: true,
   });
   const geminiAnalysis = await analyzeManseWithGemini({
-    name: body.name,
-    mbti: normalizeMbti(body.mbti),
+    name: normalizedBody.name,
+    mbti: normalizeMbti(normalizedBody.mbti),
     birthPlace: birthPlace.name,
     result,
   });
-  const submission = await saveSubmission(buildSubmission(body, birthPlace, result, geminiAnalysis));
+  const submission = await saveSubmission(buildSubmission(normalizedBody, birthPlace, result, geminiAnalysis));
 
   return {
     submission,
     result,
     geminiAnalysis,
     view: buildViewModel(result, {
-      ...body,
+      ...normalizedBody,
       birthPlace: birthPlace.name,
       submissionId: submission.id,
       geminiAnalysis,
@@ -183,4 +218,58 @@ async function handleManseApi(body) {
   };
 }
 
-module.exports = { handleManseApi, CITIES };
+async function seedTestSubmissionsFromRoster() {
+  const [roster, submissions] = await Promise.all([
+    readRosterParticipants(),
+    readSubmissions(),
+  ]);
+  const existingRosterIds = new Set(submissions.map((item) => item.rosterParticipantId).filter(Boolean));
+  const mbtis = ["ENFP", "INFP", "ENFJ", "INFJ", "ENTP", "INTP", "ESFJ", "ISFJ", "ESTP", "ISTP", "ENTJ", "INTJ", "ESFP", "ISFP", "ESTJ", "ISTJ"];
+  const cities = CITIES.filter((item) => !item.custom);
+  let created = 0;
+  let skipped = 0;
+
+  for (let index = 0; index < roster.length; index += 1) {
+    const participant = roster[index];
+    if (!participant.id || existingRosterIds.has(participant.id)) {
+      skipped += 1;
+      continue;
+    }
+    const year = 1988 + (index % 17);
+    const month = (index % 12) + 1;
+    const day = (index % 25) + 1;
+    const hour = 8 + (index % 12);
+    const minute = (index % 4) * 15;
+    const birthPlace = cities[index % cities.length] || CITIES[0];
+    const input = {
+      rosterParticipantId: participant.id,
+      name: participant.displayName,
+      gender: participant.gender,
+      maritalStatus: "미혼",
+      mbti: mbtis[index % mbtis.length],
+      date: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+      time: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+      timeUnknown: false,
+      calendar: "solar",
+    };
+    const result = buildResult({
+      date: input.date,
+      time: input.time,
+      calendar: input.calendar,
+      leapMonth: false,
+      longitude: birthPlace.longitude,
+      timezone: birthPlace.timezone,
+      timeCorrection: true,
+    });
+    await saveSubmission(buildSubmission(input, birthPlace, result, {
+      status: "test",
+      analysis_summary: "관리자 테스트 데이터입니다. 실제 Gemini 분석은 이벤트 신청 시 생성됩니다.",
+    }));
+    existingRosterIds.add(participant.id);
+    created += 1;
+  }
+
+  return { created, skipped, total: roster.length };
+}
+
+module.exports = { handleManseApi, seedTestSubmissionsFromRoster, CITIES };

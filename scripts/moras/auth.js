@@ -10,7 +10,7 @@
 const crypto = require("node:crypto");
 
 const ADMIN_ID = process.env.MORAS_ADMIN_ID || "admin";
-const ADMIN_PASSWORD = process.env.MORAS_ADMIN_PASSWORD || "admin";
+const ADMIN_PASSWORD = process.env.MORAS_ADMIN_PASSWORD || "admin0987";
 const ADMIN_COOKIE = "moras_admin_session";
 const ADMIN_SECRET = process.env.MORAS_ADMIN_SECRET || "moras-dev-admin-secret";
 
