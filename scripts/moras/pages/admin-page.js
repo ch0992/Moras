@@ -525,6 +525,99 @@ function adminPage() {
       font-size: 13px;
       min-height: 18px;
     }
+    .roster-search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .roster-search-wrap input {
+      flex: 1;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(10, 14, 26, 0.68);
+      color: var(--text);
+      padding: 0 12px;
+      font: inherit;
+      font-size: 13px;
+    }
+    .roster-search-wrap input:focus {
+      outline: none;
+      border-color: rgba(255, 232, 163, 0.4);
+    }
+    .requests-section {
+      border: 1px solid rgba(255, 232, 163, 0.22);
+      border-radius: 16px;
+      background: rgba(255, 232, 163, 0.04);
+      overflow: hidden;
+    }
+    .requests-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 232, 163, 0.14);
+    }
+    .requests-section-title {
+      color: #FFE8A3;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+    }
+    .requests-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 7px;
+      border-radius: 999px;
+      background: rgba(255, 232, 163, 0.22);
+      color: #FFE8A3;
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .request-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 1fr) 60px minmax(100px, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 13px;
+    }
+    .request-row:last-child { border-bottom: 0; }
+    .request-row .req-name { font-weight: 900; color: var(--text); }
+    .request-row .req-time { color: var(--muted); font-size: 12px; }
+    .request-actions { display: flex; gap: 7px; justify-content: flex-end; }
+    .btn-approve {
+      width: auto;
+      height: 32px;
+      margin: 0;
+      padding: 0 14px;
+      font-size: 12px;
+      font-weight: 900;
+      border: 1px solid rgba(52, 211, 153, 0.45);
+      border-radius: 8px;
+      background: rgba(52, 211, 153, 0.12);
+      color: #34D399;
+      cursor: pointer;
+    }
+    .btn-approve:hover { background: rgba(52, 211, 153, 0.22); }
+    .btn-reject {
+      width: auto;
+      height: 32px;
+      margin: 0;
+      padding: 0 14px;
+      font-size: 12px;
+      font-weight: 900;
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      border-radius: 8px;
+      background: rgba(248, 113, 113, 0.1);
+      color: #F87171;
+      cursor: pointer;
+    }
+    .btn-reject:hover { background: rgba(248, 113, 113, 0.2); }
 
     @media (max-width: 820px) {
       .roster-form {
@@ -1242,6 +1335,7 @@ function adminPage() {
       <button class="tab-btn" data-tab="roster" id="tab-btn-roster">전체명단</button>
       <button class="tab-btn" data-tab="couples" id="tab-btn-couples">매칭 결과</button>
       <button class="tab-btn" data-tab="roulette" id="tab-btn-roulette">추첨 룰렛</button>
+      <button class="tab-btn" data-tab="ladder" id="tab-btn-ladder">사다리타기</button>
     </div>
  
     <!-- Tab Contents 1: Submissions -->
@@ -1261,9 +1355,6 @@ function adminPage() {
               <th>이름</th>
               <th>성별</th>
               <th>MBTI</th>
-              <th>생년월일시</th>
-              <th>달력</th>
-              <th>출생지</th>
               <th>사주 팔자</th>
               <th>상세</th>
             </tr>
@@ -1293,6 +1384,28 @@ function adminPage() {
           <button type="button" class="btn-secondary" id="roster-cancel">취소</button>
         </form>
         <div class="roster-status" id="roster-status">명단을 불러오는 중...</div>
+
+        <!-- 추가요청 목록 -->
+        <div class="requests-section" id="requests-section" style="display:none;">
+          <div class="requests-section-header">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="requests-section-title">추가요청 목록</span>
+              <span class="requests-badge" id="requests-badge">0</span>
+            </div>
+          </div>
+          <div class="request-row" style="border-bottom:1px solid rgba(255,232,163,0.14);padding-top:10px;padding-bottom:10px;">
+            <div style="color:#FFE8A3;font-size:11px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;">이름</div>
+            <div style="color:#FFE8A3;font-size:11px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;">성별</div>
+            <div style="color:#FFE8A3;font-size:11px;font-weight:900;letter-spacing:0.08em;text-transform:uppercase;">신청시간</div>
+            <div></div>
+          </div>
+          <div id="rows-requests"></div>
+        </div>
+
+        <!-- 검색 + 목록 -->
+        <div class="roster-search-wrap">
+          <input id="roster-search" type="text" placeholder="이름으로 검색...">
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -1315,6 +1428,18 @@ function adminPage() {
       <div class="submissions-toolbar">
         <div class="muted" id="matches-status">매칭 결과를 불러오는 중...</div>
         <button type="button" class="btn-secondary btn-danger" id="matches-reset">매칭결과 초기화</button>
+      </div>
+      <!-- Vote Deadline Management -->
+      <div id="vote-deadline-panel" style="display:none;margin:12px 0 16px;padding:14px 16px;background:rgba(255,232,163,0.06);border:1px solid rgba(255,232,163,0.18);border-radius:10px;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <span style="font-size:12px;font-weight:700;color:#FFE8A3;white-space:nowrap;">매칭 선택 마감:</span>
+          <span id="vote-deadline-display" style="font-size:13px;color:#F8FAFC;font-weight:600;">로드 중...</span>
+          <div style="display:flex;gap:6px;align-items:center;margin-left:auto;">
+            <input type="datetime-local" id="vote-deadline-input"
+              style="height:34px;background:rgba(5,8,17,.72);border:1px solid rgba(255,232,163,0.3);border-radius:8px;color:#fff;padding:0 10px;font-size:12px;font-family:inherit;">
+            <button type="button" id="vote-deadline-save" style="height:34px;padding:0 14px;font-size:12px;white-space:nowrap;border-radius:8px;">저장</button>
+          </div>
+        </div>
       </div>
       <div class="couples-container" id="couples-list">
         <!-- Render couple cards dynamically -->
@@ -1397,6 +1522,69 @@ function adminPage() {
         </div>
       </div>
     </div>
+
+    <!-- Tab Contents 4: Ladder -->
+    <div class="tab-content" id="tab-ladder">
+      <div class="roulette-panel">
+        <div class="roulette-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <h3 style="margin:0;">사다리타기 이벤트 설정</h3>
+            <div style="display:flex;gap:6px;">
+              <button id="ladder-reset-results" type="button" class="btn-secondary" style="height:32px;font-size:12px;padding:0 12px;border-color:rgba(251,191,36,.4);color:#fbbf24;">사다리초기화</button>
+              <button id="ladder-reset" type="button" class="btn-secondary btn-danger" style="height:32px;font-size:12px;padding:0 12px;">전체초기화</button>
+            </div>
+          </div>
+          <!-- 이벤트 이름 -->
+          <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:18px;align-items:end;">
+            <div>
+              <label style="display:block;margin-bottom:7px;color:var(--muted);font-size:12px;font-weight:900;" for="ladder-event-name">사다리타기 이벤트 이름</label>
+              <input id="ladder-event-name" placeholder="예: 제 1회 사다리타기 이벤트" style="width:100%;min-height:42px;border-radius:10px;border:1px solid var(--line);background:rgba(5,8,17,.72);color:#fff;padding:0 14px;font-family:inherit;font-size:14px;font-weight:700;">
+            </div>
+            <button id="ladder-name-save" type="button" style="height:42px;padding:0 20px;white-space:nowrap;">저장</button>
+          </div>
+          <!-- 타이머 자동실행 카드 (인라인) -->
+          <div class="roulette-settings-form" id="ladder-timer-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <h3 style="margin:0;font-size:15px;">⏰ 타이머 자동실행</h3>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-bottom:12px;">
+              <div>
+                <label style="display:block;margin-bottom:7px;color:var(--muted);font-size:12px;font-weight:900;" for="ladder-start-time">시작 예정 시간</label>
+                <input id="ladder-start-time" type="datetime-local" style="width:100%;min-height:42px;border-radius:10px;border:1px solid var(--line);background:rgba(5,8,17,.72);color:#fff;padding:0 14px;font-family:inherit;font-size:14px;font-weight:700;">
+              </div>
+              <button id="ladder-timer-start" type="button" style="height:42px;padding:0 20px;white-space:nowrap;background:linear-gradient(135deg,#FFE8A3,#F4C35E);color:#03070e;font-weight:900;border:0;border-radius:10px;cursor:pointer;">타이머 사다리 시작</button>
+            </div>
+            <div id="ladder-timer-display" style="padding:14px 16px;border-radius:12px;background:rgba(255,232,163,.06);border:1px solid rgba(255,232,163,.14);min-height:52px;display:flex;align-items:center;gap:10px;">
+              <span id="ladder-timer-clock" style="font-size:clamp(18px,2.8vw,26px);font-weight:900;color:#FFE8A3;font-family:'Cinzel',serif;letter-spacing:.04em;">–</span>
+              <span id="ladder-timer-countdown" style="font-size:13px;font-weight:700;color:rgba(255,255,255,.55);"></span>
+            </div>
+            <div class="roulette-timer-status" id="ladder-timer-status" style="margin-top:10px;">사다리 실행 상태를 불러오는 중...</div>
+          </div>
+          <!-- hidden draw-mode -->
+          <input type="hidden" id="ladder-draw-mode" value="instant">
+
+          <div style="margin-top:18px;padding:16px;border-radius:14px;background:rgba(255,232,163,0.03);border:1px solid rgba(255,232,163,0.1);">
+            <h4 style="color:#FFE8A3;margin:0 0 6px;font-size:13px;">💡 상품 목록 연동 안내</h4>
+            <p style="color:var(--muted);font-size:11.5px;line-height:1.5;">사다리타기의 추첨 상품은 **'추첨 룰렛' 탭의 '추첨 항목 관리'**에 등록하고 체크박스를 선택한 항목들이 실시간으로 자동 연동됩니다. 룰렛 탭에서 상품 항목을 먼저 준비해주세요.</p>
+          </div>
+
+          <button id="ladder-spin" type="button" style="width:100%;margin-top:18px;height:46px;background:linear-gradient(135deg,#FFE8A3,#F4C35E);color:#03070e;font-weight:900;border:0;border-radius:10px;cursor:pointer;">사다리타기 돌리기 (순차 추첨)</button>
+          <div class="muted" id="ladder-status" style="margin-top:12px;">사다리 데이터를 불러오는 중...</div>
+        </div>
+        <div class="roulette-card">
+          <h3>사다리 참가자 및 결과 <span id="ladder-participant-count" style="font-size:13px;font-weight:500;color:var(--muted);"></span></h3>
+          <div class="roulette-participant-tools">
+            <input id="ladder-roster-search" placeholder="전체명단에서 이름 검색">
+            <select id="ladder-roster-select"></select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:14px;">
+            <button id="ladder-add-participant" type="button" style="width:100%;margin:0;">사다리 참가자 추가</button>
+            <button id="ladder-add-all" type="button" style="margin:0;white-space:nowrap;">전체추가</button>
+          </div>
+          <div class="roulette-result-list" id="ladder-results"></div>
+        </div>
+      </div>
+    </div>
   </main>
  
   <script>
@@ -1427,6 +1615,28 @@ function adminPage() {
       if (roulettePollInterval) { clearInterval(roulettePollInterval); roulettePollInterval = null; }
     }
 
+    let ladderPollInterval = null;
+    function startLadderPoll() {
+      if (ladderPollInterval) return;
+      ladderPollInterval = setInterval(async () => {
+        try {
+          const response = await fetch("/api/admin/ladder", { cache: "no-store" });
+          const data = await response.json();
+          if (!response.ok) return;
+          ladderState.participants = data.participants || [];
+          ladderState.results      = data.results      || [];
+          ladderState.roster       = data.roster       || [];
+          renderLadderParticipantsAndResults();
+          renderLadderRosterSelect();
+          const status = document.getElementById("ladder-status");
+          status.textContent = "룰렛 연동 상품 " + (ladderState.settings.roulettePrizes?.selectedItemIds?.length || 0) + "개 · 사다리 참가자 " + ladderState.participants.length + "명";
+        } catch (_) {}
+      }, 5000);
+    }
+    function stopLadderPoll() {
+      if (ladderPollInterval) { clearInterval(ladderPollInterval); ladderPollInterval = null; }
+    }
+
     tabButtons.forEach(btn => {
       btn.addEventListener("click", () => {
         tabButtons.forEach(b => b.classList.remove("active"));
@@ -1438,22 +1648,33 @@ function adminPage() {
 
         if (tabName === "couples") {
           stopRoulettePoll();
+          stopLadderPoll();
           loadMatches();
         }
         if (tabName === "roster") {
           stopRoulettePoll();
+          stopLadderPoll();
           loadRoster();
         }
         if (tabName === "roulette") {
+          stopLadderPoll();
           loadRoulette();
           startRoulettePoll();
         }
-        if (tabName !== "roulette") {
+        if (tabName === "ladder") {
           stopRoulettePoll();
+          loadLadder();
+          startLadderPoll();
+        }
+        if (tabName !== "roulette" && tabName !== "ladder") {
+          stopRoulettePoll();
+          stopLadderPoll();
         }
       });
     });
  
+    document.getElementById("roster-search").addEventListener("input", renderRosterWithSearch);
+
     document.querySelector("#logout").addEventListener("click", async () => {
       await fetch("/api/admin/logout", { method: "POST" });
       location.href = "/admin";
@@ -1643,7 +1864,7 @@ function adminPage() {
       const btnSubs = document.getElementById("tab-btn-subs");
       const rowsArea = document.getElementById("rows-submissions");
       const status = document.getElementById("submissions-status");
-      rowsArea.innerHTML = '<tr><td colspan="9" class="muted">불러오는 중...</td></tr>';
+      rowsArea.innerHTML = '<tr><td colspan="6" class="muted">불러오는 중...</td></tr>';
       status.textContent = "참가자 목록을 불러오는 중...";
       
       try {
@@ -1651,7 +1872,7 @@ function adminPage() {
         const body = await response.json();
         
         if (!response.ok) {
-          rowsArea.innerHTML = '<tr><td colspan="9">조회 실패</td></tr>';
+          rowsArea.innerHTML = '<tr><td colspan="6">조회 실패</td></tr>';
           btnSubs.textContent = "참가자 목록 (에러)";
           return;
         }
@@ -1662,7 +1883,7 @@ function adminPage() {
         btnSubs.textContent = \`참가자 목록 (\${count}명)\`;
         status.textContent = \`신청 완료 \${count}명 · 남자 \${maleCount}명 · 여자 \${femaleCount}명\`;
         
-        rowsArea.innerHTML = body.submissions.map(row).join("") || '<tr><td colspan="9" class="muted">제출된 데이터가 없습니다.</td></tr>';
+        rowsArea.innerHTML = body.submissions.map(row).join("") || '<tr><td colspan="6" class="muted">제출된 데이터가 없습니다.</td></tr>';
         
         // Setup details toggles
         document.querySelectorAll(".detail-toggle").forEach((button) => {
@@ -1692,7 +1913,7 @@ function adminPage() {
           });
         });
       } catch (err) {
-        rowsArea.innerHTML = '<tr><td colspan="9">통신 에러 발생</td></tr>';
+        rowsArea.innerHTML = '<tr><td colspan="6">통신 에러 발생</td></tr>';
         btnSubs.textContent = "참가자 목록 (에러)";
       }
     }
@@ -1709,18 +1930,89 @@ function adminPage() {
         const body = await response.json();
         if (!response.ok) throw new Error(body.error || "명단 조회 실패");
         rosterItems = body.participants || [];
-        const activeCount = rosterItems.filter((item) => item.isActive !== false).length;
-        const maleCount = rosterItems.filter((item) => item.isActive !== false && item.gender === "남").length;
-        const femaleCount = rosterItems.filter((item) => item.isActive !== false && item.gender === "여").length;
+        const activeItems = rosterItems.filter((item) => item.isActive !== false);
+        const pendingItems = rosterItems.filter((item) => item.isActive === false);
+        const activeCount = activeItems.length;
+        const maleCount = activeItems.filter((item) => item.gender === "남").length;
+        const femaleCount = activeItems.filter((item) => item.gender === "여").length;
         btnRoster.textContent = \`전체명단 (\${activeCount}명)\`;
         status.textContent = \`활성 \${activeCount}명 · 남자 \${maleCount}명 · 여자 \${femaleCount}명\`;
-        rowsArea.innerHTML = rosterItems.map(rosterRow).join("") || '<tr><td colspan="5" class="muted">등록된 참가자가 없습니다.</td></tr>';
+        renderRosterWithSearch();
         bindRosterActions();
+        renderPendingRequests(pendingItems);
       } catch (error) {
         rowsArea.innerHTML = '<tr><td colspan="5">조회 실패</td></tr>';
         status.textContent = error.message;
         btnRoster.textContent = "전체명단 (에러)";
       }
+    }
+
+    function renderRosterWithSearch() {
+      const keyword = (document.getElementById("roster-search")?.value || "").trim().toLocaleLowerCase("ko");
+      const filtered = keyword
+        ? rosterItems.filter((item) => item.isActive !== false && (item.displayName || "").toLocaleLowerCase("ko").includes(keyword))
+        : rosterItems.filter((item) => item.isActive !== false);
+      const rowsArea = document.getElementById("rows-roster");
+      rowsArea.innerHTML = filtered.map(rosterRow).join("") || '<tr><td colspan="5" class="muted">검색 결과가 없습니다.</td></tr>';
+      bindRosterActions();
+    }
+
+    function renderPendingRequests(items) {
+      const section = document.getElementById("requests-section");
+      const badge = document.getElementById("requests-badge");
+      const area = document.getElementById("rows-requests");
+      badge.textContent = items.length;
+      if (!items.length) {
+        section.style.display = "none";
+        return;
+      }
+      section.style.display = "";
+      area.innerHTML = items.map((item) => {
+        const genderBadge = item.gender
+          ? \`<span class="gender-badge \${item.gender === '남' ? 'male' : 'female'}">\${item.gender}</span>\`
+          : '<span class="null">N/A</span>';
+        return \`
+          <div class="request-row">
+            <div class="req-name">\${escapeHtml(item.displayName)}</div>
+            <div>\${genderBadge}</div>
+            <div class="req-time">\${formatDateTime(item.updatedAt)}</div>
+            <div class="request-actions">
+              <button class="btn-approve req-approve" type="button" data-id="\${escapeHtml(item.id)}" data-name="\${escapeHtml(item.displayName)}" data-gender="\${escapeHtml(item.gender || '')}">✓ 허가</button>
+              <button class="btn-reject req-reject" type="button" data-id="\${escapeHtml(item.id)}" data-name="\${escapeHtml(item.displayName)}">✕ 거절</button>
+            </div>
+          </div>
+        \`;
+      }).join("");
+      bindRequestActions();
+    }
+
+    function bindRequestActions() {
+      document.querySelectorAll(".req-approve").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const { id, name, gender } = btn.dataset;
+          if (!confirm(\`"\${name}" 님을 명단에 추가(활성화)할까요?\`)) return;
+          btn.disabled = true;
+          const res = await fetch("/api/admin/roster/" + encodeURIComponent(id), {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ displayName: name, gender, isActive: true }),
+          });
+          const body = await res.json();
+          if (!res.ok) { alert(body.error || "허가 실패"); btn.disabled = false; return; }
+          await loadRoster();
+        });
+      });
+      document.querySelectorAll(".req-reject").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const { id, name } = btn.dataset;
+          if (!confirm(\`"\${name}" 님의 추가 요청을 거절(삭제)할까요?\`)) return;
+          btn.disabled = true;
+          const res = await fetch("/api/admin/roster/" + encodeURIComponent(id), { method: "DELETE" });
+          const body = await res.json();
+          if (!res.ok) { alert(body.error || "거절 실패"); btn.disabled = false; return; }
+          await loadRoster();
+        });
+      });
     }
 
     function rosterRow(item) {
@@ -1792,9 +2084,6 @@ function adminPage() {
           <td><strong>\${escapeHtml(item.displayName)}</strong></td>
           <td>\${genderBadge}</td>
           <td>\${nullableCell(item.mbti, true)}</td>
-          <td>\${nullableCell(item.birthDate)} \${escapeHtml(time)}</td>
-          <td>\${escapeHtml(item.calendarType === "lunar" ? "음력" : "양력")}</td>
-          <td>\${nullableCell(item.birthPlace)}</td>
           <td>\${escapeHtml([saju.yearPillar, saju.monthPillar, saju.dayPillar, saju.hourPillar].filter(Boolean).join(" / ")) || '<span class="null">N/A</span>'}</td>
           <td>
             <div class="row-actions">
@@ -1804,7 +2093,7 @@ function adminPage() {
           </td>
         </tr>
         <tr id="\${detailId}" class="detail-row" hidden>
-          <td colspan="9">
+          <td colspan="6">
             <div class="detail-panel">
               \${manseChart(item)}
               \${analysisBox(item.geminiAnalysis)}
@@ -1869,7 +2158,55 @@ function adminPage() {
       } catch (err) {
         container.innerHTML = '<div style="color: #f5576c; text-align: center; padding: 40px 0;">네트워크 연결 실패</div>';
       }
+      // Load vote deadline
+      loadVoteDeadline();
     }
+
+    async function loadVoteDeadline() {
+      try {
+        const res = await fetch("/api/admin/vote-deadline", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        const panel = document.getElementById("vote-deadline-panel");
+        const display = document.getElementById("vote-deadline-display");
+        const input = document.getElementById("vote-deadline-input");
+        if (!data.runId) { panel.style.display = "none"; return; }
+        panel.style.display = "block";
+        if (data.voteDeadline) {
+          const d = new Date(data.voteDeadline);
+          const fmt = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0") + " " + String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+          display.textContent = fmt + (d < new Date() ? " (종료)" : "");
+          display.style.color = d < new Date() ? "#f87171" : "#F8FAFC";
+          // Set input default to current value
+          const iso = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0") + "T" + String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+          input.value = iso;
+        } else {
+          display.textContent = "미설정";
+        }
+      } catch(e) {}
+    }
+
+    document.getElementById("vote-deadline-save").addEventListener("click", async () => {
+      const input = document.getElementById("vote-deadline-input");
+      const val = input.value;
+      if (!val) { alert("마감 시간을 입력해주세요."); return; }
+      const btn = document.getElementById("vote-deadline-save");
+      btn.disabled = true;
+      btn.textContent = "저장 중...";
+      try {
+        const res = await fetch("/api/admin/vote-deadline", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ voteDeadline: new Date(val).toISOString() }),
+        });
+        const data = await res.json();
+        if (!res.ok) { alert(data.error || "저장 실패"); return; }
+        await loadVoteDeadline();
+        alert("마감 시간이 저장되었습니다.");
+      } catch(e) { alert("서버 오류"); }
+      finally { btn.disabled = false; btn.textContent = "저장"; }
+    });
+
 
     function normalizeMatch(match) {
       return {
@@ -2510,6 +2847,284 @@ function adminPage() {
       return parts.join(" ");
     }
  
+    /* ── LADDER GAME CONTROLLER ── */
+    let ladderState = { participants: [], roster: [], results: [], settings: {} };
+    let ladderTimerInterval = null;
+
+    /* ── 사다리 이벤트 이름 저장 ── */
+    document.getElementById("ladder-name-save").addEventListener("click", async () => {
+      const status = document.getElementById("ladder-status");
+      const eventName = document.getElementById("ladder-event-name").value.trim();
+      if (!eventName) { status.textContent = "이벤트 이름을 입력해주세요."; return; }
+      status.textContent = "사다리 이벤트 이름 저장 중...";
+      const res = await fetch("/api/admin/ladder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "saveSettings",
+          eventName,
+          startsAt: (ladderState.settings.starts_at || ladderState.settings.startsAt) ?? null,
+          drawMode: ladderState.settings.draw_mode || ladderState.settings.drawMode || "instant",
+        }),
+      });
+      const data = await res.json();
+      status.textContent = res.ok ? "이벤트 이름이 저장되었습니다." : (data.error || "저장 실패");
+      if (res.ok) await loadLadder();
+    });
+
+    /* ── 타이머 자동실행 시작 ── */
+    document.getElementById("ladder-timer-start").addEventListener("click", async () => {
+      const status = document.getElementById("ladder-status");
+      const startsAtValue = document.getElementById("ladder-start-time").value;
+      if (!startsAtValue) { status.textContent = "시작 예정 시간을 설정해주세요."; return; }
+      status.textContent = "타이머 자동실행 설정 중...";
+      const res = await fetch("/api/admin/ladder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "saveSettings",
+          eventName: document.getElementById("ladder-event-name").value.trim(),
+          startsAt: new Date(startsAtValue).toISOString(),
+          drawMode: "timer",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { status.textContent = data.error || "저장 실패"; return; }
+      document.getElementById("ladder-draw-mode").value = "timer";
+      status.textContent = "타이머 자동실행이 설정되었습니다.";
+      await loadLadder();
+    });
+
+    /* ── 시작시간 입력 변경 시 대형 표시 업데이트 ── */
+    document.getElementById("ladder-start-time").addEventListener("input", updateLadderTimerDisplay);
+    function updateLadderTimerDisplay() {
+      const val = document.getElementById("ladder-start-time").value;
+      const clock = document.getElementById("ladder-timer-clock");
+      const countdown = document.getElementById("ladder-timer-countdown");
+      if (!val) { clock.textContent = "–"; countdown.textContent = ""; return; }
+      const d = new Date(val);
+      clock.textContent = d.getFullYear() + ". " +
+        String(d.getMonth()+1).padStart(2,"0") + ". " +
+        String(d.getDate()).padStart(2,"0") + ".  " +
+        String(d.getHours()).padStart(2,"0") + ":" +
+        String(d.getMinutes()).padStart(2,"0");
+      const diff = d.getTime() - Date.now();
+      countdown.textContent = diff > 0
+        ? "(" + formatCountdownText(diff) + " 후 시작)"
+        : "(이미 지난 시간)";
+    }
+
+    document.getElementById("ladder-roster-search").addEventListener("input", renderLadderRosterSelect);
+    document.getElementById("ladder-add-participant").addEventListener("click", async () => {
+      const select = document.getElementById("ladder-roster-select");
+      const status = document.getElementById("ladder-status");
+      if (!select.value) {
+        status.textContent = "추가할 참가자를 먼저 선택해주세요.";
+        return;
+      }
+      status.textContent = "사다리 참가자를 추가하는 중...";
+      const response = await fetch("/api/admin/ladder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "addParticipant", rosterParticipantId: select.value }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        status.textContent = data.error || "참가자 추가 실패";
+        return;
+      }
+      document.getElementById("ladder-roster-search").value = "";
+      await loadLadder();
+    });
+
+    document.getElementById("ladder-reset-results").addEventListener("click", async () => {
+      if (!confirm("사다리 매칭 결과와 진행 상태만 초기화할까요?\n참가자 명단은 그대로 유지됩니다.")) return;
+      const status = document.getElementById("ladder-status");
+      status.textContent = "사다리 결과 초기화 중...";
+      const response = await fetch("/api/admin/ladder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "resetResults" }),
+      });
+      const data = await response.json();
+      if (!response.ok) { status.textContent = data.error || "초기화 실패"; return; }
+      status.textContent = "사다리 매칭 결과가 초기화되었습니다. (참가자 유지)";
+      await loadLadder();
+    });
+
+    document.getElementById("ladder-reset").addEventListener("click", async () => {
+      if (!confirm("참가자, 매칭 결과, 타이머 세팅을 전부 초기화할까요?\n상품 정보는 룰렛 탭에 그대로 보존됩니다.")) return;
+      const status = document.getElementById("ladder-status");
+      status.textContent = "전체 사다리 초기화 중...";
+      const response = await fetch("/api/admin/ladder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "resetLadder" }),
+      });
+      const data = await response.json();
+      if (!response.ok) { status.textContent = data.error || "전체 초기화 실패"; return; }
+      status.textContent = "사다리타기가 전체 초기화되었습니다.";
+      await loadLadder();
+    });
+
+    document.getElementById("ladder-add-all").addEventListener("click", async () => {
+      if (!confirm("전체 참가자 명단(활성)을 모두 사다리타기에 추가할까요?\n이미 추가된 참가자는 건너뜁니다.")) return;
+      const status = document.getElementById("ladder-status");
+      status.textContent = "전체 참가자를 사다리에 추가하는 중...";
+      const response = await fetch("/api/admin/ladder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "addAllParticipants" }),
+      });
+      const data = await response.json();
+      if (!response.ok) { status.textContent = data.error || "전체 추가 실패"; return; }
+      status.textContent = (data.added || 0) + "명이 사다리타기에 추가되었습니다.";
+      await loadLadder();
+    });
+
+    document.getElementById("ladder-spin").addEventListener("click", async () => {
+      const status = document.getElementById("ladder-status");
+      if (!ladderState.participants.length) {
+        status.textContent = "사다리 참가자를 먼저 추가해주세요.";
+        return;
+      }
+      status.textContent = "다음 사다리 당첨 대상을 뽑는 중...";
+      const response = await fetch("/api/admin/ladder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "spin" }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        status.textContent = data.error || "추첨에 실패했습니다.";
+        return;
+      }
+      const winner = data.winner || {};
+      const wName = winner.display_name || winner.displayName || "당첨자";
+      status.textContent = wName + " 님 사다리 출발 결과 생성! 상품: " + (data.result?.prize_label || "당첨");
+      await loadLadder();
+    });
+
+    async function loadLadder() {
+      const status = document.getElementById("ladder-status");
+      status.textContent = "사다리 데이터를 불러오는 중...";
+      try {
+        const response = await fetch("/api/admin/ladder", { cache: "no-store" });
+        const data = await response.json();
+        if (!response.ok) {
+          status.textContent = data.error || "사다리 데이터를 불러오지 못했습니다.";
+          return;
+        }
+        ladderState = {
+          participants: data.participants || [],
+          roster: data.roster || [],
+          results: data.results || [],
+          settings: data.settings || {},
+        };
+        const settings = ladderState.settings;
+        document.getElementById("ladder-event-name").value = settings.event_name || "";
+        document.getElementById("ladder-start-time").value = toDateTimeLocalValue(settings.starts_at || settings.startsAt);
+        document.getElementById("ladder-draw-mode").value = settings.draw_mode || "instant";
+        updateLadderTimerDisplay();
+        renderLadderRosterSelect();
+        renderLadderParticipantsAndResults();
+        updateLadderTimerStatus(settings);
+        status.textContent = "룰렛 연동 상품 " + (settings.roulettePrizes?.selectedItemIds?.length || 0) + "개 · 사다리 참가자 " + ladderState.participants.length + "명";
+      } catch (error) {
+        status.textContent = "네트워크 연결 실패";
+      }
+    }
+
+    function renderLadderRosterSelect() {
+      const select = document.getElementById("ladder-roster-select");
+      const keyword = document.getElementById("ladder-roster-search").value.trim().toLocaleLowerCase("ko");
+      const activeRosterIds = new Set(ladderState.participants.map((item) => item.roster_participant_id).filter(Boolean));
+      const candidates = ladderState.roster
+        .filter((item) => !activeRosterIds.has(item.id))
+        .filter((item) => !keyword || item.displayName.toLocaleLowerCase("ko").includes(keyword));
+      select.innerHTML = candidates.length
+        ? candidates.slice(0, 40).map((item) => '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.displayName) + ' · ' + escapeHtml(item.gender || "") + '</option>').join("")
+        : '<option value="">추가 가능한 참가자 없음</option>';
+    }
+
+    function renderLadderParticipantsAndResults() {
+      const results = document.getElementById("ladder-results");
+      const countEl = document.getElementById("ladder-participant-count");
+      if (countEl) {
+        const n = ladderState.participants.length;
+        countEl.textContent = n ? "(" + n + "명)" : "";
+      }
+      const byParticipant = new Map();
+      ladderState.results.forEach((row) => {
+        const participant = row.participant || {};
+        const id = row.ladder_participant_id || participant.id;
+        if (id && !byParticipant.has(id)) byParticipant.set(id, row);
+      });
+      results.innerHTML = ladderState.participants.length
+        ? ladderState.participants.map((participant) => {
+            const row = byParticipant.get(participant.id);
+            const wonAt = row ? formatDateTime(row.created_at || row.createdAt) : "";
+            const wonText = row ? "매칭: " + row.prize_label : "대기";
+            return '<div class="roulette-roster-row"><div><strong>' + escapeHtml(participant.display_name || participant.displayName || "이름 없음") + '</strong><span class="muted"> · ' + escapeHtml(participant.gender || "") + '</span><div class="muted" style="font-size:12px;">' + escapeHtml(wonText) + (wonAt ? " · " + escapeHtml(wonAt) : "") + '</div></div><span class="pill">' + (row ? "완료" : "대기") + '</span><button class="btn-secondary ladder-remove-participant" type="button" data-id="' + escapeHtml(participant.id) + '">제외</button></div>';
+          }).join("")
+        : '<div class="muted" style="padding:24px 0; text-align:center;">사다리 참가자를 추가해주세요.</div>';
+      document.querySelectorAll(".ladder-remove-participant").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const status = document.getElementById("ladder-status");
+          const response = await fetch("/api/admin/ladder", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "removeParticipant", participantId: button.dataset.id }),
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            status.textContent = data.error || "참가자 제외 실패";
+            return;
+          }
+          await loadLadder();
+        });
+      });
+    }
+
+    function updateLadderTimerStatus(settings) {
+      clearInterval(ladderTimerInterval);
+      const target = document.getElementById("ladder-timer-status");
+      const drawMode = settings.draw_mode || "instant";
+      const startValue = settings.starts_at || settings.startsAt;
+      const executedAt = settings.sequence_completed_at || settings.auto_spin_executed_at;
+      const prizeCount = settings.roulettePrizes?.selectedItemIds?.length || 0;
+      const itemText = " · 연동된 룰렛 상품 수: " + prizeCount + "개";
+
+      if (drawMode !== "timer") {
+        target.innerHTML = "현재 방식: <strong>즉시 돌리기</strong> · 사다리타기 돌리기 버튼을 누르면 선택 항목이 차례로 실행됩니다." + itemText;
+        return;
+      }
+      if (!startValue) {
+        target.innerHTML = "현재 방식: <strong>타이머 자동 실행</strong> · 시작 예정 시간을 설정해주세요.";
+        return;
+      }
+      if (executedAt) {
+        target.innerHTML = "자동 순차 추첨 완료 · <strong>" + escapeHtml(formatDateTime(executedAt)) + "</strong>" + itemText;
+        return;
+      }
+
+      const render = () => {
+        const diff = new Date(startValue).getTime() - Date.now();
+        if (Number.isNaN(diff)) {
+          target.innerHTML = "타이머 시간이 올바르지 않습니다.";
+          return;
+        }
+        if (diff <= 0) {
+          target.innerHTML = "자동 순차 추첨 진행 중 · 공개 사다리 페이지/API가 8초 간격으로 결과를 생성합니다." + itemText;
+          clearInterval(ladderTimerInterval);
+          return;
+        }
+        target.innerHTML = "현재 방식: <strong>타이머 자동 실행</strong> · 시작까지 <strong>" + formatCountdownText(diff) + "</strong>" + itemText;
+      };
+      render();
+      ladderTimerInterval = setInterval(render, 1000);
+    }
+
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, (char) => ({
         "&": "&amp;",

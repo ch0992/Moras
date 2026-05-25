@@ -10,23 +10,34 @@ const {
   handleAdminSubmissionDelete,
   handleAdminSubmissionTestSeed,
   handleApplicants,
+  handleApplicantDetail,
+  handleRosterRequest,
   handleRoster,
   handleAdminRoster,
   handleAdminMatch,
   handleAdminMatches,
   handleAdminMatchesReset,
   handleAdminRoulette,
+  handleAdminLadder,
   handlePublicResults,
   handlePublicRoulette,
+  handlePublicLadder,
   handleRoulettePublicAction,
+  handleLadderPublicAction,
   handleMatchDetail,
   handleMatchVote,
   handleManseApi,
+  handleManseStartApi,
+  handleManseAnalyzeApi,
+  handleAdminVoteDeadline,
+  handleSecretSubmissions,
   isAdminAuthenticated,
   page,
   matchPage,
   resultsPage,
   roulettePage,
+  ladderPage,
+  secretPage,
   upcomingEventPage,
 } = manseWeb;
 
@@ -62,12 +73,37 @@ export default async (request) => {
       return html(roulettePage());
     }
 
+    if (request.method === "GET" && url.pathname === "/ladder") {
+      return html(ladderPage());
+    }
+
+    if (request.method === "GET" && url.pathname === "/secret") {
+      return html(secretPage());
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/secret/submissions") {
+      const body = await request.json();
+      const result = await handleSecretSubmissions(body.pin);
+      return json(result.payload, result.status);
+    }
+
     if (request.method === "GET" && url.pathname === "/health") {
       return json({ ok: true });
     }
 
     if (request.method === "GET" && url.pathname === "/api/applicants") {
       const result = await handleApplicants();
+      return json(result.payload, result.status);
+    }
+
+    if (request.method === "GET" && url.pathname.startsWith("/api/applicants/")) {
+      const id = decodeURIComponent(url.pathname.replace("/api/applicants/", ""));
+      const result = await handleApplicantDetail(id);
+      return json(result.payload, result.status);
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/roster/request") {
+      const result = await handleRosterRequest(await request.json());
       return json(result.payload, result.status);
     }
 
@@ -90,8 +126,25 @@ export default async (request) => {
       return json(await handleRoulettePublicAction(await request.json()));
     }
 
+    if (request.method === "GET" && url.pathname === "/api/ladder") {
+      const result = await handlePublicLadder();
+      return json(result.payload, result.status);
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/ladder") {
+      return json(await handleLadderPublicAction(await request.json()));
+    }
+
     if (request.method === "POST" && url.pathname === "/api/manse") {
       return json(await handleManseApi(await request.json()));
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/manse/start") {
+      return json(await handleManseStartApi(await request.json()));
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/manse/analyze") {
+      return json(await handleManseAnalyzeApi(await request.json()));
     }
 
     if (request.method === "POST" && url.pathname === "/api/admin/login") {
@@ -149,6 +202,13 @@ export default async (request) => {
       return json(result.payload, result.status);
     }
 
+    if (url.pathname === "/api/admin/ladder" || url.pathname.startsWith("/api/admin/ladder/")) {
+      const id = url.pathname === "/api/admin/ladder" ? "" : decodeURIComponent(url.pathname.replace("/api/admin/ladder/", ""));
+      const body = request.method === "POST" || request.method === "PATCH" ? await request.json() : {};
+      const result = await handleAdminLadder(request.headers.get("cookie") || "", request.method, body, id);
+      return json(result.payload, result.status);
+    }
+
     if (request.method === "POST" && url.pathname === "/api/match/detail") {
       const result = await handleMatchDetail(await request.json());
       return json(result.payload, result.status);
@@ -156,6 +216,12 @@ export default async (request) => {
 
     if (request.method === "POST" && url.pathname === "/api/match/vote") {
       const result = await handleMatchVote(await request.json());
+      return json(result.payload, result.status);
+    }
+
+    if (url.pathname === "/api/admin/vote-deadline") {
+      const body = request.method === "PATCH" ? await request.json() : {};
+      const result = await handleAdminVoteDeadline(request.headers.get("cookie") || "", request.method, body);
       return json(result.payload, result.status);
     }
 
@@ -174,13 +240,19 @@ export const config = {
     "/match",
     "/results",
     "/roulette",
+    "/ladder",
     "/health",
     "/api/applicants",
+    "/api/applicants/*",
+    "/api/roster/request",
     "/api/roster",
     "/api/results",
     "/api/roulette",
     "/api/roulette/join",
+    "/api/ladder",
     "/api/manse",
+    "/api/manse/start",
+    "/api/manse/analyze",
     "/api/admin/login",
     "/api/admin/logout",
     "/api/admin/submissions",
@@ -192,8 +264,13 @@ export const config = {
     "/api/admin/matches",
     "/api/admin/roulette",
     "/api/admin/roulette/*",
+    "/api/admin/ladder",
+    "/api/admin/ladder/*",
     "/api/match/detail",
-    "/api/match/vote"
+    "/api/match/vote",
+    "/api/admin/vote-deadline",
+    "/secret",
+    "/api/secret/submissions"
   ],
 };
 

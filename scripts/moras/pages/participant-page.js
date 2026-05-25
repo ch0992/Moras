@@ -312,6 +312,175 @@ function page() {
       line-height: 1.65;
       text-align: justify;
     }
+    .marital-range-wrap {
+      margin-top: 14px;
+      padding: 16px;
+      border: 1px solid rgba(255, 232, 163, 0.18);
+      border-radius: 14px;
+      background: rgba(255, 232, 163, 0.04);
+    }
+    .marital-range-label {
+      margin: 0 0 12px;
+      color: #CBD5E1;
+      font-size: 12.5px;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+    .marital-range-label strong { color: #FFE8A3; }
+    .marital-range-label span { color: var(--muted); font-size: 11px; }
+    .marital-range-btns {
+      display: flex;
+      gap: 10px;
+    }
+    .marital-range-btn {
+      flex: 1;
+      height: 42px;
+      margin: 0;
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: none;
+    }
+    .marital-range-btn:hover {
+      border-color: rgba(255, 232, 163, 0.35);
+      color: var(--text);
+      transform: none;
+    }
+    .marital-range-btn.selected {
+      border-color: rgba(255, 232, 163, 0.75);
+      background: rgba(255, 232, 163, 0.14);
+      color: #FFE8A3;
+      box-shadow: 0 0 12px rgba(255, 232, 163, 0.18);
+    }
+
+    .submit-oracle {
+      margin-top: 22px;
+      padding: 22px 18px;
+      border: 1px solid rgba(255, 232, 163, 0.22);
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at 18% 25%, rgba(0, 242, 254, 0.16), transparent 34%),
+        radial-gradient(circle at 84% 18%, rgba(255, 232, 163, 0.18), transparent 32%),
+        rgba(5, 8, 17, 0.72);
+      box-shadow: 0 18px 52px rgba(0, 0, 0, 0.34), inset 0 0 28px rgba(255, 232, 163, 0.05);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .submit-oracle.hidden {
+      display: none;
+    }
+
+    .submit-oracle::before {
+      content: '';
+      position: absolute;
+      inset: -45%;
+      background: conic-gradient(from 0deg, transparent, rgba(255, 232, 163, 0.22), transparent, rgba(0, 242, 254, 0.16), transparent);
+      animation: oracleSpin 6s linear infinite;
+      opacity: 0.45;
+    }
+
+    .submit-oracle-inner {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 14px;
+      justify-items: center;
+      text-align: center;
+    }
+
+    .oracle-ring {
+      width: 74px;
+      height: 74px;
+      border-radius: 999px;
+      border: 2px solid rgba(255, 232, 163, 0.22);
+      position: relative;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 28px rgba(255, 232, 163, 0.18);
+    }
+
+    .oracle-ring::before,
+    .oracle-ring::after {
+      content: '';
+      position: absolute;
+      inset: 8px;
+      border-radius: inherit;
+      border: 2px solid transparent;
+      border-top-color: #FFE8A3;
+      border-right-color: rgba(0, 242, 254, 0.9);
+      animation: oracleSpin 1.35s cubic-bezier(0.5, 0, 0.3, 1) infinite;
+    }
+
+    .oracle-ring::after {
+      inset: 19px;
+      border-top-color: rgba(245, 87, 108, 0.92);
+      border-right-color: transparent;
+      animation-duration: 2.1s;
+      animation-direction: reverse;
+    }
+
+    .oracle-core {
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: #FFE8A3;
+      box-shadow: 0 0 18px rgba(255, 232, 163, 0.9);
+    }
+
+    .oracle-title {
+      color: #FFE8A3;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+    }
+
+    .oracle-message {
+      min-height: 24px;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.7;
+    }
+
+    .oracle-progress {
+      width: min(100%, 420px);
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .oracle-progress span {
+      display: block;
+      width: 42%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #00F2FE, #FFE8A3, #F5576C);
+      animation: oracleProgress 1.7s ease-in-out infinite;
+    }
+
+    .oracle-note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    @keyframes oracleSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes oracleProgress {
+      0% { transform: translateX(-105%); }
+      50% { transform: translateX(80%); }
+      100% { transform: translateX(245%); }
+    }
     
     .secondary-link {
       display: inline-flex;
@@ -886,9 +1055,6 @@ function page() {
       background: rgba(197, 155, 63, 0.12);
       box-shadow: 0 16px 34px rgba(197, 155, 63, 0.16);
     }
-    .welcome-link-btn.roulette-link {
-      grid-column: 1;
-    }
 
     /* 입력 스테이지 중앙 정렬 */
     .input-stage {
@@ -1334,7 +1500,8 @@ function page() {
     <div class="welcome-links">
       <a class="welcome-link-btn" href="/applicants">신청자 목록 확인하기</a>
       <a class="welcome-link-btn" href="/results">매칭결과 확인하기</a>
-      <a class="welcome-link-btn roulette-link" href="/roulette">룰렛결과 확인하기</a>
+      <a class="welcome-link-btn" href="/roulette">룰렛결과 확인하기</a>
+      <a class="welcome-link-btn" href="/ladder">사다리결과 확인하기</a>
     </div>
   </div>
 
@@ -1342,13 +1509,17 @@ function page() {
   <div id="stage-input" class="input-stage stage-hidden">
     <section class="control">
       <form id="manse-form">
-        <label for="roster-combobox">신청자 선택</label>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 6px;">
+          <label for="roster-combobox" style="margin:0">신청자 선택</label>
+          <button type="button" id="btn-roster-request" title="목록에 신규 사용자 추가 요청" style="width:auto;height:30px;margin-top:0;padding:0 12px;font-size:11px;font-weight:900;letter-spacing:0.06em;border-radius:8px;background:rgba(255,232,163,0.1);border:1px solid rgba(255,232,163,0.28);color:#FFE8A3;cursor:pointer;box-shadow:none;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,232,163,0.18)'" onmouseout="this.style.background='rgba(255,232,163,0.1)'">추가요청</button>
+        </div>
         <div class="combo">
           <input id="roster-combobox" role="combobox" aria-expanded="false" aria-controls="roster-options" autocomplete="off" placeholder="이름을 검색하거나 선택하세요">
           <input id="roster-participant-id" name="rosterParticipantId" type="hidden" required>
           <div id="roster-options" class="combo-list hidden" role="listbox"></div>
         </div>
         <p id="roster-note" class="roster-note"></p>
+        <p style="margin:6px 0 0;color:#64748B;font-size:11.5px;line-height:1.55;">* 목록에서 검색이 되지 않는 경우 우측 상단의 추가요청 버튼을 눌러 정보를 입력하여 운영자에게 요청해주세요.</p>
         <div class="row">
           <div>
             <label for="name">이름</label>
@@ -1370,6 +1541,12 @@ function page() {
               <option value="돌싱">돌싱</option>
             </select>
           </div>
+        </div>
+        <div id="marital-range-wrap" class="marital-range-wrap" style="display:none;">
+          <div class="marital-range-label">
+            <strong id="marital-range-my-status"></strong> 외에 매칭이 가능한 범위를 정해주세요. <span>(복수선택 가능)</span>
+          </div>
+          <div class="marital-range-btns" id="marital-range-btns"></div>
         </div>
         <label for="mbti">MBTI</label>
         <select id="mbti" name="mbti" required>
@@ -1422,10 +1599,41 @@ function page() {
           생년월일 데이터 표시 (테스트 모드)
         </label>
         <button type="submit">이벤트 신청 및 운명의 만세력 조회</button>
+        <div id="submit-oracle" class="submit-oracle hidden" aria-live="polite">
+          <div class="submit-oracle-inner">
+            <div class="oracle-ring"><span class="oracle-core"></span></div>
+            <div class="oracle-title">운명의 리포트를 작성하고 있어요</div>
+            <div id="oracle-message" class="oracle-message">만세력의 별자리를 정렬하는 중...</div>
+            <div class="oracle-progress"><span></span></div>
+            <div class="oracle-note">리포트가 완성되어야 신청이 완료됩니다. 실패하면 입력 내용은 유지되니 다시 신청 버튼을 눌러주세요.</div>
+          </div>
+        </div>
         <p class="hint">출생 정보는 보안 암호화 처리되며, 공개 매칭 화면에는 노출되지 않습니다. 계산된 오행 만세력과 MBTI만을 매칭 엔진에 활용하여 최고의 파트너를 분석합니다.</p>
         <div id="error" class="error"></div>
       </form>
     </section>
+  </div>
+
+  <!-- 추가요청 Modal -->
+  <div id="roster-request-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:200;align-items:center;justify-content:center;padding:24px;">
+    <div style="width:min(420px,100%);background:#0a0f1e;border:1px solid rgba(255,232,163,0.28);border-radius:22px;padding:30px 26px;box-shadow:0 40px 100px rgba(0,0,0,0.7);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+        <div style="color:#FFE8A3;font-size:18px;font-weight:900;">목록 추가 요청</div>
+        <button type="button" id="roster-request-close" style="width:34px;height:34px;border:1px solid rgba(255,255,255,0.12);border-radius:10px;background:rgba(255,255,255,0.05);color:#94A3B8;font-size:17px;cursor:pointer;">✕</button>
+      </div>
+      <form id="roster-request-form">
+        <label style="display:block;margin:0 0 6px;color:#94A3B8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">이름 <span style="color:#f5576c">*</span></label>
+        <input id="rr-name" type="text" required placeholder="실명을 입력해주세요" style="width:100%;height:44px;border:1px solid rgba(255,255,255,0.08);border-radius:12px;background:rgba(10,14,26,0.65);color:#F8FAFC;padding:0 16px;font-size:14.5px;box-sizing:border-box;margin-bottom:14px;font-family:inherit">
+        <label style="display:block;margin:0 0 6px;color:#94A3B8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">성별 <span style="color:#f5576c">*</span></label>
+        <select id="rr-gender" required style="width:100%;height:44px;border:1px solid rgba(255,255,255,0.08);border-radius:12px;background:rgba(10,14,26,0.65);color:#F8FAFC;padding:0 16px;font-size:14.5px;box-sizing:border-box;margin-bottom:14px;font-family:inherit;appearance:auto">
+          <option value="" disabled selected>성별 선택</option>
+          <option value="남">남</option>
+          <option value="여">여</option>
+        </select>
+        <div id="rr-error" style="color:#f5576c;font-size:13px;font-weight:600;min-height:18px;margin-bottom:8px;text-align:center"></div>
+        <button type="submit" style="width:100%;height:46px;border:0;border-radius:12px;background:linear-gradient(135deg,#FFE8A3 0%,#C59B3F 50%,#FFE8A3 100%);color:#050811;font-weight:900;font-size:15px;cursor:pointer;">추가 요청하기</button>
+      </form>
+    </div>
   </div>
 
   <!-- STAGE 3: Oracle Result Stage -->
@@ -1440,6 +1648,8 @@ function page() {
     const form = document.querySelector("#manse-form");
     const resultEl = document.querySelector("#result");
     const errorEl = document.querySelector("#error");
+    const submitOracle = document.querySelector("#submit-oracle");
+    const oracleMessage = document.querySelector("#oracle-message");
     const birthPlace = document.querySelector("#birth-place");
     const customPlaceWrap = document.querySelector("#custom-place-wrap");
     const customBirthPlace = document.querySelector("#custom-birth-place");
@@ -1460,6 +1670,14 @@ function page() {
     const stageResult = document.querySelector("#stage-result");
     const btnStart = document.querySelector("#btn-start");
     const globalHomeLogo = document.querySelector(".global-home-logo");
+    const oracleMessages = [
+      "만세력의 별자리를 정렬하는 중...",
+      "오행의 흐름과 균형을 읽는 중...",
+      "MBTI와 사주의 결을 맞춰보는 중...",
+      "관계 리듬과 인연의 단서를 정리하는 중...",
+      "완성된 리포트 문장을 다듬는 중..."
+    ];
+    let oracleTimer = null;
 
     // Stage Transition Helper (fade out -> wait -> hide/show -> reflow -> fade in)
     function transitionStage(from, to) {
@@ -1481,6 +1699,48 @@ function page() {
     btnStart.addEventListener("click", () => {
       transitionStage(stageWelcome, stageInput);
     });
+
+    // 추가요청 모달
+    const rrModal = document.querySelector("#roster-request-modal");
+    document.querySelector("#btn-roster-request").addEventListener("click", () => {
+      rrModal.style.display = "flex";
+      document.querySelector("#rr-name").focus();
+    });
+    document.querySelector("#roster-request-close").addEventListener("click", () => {
+      rrModal.style.display = "none";
+    });
+    rrModal.addEventListener("click", (e) => { if (e.target === rrModal) rrModal.style.display = "none"; });
+    document.querySelector("#roster-request-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const errEl = document.querySelector("#rr-error");
+      errEl.textContent = "";
+      const submitBtn = e.target.querySelector("button[type='submit']");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "요청 중...";
+      try {
+        const res = await fetch("/api/roster/request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            displayName: document.querySelector("#rr-name").value.trim(),
+            gender: document.querySelector("#rr-gender").value,
+          }),
+        });
+        const body = await res.json();
+        if (!res.ok) throw new Error(body.error || "요청에 실패했습니다.");
+        rrModal.style.display = "none";
+        document.querySelector("#rr-name").value = "";
+        document.querySelector("#rr-gender").value = "";
+        alert("추가 요청이 접수되었습니다. 운영자 승인 후 목록에 추가됩니다.");
+        loadRoster();
+      } catch (error) {
+        errEl.textContent = error.message;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "추가 요청하기";
+      }
+    });
+
     loadRoster();
  
     for (const city of cities) {
@@ -1509,6 +1769,37 @@ function page() {
       timeInput.disabled = timeUnknown.checked;
       timeInput.required = !timeUnknown.checked;
     });
+
+    const ALL_MARITAL = ["미혼", "기혼", "돌싱"];
+    let selectedMaritalRange = new Set();
+    const maritalRangeWrap = document.querySelector("#marital-range-wrap");
+    const maritalRangeBtns = document.querySelector("#marital-range-btns");
+    const maritalRangeMyStatus = document.querySelector("#marital-range-my-status");
+    const maritalStatusSelect = document.querySelector("#marital-status");
+
+    maritalStatusSelect.addEventListener("change", () => {
+      const current = maritalStatusSelect.value;
+      selectedMaritalRange.clear();
+      if (!current) { maritalRangeWrap.style.display = "none"; return; }
+      maritalRangeMyStatus.textContent = current;
+      const others = ALL_MARITAL.filter((s) => s !== current);
+      maritalRangeBtns.innerHTML = others.map((s) =>
+        '<button type="button" class="marital-range-btn" data-value="' + s + '">' + s + '</button>'
+      ).join("");
+      maritalRangeBtns.querySelectorAll(".marital-range-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const val = btn.dataset.value;
+          if (selectedMaritalRange.has(val)) {
+            selectedMaritalRange.delete(val);
+            btn.classList.remove("selected");
+          } else {
+            selectedMaritalRange.add(val);
+            btn.classList.add("selected");
+          }
+        });
+      });
+      maritalRangeWrap.style.display = "";
+    });
  
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -1523,7 +1814,8 @@ function page() {
       const submitBtn = form.querySelector("button[type='submit']");
       const originalText = submitBtn.textContent;
       submitBtn.disabled = true;
-      submitBtn.textContent = "🌌 우주의 기운을 모으는 중...";
+      submitBtn.textContent = "분석 리포트 생성 중...";
+      startSubmitOracle();
 
       const data = Object.fromEntries(new FormData(form));
       const payload = {
@@ -1537,26 +1829,69 @@ function page() {
         customBirthPlace: data.customBirthPlace,
         gender: data.gender,
         maritalStatus: data.maritalStatus,
+        matchingMaritalRange: [...selectedMaritalRange],
         mbti: data.mbti,
       };
       try {
-        const response = await fetch("/api/manse", {
+        oracleMessage.textContent = "입력 정보를 확인하고 만세력을 계산하는 중...";
+        const startResponse = await fetch("/api/manse/start", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const body = await response.json();
-        if (!response.ok) throw new Error(body.error || "계산에 실패했습니다.");
+        const startBody = await readJsonResponse(startResponse);
+        if (!startResponse.ok) throw new Error(startBody.error || "계산에 실패했습니다.");
+
+        oracleMessage.textContent = "Gemini가 긴 사주 리포트를 작성하는 중...";
+        const analyzeResponse = await fetch("/api/manse/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ analysisRequest: startBody.analysisRequest }),
+        });
+        const body = await readJsonResponse(analyzeResponse);
+        if (!analyzeResponse.ok) throw new Error(body.error || "사주 분석에 실패했습니다.");
+        if (!body.view?.geminiAnalysis || body.view.geminiAnalysis.status !== "ok") {
+          throw new Error("사주 분석 리포트가 아직 완성되지 않았습니다. 잠시 후 다시 신청 버튼을 눌러주세요.");
+        }
         
         render(body.view, Boolean(data.testMode));
         transitionStage(stageInput, stageResult);
       } catch (error) {
         errorEl.textContent = error.message;
       } finally {
+        stopSubmitOracle();
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
       }
     });
+
+    function startSubmitOracle() {
+      let index = 0;
+      submitOracle.classList.remove("hidden");
+      oracleMessage.textContent = oracleMessages[index];
+      clearInterval(oracleTimer);
+      oracleTimer = setInterval(function() {
+        index = (index + 1) % oracleMessages.length;
+        oracleMessage.textContent = oracleMessages[index];
+      }, 3600);
+    }
+
+    function stopSubmitOracle() {
+      clearInterval(oracleTimer);
+      oracleTimer = null;
+      submitOracle.classList.add("hidden");
+    }
+
+    async function readJsonResponse(response) {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) return response.json();
+      const text = await response.text();
+      const isTimeoutHtml = /<html|timeout|timed out|function invocation failed/i.test(text);
+      if (isTimeoutHtml) {
+        throw new Error("사주 분석 시간이 길어져 신청이 완료되지 않았습니다. 입력 내용은 유지되니 잠시 후 다시 신청 버튼을 눌러주세요.");
+      }
+      throw new Error("서버 응답을 확인하지 못했습니다. 입력 내용은 유지되니 다시 신청 버튼을 눌러주세요.");
+    }
  
     function render(view, showBirthData) {
       const order = ["hour", "day", "month", "year"];
@@ -1732,12 +2067,7 @@ function page() {
  
     function analysisCard(analysis) {
       if (!analysis || analysis.status !== "ok") {
-        let errHtml = '';
-        errHtml += '<div class="analysis" style="border-color: rgba(245, 87, 108, 0.2);">';
-        errHtml += '  <strong>⚠️ Gemini 사주 통찰 일시 불가</strong>';
-        errHtml += '  <div>API 응답 대기 시간을 초과했거나 모델이 오프라인 상태입니다. 밤하늘 오행 만세력을 바탕으로 본인의 성격과 어울리는 인연을 묵상해보세요.</div>';
-        errHtml += '</div>';
-        return errHtml;
+        return '';
       }
       const keywordsHtml = Array.isArray(analysis.strength_keywords) 
         ? '<div class="keywords-badge-container">' + 

@@ -12,3 +12,4 @@ data/*.json
 .netlify/
 netlify-build/
 .claude/
+.mcp.json
