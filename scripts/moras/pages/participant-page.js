@@ -895,6 +895,11 @@ function page() {
         grid-template-columns: 1fr;
         max-width: 320px;
       }
+      .welcome-games-row {
+        grid-template-columns: 1fr;
+        max-width: 320px;
+        margin: 0 auto;
+      }
       input, select, button {
         height: 48px;
         font-size: 15px;
@@ -1054,6 +1059,82 @@ function page() {
       border-color: rgba(255, 232, 163, 0.48);
       background: rgba(197, 155, 63, 0.12);
       box-shadow: 0 16px 34px rgba(197, 155, 63, 0.16);
+    }
+
+    .welcome-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 232, 163, 0.18), transparent);
+      margin: 36px auto 28px;
+      max-width: 520px;
+      width: 100%;
+    }
+    .welcome-games-section {
+      max-width: 520px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .welcome-games-title {
+      font-family: 'Cinzel', serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: #FFE8A3;
+      letter-spacing: 0.1em;
+      margin-bottom: 20px;
+      text-shadow: 0 0 12px rgba(255, 232, 163, 0.35);
+      opacity: 0.95;
+    }
+    .welcome-games-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .welcome-game-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 10px;
+      font-size: 13.5px;
+      font-weight: 900;
+      text-decoration: none;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s, background 0.25s, box-shadow 0.25s;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    }
+    .game-btn-roulette {
+      border-color: rgba(236, 72, 153, 0.35);
+      background: rgba(236, 72, 153, 0.05);
+      color: #F472B6;
+    }
+    .game-btn-roulette:hover {
+      transform: translateY(-2px);
+      border-color: rgba(236, 72, 153, 0.65);
+      background: rgba(236, 72, 153, 0.14);
+      box-shadow: 0 12px 28px rgba(236, 72, 153, 0.22);
+    }
+    .game-btn-ladder {
+      border-color: rgba(6, 182, 212, 0.35);
+      background: rgba(6, 182, 212, 0.05);
+      color: #22D3EE;
+    }
+    .game-btn-ladder:hover {
+      transform: translateY(-2px);
+      border-color: rgba(6, 182, 212, 0.65);
+      background: rgba(6, 182, 212, 0.14);
+      box-shadow: 0 12px 28px rgba(6, 182, 212, 0.22);
+    }
+    .game-btn-gachapon {
+      border-color: rgba(139, 92, 246, 0.35);
+      background: rgba(139, 92, 246, 0.05);
+      color: #A78BFA;
+    }
+    .game-btn-gachapon:hover {
+      transform: translateY(-2px);
+      border-color: rgba(139, 92, 246, 0.65);
+      background: rgba(139, 92, 246, 0.14);
+      box-shadow: 0 12px 28px rgba(139, 92, 246, 0.22);
     }
 
     /* 입력 스테이지 중앙 정렬 */
@@ -1500,8 +1581,17 @@ function page() {
     <div class="welcome-links">
       <a class="welcome-link-btn" href="/applicants">신청자 목록 확인하기</a>
       <a class="welcome-link-btn" href="/results">매칭결과 확인하기</a>
-      <a class="welcome-link-btn" href="/roulette">룰렛결과 확인하기</a>
-      <a class="welcome-link-btn" href="/ladder">사다리결과 확인하기</a>
+    </div>
+
+    <div class="welcome-divider"></div>
+
+    <div class="welcome-games-section">
+      <div class="welcome-games-title">🪐 Moras 추첨게임</div>
+      <div class="welcome-games-row">
+        <a class="welcome-game-btn game-btn-roulette" href="/roulette">🔮 운명의 룰렛</a>
+        <a class="welcome-game-btn game-btn-ladder" href="/ladder">🪜 은하수 사다리</a>
+        <a class="welcome-game-btn game-btn-gachapon" href="/gachapon">💫 기적의 캡슐</a>
+      </div>
     </div>
   </div>
 
