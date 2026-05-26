@@ -610,74 +610,70 @@ function roulettePage() {
       let fireworks = [];
       let active = true;
       
-      class Firework {
-        constructor() {
-          this.x = Math.random() * width;
-          this.y = height;
-          this.targetX = Math.random() * width;
-          this.targetY = Math.random() * (height * 0.5) + (height * 0.15);
-          this.speed = 3 + Math.random() * 4;
-          const angle = Math.atan2(this.targetY - this.y, this.targetX - this.x);
-          this.vx = Math.cos(angle) * this.speed;
-          this.vy = Math.sin(angle) * this.speed;
-          this.hue = Math.floor(Math.random() * 360);
-          this.trail = [];
-        }
-        update() {
-          this.trail.push({ x: this.x, y: this.y });
-          if (this.trail.length > 5) this.trail.shift();
-          
-          this.x += this.vx;
-          this.y += this.vy;
-          
-          if (this.vy >= 0 || Math.abs(this.y - this.targetY) < 10) {
-            explode(this.x, this.y, this.hue);
-            return false;
-          }
-          return true;
-        }
-        draw() {
-          ctx.beginPath();
-          ctx.strokeStyle = "hsla(" + this.hue + ", 100%, 70%, 1)";
-          ctx.lineWidth = 3;
-          if (this.trail.length) {
-            ctx.moveTo(this.trail[0].x, this.trail[0].y);
-            ctx.lineTo(this.x, this.y);
-          }
-          ctx.stroke();
-        }
+      function Firework() {
+        this.x = Math.random() * width;
+        this.y = height;
+        this.targetX = Math.random() * width;
+        this.targetY = Math.random() * (height * 0.5) + (height * 0.15);
+        this.speed = 3 + Math.random() * 4;
+        const angle = Math.atan2(this.targetY - this.y, this.targetX - this.x);
+        this.vx = Math.cos(angle) * this.speed;
+        this.vy = Math.sin(angle) * this.speed;
+        this.hue = Math.floor(Math.random() * 360);
+        this.trail = [];
       }
+      Firework.prototype.update = function() {
+        this.trail.push({ x: this.x, y: this.y });
+        if (this.trail.length > 5) this.trail.shift();
+        
+        this.x += this.vx;
+        this.y += this.vy;
+        
+        if (this.vy >= 0 || Math.abs(this.y - this.targetY) < 10) {
+          explode(this.x, this.y, this.hue);
+          return false;
+        }
+        return true;
+      };
+      Firework.prototype.draw = function() {
+        ctx.beginPath();
+        ctx.strokeStyle = "hsla(" + this.hue + ", 100%, 70%, 1)";
+        ctx.lineWidth = 3;
+        if (this.trail.length) {
+          ctx.moveTo(this.trail[0].x, this.trail[0].y);
+          ctx.lineTo(this.x, this.y);
+        }
+        ctx.stroke();
+      };
       
-      class Spark {
-        constructor(x, y, hue) {
-          this.x = x;
-          this.y = y;
-          const angle = Math.random() * Math.PI * 2;
-          const speed = Math.random() * 6 + 1.5;
-          this.vx = Math.cos(angle) * speed;
-          this.vy = Math.sin(angle) * speed - 1.5;
-          this.hue = hue + Math.floor(Math.random() * 60) - 30;
-          this.alpha = 1;
-          this.decay = 0.012 + Math.random() * 0.012;
-          this.gravity = 0.12;
-        }
-        update() {
-          this.x += this.vx;
-          this.y += this.vy;
-          this.vy += this.gravity;
-          this.alpha -= this.decay;
-          return this.alpha > 0;
-        }
-        draw() {
-          ctx.beginPath();
-          ctx.arc(this.x, this.y, 2 + Math.random() * 1.5, 0, Math.PI * 2);
-          ctx.fillStyle = "hsla(" + this.hue + ", 100%, 65%," + this.alpha + ")";
-          ctx.shadowBlur = 8;
-          ctx.shadowColor = "hsla(" + this.hue + ", 100%, 65%, 1)";
-          ctx.fill();
-          ctx.shadowBlur = 0;
-        }
+      function Spark(x, y, hue) {
+        this.x = x;
+        this.y = y;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 6 + 1.5;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed - 1.5;
+        this.hue = hue + Math.floor(Math.random() * 60) - 30;
+        this.alpha = 1;
+        this.decay = 0.012 + Math.random() * 0.012;
+        this.gravity = 0.12;
       }
+      Spark.prototype.update = function() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += this.gravity;
+        this.alpha -= this.decay;
+        return this.alpha > 0;
+      };
+      Spark.prototype.draw = function() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 2 + Math.random() * 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = "hsla(" + this.hue + ", 100%, 65%," + this.alpha + ")";
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = "hsla(" + this.hue + ", 100%, 65%, 1)";
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      };
       
       function explode(x, y, hue) {
         const count = 80 + Math.floor(Math.random() * 40);
@@ -908,11 +904,15 @@ function roulettePage() {
       statusBar.textContent    = "빠르게 회전 중...";
       statusEl.textContent     = "순차 추첨 진행 중";
       wheelEl.style.transition = "transform 12s cubic-bezier(.04,.82,.05,1)";
-      wheelEl.classList.add("fast-glow");
-      centerEl.classList.add("fast-glow");
       wheelEl.style.transform  = "rotate(" + rotation + "deg)";
       /* Live tracking: update center disc with segment under pointer every frame */
       startLiveTracking(N, participants);
+
+      // Add fast-glow classes in a setTimeout to prevent browser from canceling transition
+      setTimeout(() => {
+        wheelEl.classList.add("fast-glow");
+        centerEl.classList.add("fast-glow");
+      }, 50);
 
       return new Promise(resolve => {
         /* ---- Pointer bounce effects near end ---- */
