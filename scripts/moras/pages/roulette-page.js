@@ -72,7 +72,54 @@ function roulettePage() {
 
     /* Spinning wheel */
     .wheel { position:absolute; inset:0; border-radius:50%; border:9px solid rgba(255,232,163,.28); box-shadow:inset 0 0 60px rgba(0,0,0,.55),0 0 50px rgba(255,232,163,.16); transition:transform 12s cubic-bezier(.04,.82,.05,1); will-change:transform; }
-    .wheel.fast-glow { border-color:rgba(255,232,163,.65); box-shadow:inset 0 0 60px rgba(0,0,0,.55),0 0 90px rgba(255,232,163,.45); }
+    .wheel.fast-glow { animation: neonWheelSpin 1.5s linear infinite; border-width: 9px; }
+    .center.fast-glow { animation: neonCenterSpin 1.5s linear infinite; }
+
+    @keyframes neonWheelSpin {
+      0% {
+        border-color: #00f2fe;
+        box-shadow: inset 0 0 60px rgba(0,0,0,.55), 0 0 45px rgba(0, 242, 254, 0.75), 0 0 90px rgba(0, 242, 254, 0.45);
+      }
+      25% {
+        border-color: #ff4757;
+        box-shadow: inset 0 0 60px rgba(0,0,0,.55), 0 0 45px rgba(255, 71, 87, 0.75), 0 0 90px rgba(255, 71, 87, 0.45);
+      }
+      50% {
+        border-color: #FFE8A3;
+        box-shadow: inset 0 0 60px rgba(0,0,0,.55), 0 0 45px rgba(255, 232, 163, 0.75), 0 0 90px rgba(255, 232, 163, 0.45);
+      }
+      75% {
+        border-color: #a29bfe;
+        box-shadow: inset 0 0 60px rgba(0,0,0,.55), 0 0 45px rgba(162, 155, 254, 0.75), 0 0 90px rgba(162, 155, 254, 0.45);
+      }
+      100% {
+        border-color: #00f2fe;
+        box-shadow: inset 0 0 60px rgba(0,0,0,.55), 0 0 45px rgba(0, 242, 254, 0.75), 0 0 90px rgba(0, 242, 254, 0.45);
+      }
+    }
+
+    @keyframes neonCenterSpin {
+      0% {
+        border-color: #ff4757;
+        box-shadow: 0 0 30px rgba(255, 71, 87, 0.65), inset 0 0 20px rgba(255, 71, 87, 0.3);
+        color: #ff4757;
+      }
+      33% {
+        border-color: #00f2fe;
+        box-shadow: 0 0 30px rgba(0, 242, 254, 0.65), inset 0 0 20px rgba(0, 242, 254, 0.3);
+        color: #00f2fe;
+      }
+      66% {
+        border-color: #a29bfe;
+        box-shadow: 0 0 30px rgba(162, 155, 254, 0.65), inset 0 0 20px rgba(162, 155, 254, 0.3);
+        color: #a29bfe;
+      }
+      100% {
+        border-color: #ff4757;
+        box-shadow: 0 0 30px rgba(255, 71, 87, 0.65), inset 0 0 20px rgba(255, 71, 87, 0.3);
+        color: #ff4757;
+      }
+    }
 
     /* ── SEGMENT NAMES ──────────────────────────── */
     /* .snw = zero-size rotation wrapper positioned at wheel center */
@@ -539,6 +586,153 @@ function roulettePage() {
       cloudRaf = requestAnimationFrame(tick);
     }
 
+    /* ── Fullscreen Canvas Fireworks Effect ──────────────── */
+    function triggerFireworks() {
+      let canvas = document.getElementById("fireworks-canvas");
+      if (!canvas) {
+        canvas = document.createElement("canvas");
+        canvas.id = "fireworks-canvas";
+        canvas.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:999999;";
+        document.body.appendChild(canvas);
+      }
+      
+      const ctx = canvas.getContext("2d");
+      let width = canvas.width = window.innerWidth;
+      let height = canvas.height = window.innerHeight;
+      
+      const handleResize = () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      };
+      window.addEventListener("resize", handleResize);
+      
+      let particles = [];
+      let fireworks = [];
+      let active = true;
+      
+      class Firework {
+        constructor() {
+          this.x = Math.random() * width;
+          this.y = height;
+          this.targetX = Math.random() * width;
+          this.targetY = Math.random() * (height * 0.5) + (height * 0.15);
+          this.speed = 3 + Math.random() * 4;
+          const angle = Math.atan2(this.targetY - this.y, this.targetX - this.x);
+          this.vx = Math.cos(angle) * this.speed;
+          this.vy = Math.sin(angle) * this.speed;
+          this.hue = Math.floor(Math.random() * 360);
+          this.trail = [];
+        }
+        update() {
+          this.trail.push({ x: this.x, y: this.y });
+          if (this.trail.length > 5) this.trail.shift();
+          
+          this.x += this.vx;
+          this.y += this.vy;
+          
+          if (this.vy >= 0 || Math.abs(this.y - this.targetY) < 10) {
+            explode(this.x, this.y, this.hue);
+            return false;
+          }
+          return true;
+        }
+        draw() {
+          ctx.beginPath();
+          ctx.strokeStyle = "hsla(" + this.hue + ", 100%, 70%, 1)";
+          ctx.lineWidth = 3;
+          if (this.trail.length) {
+            ctx.moveTo(this.trail[0].x, this.trail[0].y);
+            ctx.lineTo(this.x, this.y);
+          }
+          ctx.stroke();
+        }
+      }
+      
+      class Spark {
+        constructor(x, y, hue) {
+          this.x = x;
+          this.y = y;
+          const angle = Math.random() * Math.PI * 2;
+          const speed = Math.random() * 6 + 1.5;
+          this.vx = Math.cos(angle) * speed;
+          this.vy = Math.sin(angle) * speed - 1.5;
+          this.hue = hue + Math.floor(Math.random() * 60) - 30;
+          this.alpha = 1;
+          this.decay = 0.012 + Math.random() * 0.012;
+          this.gravity = 0.12;
+        }
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          this.vy += this.gravity;
+          this.alpha -= this.decay;
+          return this.alpha > 0;
+        }
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, 2 + Math.random() * 1.5, 0, Math.PI * 2);
+          ctx.fillStyle = "hsla(" + this.hue + ", 100%, 65%," + this.alpha + ")";
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = "hsla(" + this.hue + ", 100%, 65%, 1)";
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+      }
+      
+      function explode(x, y, hue) {
+        const count = 80 + Math.floor(Math.random() * 40);
+        for (let i = 0; i < count; i++) {
+          particles.push(new Spark(x, y, hue));
+        }
+      }
+      
+      for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+          if (active) fireworks.push(new Firework());
+        }, i * 350);
+      }
+      
+      const launchInterval = setInterval(() => {
+        if (active && fireworks.length < 4) {
+          fireworks.push(new Firework());
+        }
+      }, 600);
+      
+      setTimeout(() => {
+        clearInterval(launchInterval);
+        setTimeout(() => {
+          active = false;
+          window.removeEventListener("resize", handleResize);
+          canvas.remove();
+        }, 2000);
+      }, 4000);
+      
+      function loop() {
+        if (!active && !particles.length && !fireworks.length) return;
+        
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+        ctx.fillRect(0, 0, width, height);
+        ctx.globalCompositeOperation = "lighter";
+        
+        fireworks = fireworks.filter(fw => {
+          const keep = fw.update();
+          if (keep) fw.draw();
+          return keep;
+        });
+        
+        particles = particles.filter(p => {
+          const keep = p.update();
+          if (keep) p.draw();
+          return keep;
+        });
+        
+        requestAnimationFrame(loop);
+      }
+      
+      loop();
+    }
+
     /* ── Wheel builder ────────────────────────────── */
     function buildWheel(pts) {
       const people  = pts.length ? pts : [{ display_name: "READY" }];
@@ -715,6 +909,7 @@ function roulettePage() {
       statusEl.textContent     = "순차 추첨 진행 중";
       wheelEl.style.transition = "transform 12s cubic-bezier(.04,.82,.05,1)";
       wheelEl.classList.add("fast-glow");
+      centerEl.classList.add("fast-glow");
       wheelEl.style.transform  = "rotate(" + rotation + "deg)";
       /* Live tracking: update center disc with segment under pointer every frame */
       startLiveTracking(N, participants);
@@ -742,6 +937,7 @@ function roulettePage() {
           SFX.stopTick();
           SFX.fadeBgm(0.09, 2); /* 배경음 복구 */
           wheelEl.classList.remove("fast-glow");
+          centerEl.classList.remove("fast-glow");
           /* Final pointer hit */
           ptr.classList.add("hit");
           SFX.pinHit();
@@ -752,6 +948,7 @@ function roulettePage() {
           statusBar.textContent = name + " 님 당첨! 🎉";
           statusEl.textContent  = "당첨: " + name;
           SFX.fanfare();
+          triggerFireworks();
 
           /* ---- Now vanish the chip and flash its label in the cloud zone ---- */
           cloudZone.querySelectorAll(".cloud-chip").forEach(chip => {
@@ -830,6 +1027,7 @@ function roulettePage() {
       fwLayer.classList.add("show");
 
       SFX.bigFanfare();
+      triggerFireworks();
       wItem.textContent = "🎊 전체 추첨 완료";
       wName.textContent = "축하합니다!";
       wPop.classList.add("show");
