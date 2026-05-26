@@ -3384,7 +3384,7 @@ function adminPage() {
     });
 
     document.getElementById("gachapon-reset-results").addEventListener("click", async () => {
-      if (!confirm("가차폰 매칭 결과와 진행 상태만 초기화할까요?\n참가자 명단은 그대로 유지됩니다.")) return;
+      if (!confirm("가차폰 매칭 결과와 진행 상태만 초기화할까요?\\n참가자 명단은 그대로 유지됩니다.")) return;
       const status = document.getElementById("gachapon-status");
       status.textContent = "가차폰 결과 초기화 중...";
       const response = await fetch("/api/admin/gachapon", {
@@ -3399,7 +3399,7 @@ function adminPage() {
     });
 
     document.getElementById("gachapon-reset").addEventListener("click", async () => {
-      if (!confirm("참가자, 매칭 결과, 타이머 세팅을 전부 초기화할까요?\n상품 정보는 룰렛 탭에 그대로 보존됩니다.")) return;
+      if (!confirm("참가자, 매칭 결과, 타이머 세팅을 전부 초기화할까요?\\n상품 정보는 룰렛 탭에 그대로 보존됩니다.")) return;
       const status = document.getElementById("gachapon-status");
       status.textContent = "전체 가차폰 초기화 중...";
       const response = await fetch("/api/admin/gachapon", {
@@ -3414,7 +3414,7 @@ function adminPage() {
     });
 
     document.getElementById("gachapon-add-all").addEventListener("click", async () => {
-      if (!confirm("전체 참가자 명단(활성)을 모두 가차폰에 추가할까요?\n이미 추가된 참가자는 건너뜁니다.")) return;
+      if (!confirm("전체 참가자 명단(활성)을 모두 가차폰에 추가할까요?\\n이미 추가된 참가자는 건너뜁니다.")) return;
       const status = document.getElementById("gachapon-status");
       status.textContent = "전체 참가자를 가차폰에 추가하는 중...";
       const response = await fetch("/api/admin/gachapon", {
