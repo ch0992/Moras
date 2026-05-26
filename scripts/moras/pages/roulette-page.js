@@ -588,7 +588,8 @@ function roulettePage() {
 
     /* ── Fullscreen Canvas Fireworks Effect ──────────────── */
     function triggerFireworks() {
-      let canvas = document.getElementById("fireworks-canvas");
+      return new Promise(function(resolveFireworks) {
+        let canvas = document.getElementById("fireworks-canvas");
       if (!canvas) {
         canvas = document.createElement("canvas");
         canvas.id = "fireworks-canvas";
@@ -722,6 +723,7 @@ function roulettePage() {
           active = false;
           window.removeEventListener("resize", handleResize);
           canvas.remove();
+          resolveFireworks();
         }, 2000);
       }, 4000);
       
@@ -749,6 +751,7 @@ function roulettePage() {
       }
       
       loop();
+      });
     }
 
     /* ── Wheel builder ────────────────────────────── */
@@ -970,7 +973,6 @@ function roulettePage() {
           statusBar.textContent = name + " 님 당첨! 🎉";
           statusEl.textContent  = "당첨: " + name;
           SFX.fanfare();
-          triggerFireworks();
 
           /* ---- Now vanish the chip and flash its label in the cloud zone ---- */
           cloudZone.querySelectorAll(".cloud-chip").forEach(chip => {
@@ -986,16 +988,19 @@ function roulettePage() {
             cft.classList.add("pop");
           }
 
-          wItem.textContent = item.label || "당첨";
-          wName.textContent = name;
-          wPop.classList.add("show");
+          // Trigger fireworks and wait for them to finish (6 seconds) before showing the winner popup
+          triggerFireworks().then(function() {
+            wItem.textContent = item.label || "당첨";
+            wName.textContent = name;
+            wPop.classList.add("show");
 
-          /* Remove popup and cloud highlight after display */
-          setTimeout(() => {
-            wPop.classList.remove("show");
-            cloudZone.querySelectorAll(".cloud-chip").forEach(c => c.classList.remove("lit"));
-            resolve();
-          }, 2400);
+            /* Remove popup and cloud highlight after display */
+            setTimeout(() => {
+              wPop.classList.remove("show");
+              cloudZone.querySelectorAll(".cloud-chip").forEach(c => c.classList.remove("lit"));
+              resolve();
+            }, 2600);
+          });
         }, 12000);
       });
     }
