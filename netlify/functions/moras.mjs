@@ -19,11 +19,14 @@ const {
   handleAdminMatchesReset,
   handleAdminRoulette,
   handleAdminLadder,
+  handleAdminGachapon,
   handlePublicResults,
   handlePublicRoulette,
   handlePublicLadder,
+  handlePublicGachapon,
   handleRoulettePublicAction,
   handleLadderPublicAction,
+  handleGachaponPublicAction,
   handleMatchDetail,
   handleMatchVote,
   handleManseApi,
@@ -37,6 +40,7 @@ const {
   resultsPage,
   roulettePage,
   ladderPage,
+  gachaponPage,
   secretPage,
   upcomingEventPage,
   promoPage,
@@ -85,6 +89,10 @@ export default async (request) => {
 
     if (request.method === "GET" && url.pathname === "/ladder") {
       return html(ladderPage());
+    }
+
+    if (request.method === "GET" && url.pathname === "/gachapon") {
+      return html(gachaponPage());
     }
 
     if (request.method === "GET" && url.pathname === "/secret") {
@@ -143,6 +151,15 @@ export default async (request) => {
 
     if (request.method === "POST" && url.pathname === "/api/ladder") {
       return json(await handleLadderPublicAction(await request.json()));
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/gachapon") {
+      const result = await handlePublicGachapon();
+      return json(result.payload, result.status);
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/gachapon") {
+      return json(await handleGachaponPublicAction(await request.json()));
     }
 
     if (request.method === "POST" && url.pathname === "/api/manse") {
@@ -219,6 +236,13 @@ export default async (request) => {
       return json(result.payload, result.status);
     }
 
+    if (url.pathname === "/api/admin/gachapon" || url.pathname.startsWith("/api/admin/gachapon/")) {
+      const id = url.pathname === "/api/admin/gachapon" ? "" : decodeURIComponent(url.pathname.replace("/api/admin/gachapon/", ""));
+      const body = request.method === "POST" || request.method === "PATCH" ? await request.json() : {};
+      const result = await handleAdminGachapon(request.headers.cookie || request.headers.get("cookie") || "", request.method, body, id);
+      return json(result.payload, result.status);
+    }
+
     if (request.method === "POST" && url.pathname === "/api/match/detail") {
       const result = await handleMatchDetail(await request.json());
       return json(result.payload, result.status);
@@ -253,6 +277,7 @@ export const config = {
     "/guide",
     "/roulette",
     "/ladder",
+    "/gachapon",
     "/health",
     "/api/applicants",
     "/api/applicants/*",
@@ -262,6 +287,9 @@ export const config = {
     "/api/roulette",
     "/api/roulette/join",
     "/api/ladder",
+    "/api/gachapon",
+    "/api/admin/gachapon",
+    "/api/admin/gachapon/*",
     "/api/manse",
     "/api/manse/start",
     "/api/manse/analyze",

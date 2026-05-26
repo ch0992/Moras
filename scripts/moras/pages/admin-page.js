@@ -1375,6 +1375,7 @@ function adminPage() {
       <button class="tab-btn" data-tab="couples" id="tab-btn-couples">매칭 결과</button>
       <button class="tab-btn" data-tab="roulette" id="tab-btn-roulette">추첨 룰렛</button>
       <button class="tab-btn" data-tab="ladder" id="tab-btn-ladder">사다리타기</button>
+      <button class="tab-btn" data-tab="gachapon" id="tab-btn-gachapon">가차폰 추첨</button>
     </div>
  
     <!-- Tab Contents 1: Submissions -->
@@ -1638,6 +1639,69 @@ function adminPage() {
         </div>
       </div>
     </div>
+
+    <!-- Tab Contents 5: Gachapon -->
+    <div class="tab-content" id="tab-gachapon">
+      <div class="roulette-panel">
+        <div class="roulette-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <h3 style="margin:0;">네온 가차폰 추첨 설정</h3>
+            <div style="display:flex;gap:6px;">
+              <button id="gachapon-reset-results" type="button" class="btn-secondary" style="height:32px;font-size:12px;padding:0 12px;border-color:rgba(251,191,36,.4);color:#fbbf24;">결과초기화</button>
+              <button id="gachapon-reset" type="button" class="btn-secondary btn-danger" style="height:32px;font-size:12px;padding:0 12px;">전체초기화</button>
+            </div>
+          </div>
+          <!-- 이벤트 이름 -->
+          <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:18px;align-items:end;">
+            <div>
+              <label style="display:block;margin-bottom:7px;color:var(--muted);font-size:12px;font-weight:900;" for="gachapon-event-name">가차폰 이벤트 이름</label>
+              <input id="gachapon-event-name" placeholder="예: 제 1회 네온 가차폰 이벤트" style="width:100%;min-height:42px;border-radius:10px;border:1px solid var(--line);background:rgba(5,8,17,.72);color:#fff;padding:0 14px;font-family:inherit;font-size:14px;font-weight:700;">
+            </div>
+            <button id="gachapon-name-save" type="button" style="height:42px;padding:0 20px;white-space:nowrap;">저장</button>
+          </div>
+          <!-- 타이머 자동실행 카드 (인라인) -->
+          <div class="roulette-settings-form" id="gachapon-timer-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <h3 style="margin:0;font-size:15px;">⏰ 타이머 자동실행</h3>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-bottom:12px;">
+              <div>
+                <label style="display:block;margin-bottom:7px;color:var(--muted);font-size:12px;font-weight:900;" for="gachapon-start-time">시작 예정 시간</label>
+                <input id="gachapon-start-time" type="datetime-local" style="width:100%;min-height:42px;border-radius:10px;border:1px solid var(--line);background:rgba(5,8,17,.72);color:#fff;padding:0 14px;font-family:inherit;font-size:14px;font-weight:700;">
+              </div>
+              <button id="gachapon-timer-start" type="button" style="height:42px;padding:0 20px;white-space:nowrap;background:linear-gradient(135deg,#FFE8A3,#F4C35E);color:#03070e;font-weight:900;border:0;border-radius:10px;cursor:pointer;">타이머 가차 시작</button>
+            </div>
+            <div id="gachapon-timer-display" style="padding:14px 16px;border-radius:12px;background:rgba(255,232,163,.06);border:1px solid rgba(255,232,163,.14);min-height:52px;display:flex;align-items:center;gap:10px;">
+              <span id="gachapon-timer-clock" style="font-size:clamp(18px,2.8vw,26px);font-weight:900;color:#FFE8A3;font-family:'Cinzel',serif;letter-spacing:.04em;">–</span>
+              <span id="gachapon-timer-countdown" style="font-size:13px;font-weight:700;color:rgba(255,255,255,.55);"></span>
+            </div>
+            <div class="roulette-timer-status" id="gachapon-timer-status" style="margin-top:10px;">가차폰 실행 상태를 불러오는 중...</div>
+          </div>
+          <!-- hidden draw-mode -->
+          <input type="hidden" id="gachapon-draw-mode" value="instant">
+
+          <div style="margin-top:18px;padding:16px;border-radius:14px;background:rgba(255,232,163,0.03);border:1px solid rgba(255,232,163,0.1);">
+            <h4 style="color:#FFE8A3;margin:0 0 6px;font-size:13px;">💡 상품 목록 연동 안내</h4>
+            <p style="color:var(--muted);font-size:11.5px;line-height:1.5;">가차폰 추첨 상품은 **'추첨 룰렛' 탭의 '추첨 항목 관리'**에 등록하고 체크박스를 선택한 항목들이 실시간으로 자동 연동됩니다. 룰렛 탭에서 상품 항목을 먼저 준비해주세요.</p>
+          </div>
+
+          <button id="gachapon-spin" type="button" style="width:100%;margin-top:18px;height:46px;background:linear-gradient(135deg,#FFE8A3,#F4C35E);color:#03070e;font-weight:900;border:0;border-radius:10px;cursor:pointer;">가차 레버 당기기 (순차 추첨)</button>
+          <div class="muted" id="gachapon-status" style="margin-top:12px;">가차폰 데이터를 불러오는 중...</div>
+        </div>
+        <div class="roulette-card">
+          <h3>가차폰 참가자 및 결과 <span id="gachapon-participant-count" style="font-size:13px;font-weight:500;color:var(--muted);"></span></h3>
+          <div class="roulette-participant-tools">
+            <input id="gachapon-roster-search" placeholder="전체명단에서 이름 검색">
+            <select id="gachapon-roster-select"></select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:14px;">
+            <button id="gachapon-add-participant" type="button" style="width:100%;margin:0;">가차폰 참가자 추가</button>
+            <button id="gachapon-add-all" type="button" style="margin:0;white-space:nowrap;">전체추가</button>
+          </div>
+          <div class="roulette-result-list" id="gachapon-results"></div>
+        </div>
+      </div>
+    </div>
   </main>
  
   <script>
@@ -1690,6 +1754,28 @@ function adminPage() {
       if (ladderPollInterval) { clearInterval(ladderPollInterval); ladderPollInterval = null; }
     }
 
+    let gachaponPollInterval = null;
+    function startGachaponPoll() {
+      if (gachaponPollInterval) return;
+      gachaponPollInterval = setInterval(async () => {
+        try {
+          const response = await fetch("/api/admin/gachapon", { cache: "no-store" });
+          const data = await response.json();
+          if (!response.ok) return;
+          gachaponState.participants = data.participants || [];
+          gachaponState.results      = data.results      || [];
+          gachaponState.roster       = data.roster       || [];
+          renderGachaponParticipantsAndResults();
+          renderGachaponRosterSelect();
+          const status = document.getElementById("gachapon-status");
+          status.textContent = "룰렛 연동 상품 " + (gachaponState.settings.roulettePrizes?.selectedItemIds?.length || 0) + "개 · 가차폰 참가자 " + gachaponState.participants.length + "명";
+        } catch (_) {}
+      }, 5000);
+    }
+    function stopGachaponPoll() {
+      if (gachaponPollInterval) { clearInterval(gachaponPollInterval); gachaponPollInterval = null; }
+    }
+
     tabButtons.forEach(btn => {
       btn.addEventListener("click", () => {
         tabButtons.forEach(b => b.classList.remove("active"));
@@ -1702,26 +1788,37 @@ function adminPage() {
         if (tabName === "couples") {
           stopRoulettePoll();
           stopLadderPoll();
+          stopGachaponPoll();
           loadMatches();
         }
         if (tabName === "roster") {
           stopRoulettePoll();
           stopLadderPoll();
+          stopGachaponPoll();
           loadRoster();
         }
         if (tabName === "roulette") {
           stopLadderPoll();
+          stopGachaponPoll();
           loadRoulette();
           startRoulettePoll();
         }
         if (tabName === "ladder") {
           stopRoulettePoll();
+          stopGachaponPoll();
           loadLadder();
           startLadderPoll();
         }
-        if (tabName !== "roulette" && tabName !== "ladder") {
+        if (tabName === "gachapon") {
           stopRoulettePoll();
           stopLadderPoll();
+          loadGachapon();
+          startGachaponPoll();
+        }
+        if (tabName !== "roulette" && tabName !== "ladder" && tabName !== "gachapon") {
+          stopRoulettePoll();
+          stopLadderPoll();
+          stopGachaponPoll();
         }
       });
     });
@@ -3196,6 +3293,282 @@ function adminPage() {
       };
       render();
       ladderTimerInterval = setInterval(render, 1000);
+    }
+
+    /* ── GACHAPON GAME CONTROLLER ── */
+    let gachaponState = { participants: [], roster: [], results: [], settings: {} };
+    let gachaponTimerInterval = null;
+
+    /* ── 가차폰 이벤트 이름 저장 ── */
+    document.getElementById("gachapon-name-save").addEventListener("click", async () => {
+      const status = document.getElementById("gachapon-status");
+      const eventName = document.getElementById("gachapon-event-name").value.trim();
+      if (!eventName) { status.textContent = "이벤트 이름을 입력해주세요."; return; }
+      status.textContent = "가차폰 이벤트 이름 저장 중...";
+      const res = await fetch("/api/admin/gachapon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "saveSettings",
+          eventName,
+          startsAt: (gachaponState.settings.starts_at || gachaponState.settings.startsAt) ?? null,
+          drawMode: gachaponState.settings.draw_mode || "instant",
+        }),
+      });
+      const data = await res.json();
+      status.textContent = res.ok ? "가차폰 이벤트 이름이 저장되었습니다." : (data.error || "저장 실패");
+      if (res.ok) await loadGachapon();
+    });
+
+    /* ── 타이머 자동실행 시작 ── */
+    document.getElementById("gachapon-timer-start").addEventListener("click", async () => {
+      const status = document.getElementById("gachapon-status");
+      const timeVal = document.getElementById("gachapon-start-time").value;
+      if (!timeVal) { status.textContent = "시작 예정 시간을 입력해주세요."; return; }
+      status.textContent = "타이머 스케줄 설정 중...";
+      const res = await fetch("/api/admin/gachapon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "saveSettings",
+          eventName: document.getElementById("gachapon-event-name").value.trim(),
+          startsAt: new Date(timeVal).toISOString(),
+          drawMode: "timer",
+        }),
+      });
+      const data = await res.json();
+      status.textContent = res.ok ? "타이머 자동 가차 스케줄이 설정되었습니다." : (data.error || "설정 실패");
+      if (res.ok) await loadGachapon();
+    });
+
+    /* ── 시작시간 입력 변경 시 대형 표시 업데이트 ── */
+    document.getElementById("gachapon-start-time").addEventListener("input", updateGachaponTimerDisplay);
+    function updateGachaponTimerDisplay() {
+      const val = document.getElementById("gachapon-start-time").value;
+      const clock = document.getElementById("gachapon-timer-clock");
+      const countdown = document.getElementById("gachapon-timer-countdown");
+      if (!val) { clock.textContent = "–"; countdown.textContent = ""; return; }
+      const d = new Date(val);
+      clock.textContent = d.getFullYear() + ". " +
+        String(d.getMonth()+1).padStart(2,"0") + ". " +
+        String(d.getDate()).padStart(2,"0") + ".  " +
+        String(d.getHours()).padStart(2,"0") + ":" +
+        String(d.getMinutes()).padStart(2,"0");
+      const diff = d.getTime() - Date.now();
+      countdown.textContent = diff > 0
+        ? "(" + formatCountdownText(diff) + " 후 시작)"
+        : "(이미 지난 시간)";
+    }
+
+    document.getElementById("gachapon-roster-search").addEventListener("input", renderGachaponRosterSelect);
+    document.getElementById("gachapon-add-participant").addEventListener("click", async () => {
+      const select = document.getElementById("gachapon-roster-select");
+      const status = document.getElementById("gachapon-status");
+      if (!select.value) {
+        status.textContent = "추가할 참가자를 먼저 선택해주세요.";
+        return;
+      }
+      status.textContent = "가차폰 참가자를 추가하는 중...";
+      const response = await fetch("/api/admin/gachapon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "addParticipant", rosterParticipantId: select.value }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        status.textContent = data.error || "참가자 추가 실패";
+        return;
+      }
+      document.getElementById("gachapon-roster-search").value = "";
+      await loadGachapon();
+    });
+
+    document.getElementById("gachapon-reset-results").addEventListener("click", async () => {
+      if (!confirm("가차폰 매칭 결과와 진행 상태만 초기화할까요?\n참가자 명단은 그대로 유지됩니다.")) return;
+      const status = document.getElementById("gachapon-status");
+      status.textContent = "가차폰 결과 초기화 중...";
+      const response = await fetch("/api/admin/gachapon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "resetResults" }),
+      });
+      const data = await response.json();
+      if (!response.ok) { status.textContent = data.error || "초기화 실패"; return; }
+      status.textContent = "가차폰 매칭 결과가 초기화되었습니다. (참가자 유지)";
+      await loadGachapon();
+    });
+
+    document.getElementById("gachapon-reset").addEventListener("click", async () => {
+      if (!confirm("참가자, 매칭 결과, 타이머 세팅을 전부 초기화할까요?\n상품 정보는 룰렛 탭에 그대로 보존됩니다.")) return;
+      const status = document.getElementById("gachapon-status");
+      status.textContent = "전체 가차폰 초기화 중...";
+      const response = await fetch("/api/admin/gachapon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "resetGachapon" }),
+      });
+      const data = await response.json();
+      if (!response.ok) { status.textContent = data.error || "전체 초기화 실패"; return; }
+      status.textContent = "가차폰이 전체 초기화되었습니다.";
+      await loadGachapon();
+    });
+
+    document.getElementById("gachapon-add-all").addEventListener("click", async () => {
+      if (!confirm("전체 참가자 명단(활성)을 모두 가차폰에 추가할까요?\n이미 추가된 참가자는 건너뜁니다.")) return;
+      const status = document.getElementById("gachapon-status");
+      status.textContent = "전체 참가자를 가차폰에 추가하는 중...";
+      const response = await fetch("/api/admin/gachapon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "addAllParticipants" }),
+      });
+      const data = await response.json();
+      if (!response.ok) { status.textContent = data.error || "전체 추가 실패"; return; }
+      status.textContent = (data.added || 0) + "명이 가차폰에 추가되었습니다.";
+      await loadGachapon();
+    });
+
+    document.getElementById("gachapon-spin").addEventListener("click", async () => {
+      const status = document.getElementById("gachapon-status");
+      if (!gachaponState.participants.length) {
+        status.textContent = "가차폰 참가자를 먼저 추가해주세요.";
+        return;
+      }
+      status.textContent = "가차 레버를 당기는 중...";
+      const response = await fetch("/api/admin/gachapon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "spin" }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        status.textContent = data.error || "추첨에 실패했습니다.";
+        return;
+      }
+      const winner = data.winner || {};
+      const wName = winner.display_name || winner.displayName || "당첨자";
+      status.textContent = wName + " 님 가차 레버 결과 생성! 상품: " + (data.result?.prize_label || "당첨");
+      await loadGachapon();
+    });
+
+    async function loadGachapon() {
+      const status = document.getElementById("gachapon-status");
+      status.textContent = "가차폰 데이터를 불러오는 중...";
+      try {
+        const response = await fetch("/api/admin/gachapon", { cache: "no-store" });
+        const data = await response.json();
+        if (!response.ok) {
+          status.textContent = data.error || "가차폰 데이터를 불러오지 못했습니다.";
+          return;
+        }
+        gachaponState = {
+          participants: data.participants || [],
+          roster: data.roster || [],
+          results: data.results || [],
+          settings: data.settings || {},
+        };
+        const settings = gachaponState.settings;
+        document.getElementById("gachapon-event-name").value = settings.event_name || "";
+        document.getElementById("gachapon-start-time").value = toDateTimeLocalValue(settings.starts_at || settings.startsAt);
+        document.getElementById("gachapon-draw-mode").value = settings.draw_mode || "instant";
+        updateGachaponTimerDisplay();
+        renderGachaponRosterSelect();
+        renderGachaponParticipantsAndResults();
+        updateGachaponTimerStatus(settings);
+        status.textContent = "룰렛 연동 상품 " + (settings.roulettePrizes?.selectedItemIds?.length || 0) + "개 · 가차폰 참가자 " + gachaponState.participants.length + "명";
+      } catch (error) {
+        status.textContent = "네트워크 연결 실패";
+      }
+    }
+
+    function renderGachaponRosterSelect() {
+      const select = document.getElementById("gachapon-roster-select");
+      const keyword = document.getElementById("gachapon-roster-search").value.trim().toLocaleLowerCase("ko");
+      const activeRosterIds = new Set(gachaponState.participants.map((item) => item.roster_participant_id).filter(Boolean));
+      const candidates = gachaponState.roster
+        .filter((item) => !activeRosterIds.has(item.id))
+        .filter((item) => !keyword || item.displayName.toLocaleLowerCase("ko").includes(keyword));
+      select.innerHTML = candidates.length
+        ? candidates.slice(0, 40).map((item) => '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.displayName) + ' · ' + escapeHtml(item.gender || "") + '</option>').join("")
+        : '<option value="">추가 가능한 참가자 없음</option>';
+    }
+
+    function renderGachaponParticipantsAndResults() {
+      const results = document.getElementById("gachapon-results");
+      const countEl = document.getElementById("gachapon-participant-count");
+      if (countEl) {
+        const n = gachaponState.participants.length;
+        countEl.textContent = n ? "(" + n + "명)" : "";
+      }
+      const byParticipant = new Map();
+      gachaponState.results.forEach((row) => {
+        const participant = row.participant || {};
+        const id = row.gachapon_participant_id || participant.id;
+        if (id && !byParticipant.has(id)) byParticipant.set(id, row);
+      });
+      results.innerHTML = gachaponState.participants.length
+        ? gachaponState.participants.map((participant) => {
+            const row = byParticipant.get(participant.id);
+            const wonAt = row ? formatDateTime(row.created_at || row.createdAt) : "";
+            const wonText = row ? "매칭: " + row.prize_label : "대기";
+            return '<div class="roulette-roster-row"><div><strong>' + escapeHtml(participant.display_name || participant.displayName || "이름 없음") + '</strong><span class="muted"> · ' + escapeHtml(participant.gender || "") + '</span><div class="muted" style="font-size:12px;">' + escapeHtml(wonText) + (wonAt ? " · " + escapeHtml(wonAt) : "") + '</div></div><span class="pill">' + (row ? "완료" : "대기") + '</span><button class="btn-secondary gachapon-remove-participant" type="button" data-id="' + escapeHtml(participant.id) + '">제외</button></div>';
+          }).join("")
+        : '<div class="muted" style="padding:24px 0; text-align:center;">가차폰 참가자를 추가해주세요.</div>';
+      document.querySelectorAll(".gachapon-remove-participant").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const status = document.getElementById("gachapon-status");
+          const response = await fetch("/api/admin/gachapon", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "removeParticipant", participantId: button.dataset.id }),
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            status.textContent = data.error || "참가자 제외 실패";
+            return;
+          }
+          await loadGachapon();
+        });
+      });
+    }
+
+    function updateGachaponTimerStatus(settings) {
+      clearInterval(gachaponTimerInterval);
+      const target = document.getElementById("gachapon-timer-status");
+      const drawMode = settings.draw_mode || "instant";
+      const startValue = settings.starts_at || settings.startsAt;
+      const executedAt = settings.sequence_completed_at || settings.auto_spin_executed_at;
+      const prizeCount = settings.roulettePrizes?.selectedItemIds?.length || 0;
+      const itemText = " · 연동된 룰렛 상품 수: " + prizeCount + "개";
+
+      if (drawMode !== "timer") {
+        target.innerHTML = "현재 방식: <strong>즉시 돌리기</strong> · 가차 레버 당기기 버튼을 누르면 선택 항목이 차례로 실행됩니다." + itemText;
+        return;
+      }
+      if (!startValue) {
+        target.innerHTML = "현재 방식: <strong>타이머 자동 실행</strong> · 시작 예정 시간을 설정해주세요.";
+        return;
+      }
+      if (executedAt) {
+        target.innerHTML = "자동 순차 추첨 완료 · <strong>" + escapeHtml(formatDateTime(executedAt)) + "</strong>" + itemText;
+        return;
+      }
+
+      const render = () => {
+        const diff = new Date(startValue).getTime() - Date.now();
+        if (Number.isNaN(diff)) {
+          target.innerHTML = "타이머 시간이 올바르지 않습니다.";
+          return;
+        }
+        if (diff <= 0) {
+          target.innerHTML = "자동 순차 추첨 진행 중 · 공개 가차폰 페이지/API가 8초 간격으로 결과를 생성합니다." + itemText;
+          clearInterval(gachaponTimerInterval);
+          return;
+        }
+        target.innerHTML = "현재 방식: <strong>타이머 자동 실행</strong> · 시작까지 <strong>" + formatCountdownText(diff) + "</strong>" + itemText;
+      };
+      render();
+      gachaponTimerInterval = setInterval(render, 1000);
     }
 
     function escapeHtml(value) {
