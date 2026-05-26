@@ -45,6 +45,9 @@ const {
   upcomingEventPage,
   promoPage,
   guidePage,
+  handleGetPrizeWins,
+  handleMarkPrizeWinUsed,
+  prizeResultsPage,
 } = manseWeb;
 
 export default async (request) => {
@@ -93,6 +96,10 @@ export default async (request) => {
 
     if (request.method === "GET" && url.pathname === "/gachapon") {
       return html(gachaponPage());
+    }
+
+    if (request.method === "GET" && url.pathname === "/prize-results") {
+      return html(prizeResultsPage());
     }
 
     if (request.method === "GET" && url.pathname === "/secret") {
@@ -160,6 +167,18 @@ export default async (request) => {
 
     if (request.method === "POST" && url.pathname === "/api/gachapon") {
       return json(await handleGachaponPublicAction(await request.json()));
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/prize-wins") {
+      const queryParams = Object.fromEntries(url.searchParams.entries());
+      const result = await handleGetPrizeWins(queryParams);
+      return json(result.payload, result.status);
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/prize-wins/use") {
+      const body = await request.json();
+      const result = await handleMarkPrizeWinUsed(body);
+      return json(result.payload, result.status);
     }
 
     if (request.method === "POST" && url.pathname === "/api/manse") {
@@ -278,6 +297,7 @@ export const config = {
     "/roulette",
     "/ladder",
     "/gachapon",
+    "/prize-results",
     "/health",
     "/api/applicants",
     "/api/applicants/*",
@@ -288,6 +308,8 @@ export const config = {
     "/api/roulette/join",
     "/api/ladder",
     "/api/gachapon",
+    "/api/prize-wins",
+    "/api/prize-wins/use",
     "/api/admin/gachapon",
     "/api/admin/gachapon/*",
     "/api/manse",

@@ -42,6 +42,7 @@ const { gachaponPage } = require("./moras/pages/gachapon-page");
 const { secretPage } = require("./moras/pages/secret-page");
 const { promoPage } = require("./moras/pages/promo-page");
 const { guidePage } = require("./moras/pages/guide-page");
+const { prizeResultsPage } = require("./moras/pages/prize-results-page");
 
 const PORT = Number(process.env.PORT || 4173);
 const UPCOMING_IMAGE_FILE = path.join(
@@ -554,6 +555,7 @@ async function handleAdminRoulette(cookieHeader, method, body = {}, id = "") {
       if (method === "POST" && body.action === "resetResults") {
         /* 참가자는 유지, 추첨 결과와 진행 상태만 초기화 */
         await requestSupabase("roulette_results?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
+        await requestSupabase("prize_wins?game_type=eq.roulette", { method: "DELETE", headers: { Prefer: "return=minimal" } });
         await requestSupabase("roulette_settings?id=eq.default", {
           method: "PATCH",
           headers: { Prefer: "return=minimal" },
@@ -566,6 +568,7 @@ async function handleAdminRoulette(cookieHeader, method, body = {}, id = "") {
         /* 참가자 + 결과 + 세팅 전체 초기화 */
         await requestSupabase("roulette_results?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
         await requestSupabase("roulette_participants?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
+        await requestSupabase("prize_wins?game_type=eq.roulette", { method: "DELETE", headers: { Prefer: "return=minimal" } });
         await requestSupabase("roulette_settings?id=eq.default", {
           method: "PATCH",
           headers: { Prefer: "return=minimal" },
@@ -742,6 +745,7 @@ async function handleAdminLadder(cookieHeader, method, body = {}, id = "") {
 
       if (method === "POST" && body.action === "resetResults") {
         await requestSupabase("ladder_results?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
+        await requestSupabase("prize_wins?game_type=eq.ladder", { method: "DELETE", headers: { Prefer: "return=minimal" } });
         await requestSupabase("ladder_settings?id=eq.default", {
           method: "PATCH",
           headers: { Prefer: "return=minimal" },
@@ -753,6 +757,7 @@ async function handleAdminLadder(cookieHeader, method, body = {}, id = "") {
       if (method === "POST" && body.action === "resetLadder") {
         await requestSupabase("ladder_results?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
         await requestSupabase("ladder_participants?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
+        await requestSupabase("prize_wins?game_type=eq.ladder", { method: "DELETE", headers: { Prefer: "return=minimal" } });
         await requestSupabase("ladder_settings?id=eq.default", {
           method: "PATCH",
           headers: { Prefer: "return=minimal" },
@@ -832,12 +837,14 @@ async function handleAdminLadder(cookieHeader, method, body = {}, id = "") {
       local.settings.sequence_completed_at = null;
       local.settings.auto_spin_executed_at = null;
       local.settings.updated_at = new Date().toISOString();
+      await removeLocalPrizeWins("ladder");
     }
 
     if (method === "POST" && body.action === "resetLadder") {
       local.results = [];
       local.participants = [];
       local.settings = defaultLadderSettings();
+      await removeLocalPrizeWins("ladder");
     }
 
     if (method === "POST" && body.action === "addAllParticipants") {
@@ -1067,6 +1074,11 @@ function spinLadderLocal(local) {
   
   local.results.unshift(result);
   
+  // Record to local unified prize wins
+  if (targetPrize) {
+    addLocalPrizeWin(targetPrize.label, winner.display_name, winner.roster_participant_id, "ladder").catch(() => {});
+  }
+  
   // 모든 참가자가 다 찼다면 sequence_completed_at 완료 처리
   const totalCount = local.results.length;
   if (totalCount >= participants.length) {
@@ -1080,7 +1092,7 @@ function spinLadderLocal(local) {
 /* 사다리 무작위 1회 스핀 매칭 (Supabase) */
 async function spinLadderSupabase(requestSupabase) {
   const [participants, existingResults, prizes] = await Promise.all([
-    requestSupabase("ladder_participants?is_active=eq.true&select=id,display_name,gender&order=created_at.asc"),
+    requestSupabase("ladder_participants?is_active=eq.true&select=id,roster_participant_id,display_name,gender&order=created_at.asc"),
     requestSupabase("ladder_results?select=ladder_participant_id,item_id"),
     loadRoulettePrizesSupabase(requestSupabase),
   ]);
@@ -1120,6 +1132,20 @@ async function spinLadderSupabase(requestSupabase) {
   });
   
   const insertedResult = inserted[0];
+
+  // Record to unified prize wins
+  if (targetPrize) {
+    await requestSupabase("prize_wins", {
+      method: "POST",
+      body: {
+        prize_name: targetPrize.label,
+        participant_name: winner.display_name,
+        roster_participant_id: winner.roster_participant_id || null,
+        game_type: "ladder",
+        is_used: false
+      }
+    });
+  }
   
   // 전체 완료 여부 체크
   if (existingResults.length + 1 >= participants.length) {
@@ -1286,6 +1312,7 @@ async function handleAdminGachapon(cookieHeader, method, body = {}, id = "") {
 
       if (method === "POST" && body.action === "resetResults") {
         await requestSupabase("gachapon_results?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
+        await requestSupabase("prize_wins?game_type=eq.gachapon", { method: "DELETE", headers: { Prefer: "return=minimal" } });
         await requestSupabase("gachapon_settings?id=eq.default", {
           method: "PATCH",
           headers: { Prefer: "return=minimal" },
@@ -1297,6 +1324,7 @@ async function handleAdminGachapon(cookieHeader, method, body = {}, id = "") {
       if (method === "POST" && body.action === "resetGachapon") {
         await requestSupabase("gachapon_results?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
         await requestSupabase("gachapon_participants?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
+        await requestSupabase("prize_wins?game_type=eq.gachapon", { method: "DELETE", headers: { Prefer: "return=minimal" } });
         await requestSupabase("gachapon_settings?id=eq.default", {
           method: "PATCH",
           headers: { Prefer: "return=minimal" },
@@ -1376,12 +1404,14 @@ async function handleAdminGachapon(cookieHeader, method, body = {}, id = "") {
       local.settings.sequence_completed_at = null;
       local.settings.auto_spin_executed_at = null;
       local.settings.updated_at = new Date().toISOString();
+      await removeLocalPrizeWins("gachapon");
     }
 
     if (method === "POST" && body.action === "resetGachapon") {
       local.results = [];
       local.participants = [];
       local.settings = defaultGachaponSettings();
+      await removeLocalPrizeWins("gachapon");
     }
 
     if (method === "POST" && body.action === "addAllParticipants") {
@@ -1585,6 +1615,11 @@ function spinGachaponLocal(local) {
   
   local.results.unshift(result);
   
+  // Record to local unified prize wins
+  if (targetPrize) {
+    addLocalPrizeWin(targetPrize.label, winner.display_name, winner.roster_participant_id, "gachapon").catch(() => {});
+  }
+  
   const totalCount = local.results.length;
   if (totalCount >= participants.length) {
     local.settings.sequence_completed_at = new Date().toISOString();
@@ -1596,7 +1631,7 @@ function spinGachaponLocal(local) {
 
 async function spinGachaponSupabase(requestSupabase) {
   const [participants, existingResults, prizes] = await Promise.all([
-    requestSupabase("gachapon_participants?is_active=eq.true&select=id,display_name,gender&order=created_at.asc"),
+    requestSupabase("gachapon_participants?is_active=eq.true&select=id,roster_participant_id,display_name,gender&order=created_at.asc"),
     requestSupabase("gachapon_results?select=gachapon_participant_id,item_id"),
     loadRoulettePrizesSupabase(requestSupabase),
   ]);
@@ -1636,6 +1671,20 @@ async function spinGachaponSupabase(requestSupabase) {
   });
   
   const insertedResult = inserted[0];
+
+  // Record to unified prize wins
+  if (targetPrize) {
+    await requestSupabase("prize_wins", {
+      method: "POST",
+      body: {
+        prize_name: targetPrize.label,
+        participant_name: winner.display_name,
+        roster_participant_id: winner.roster_participant_id || null,
+        game_type: "gachapon",
+        is_used: false
+      }
+    });
+  }
   
   if (existingResults.length + 1 >= participants.length) {
     await requestSupabase("gachapon_settings?id=eq.default", {
@@ -1797,9 +1846,10 @@ async function saveRouletteSettingsSupabase(requestSupabase, input) {
 }
 
 async function spinRouletteSupabase(requestSupabase, itemId) {
-  const [participants, existing] = await Promise.all([
-    requestSupabase("roulette_participants?is_active=eq.true&select=id,display_name,gender&order=created_at.asc"),
+  const [participants, existing, itemRow] = await Promise.all([
+    requestSupabase("roulette_participants?is_active=eq.true&select=id,roster_participant_id,display_name,gender&order=created_at.asc"),
     requestSupabase(`roulette_results?item_id=eq.${encodeURIComponent(itemId)}&select=roulette_participant_id`),
+    requestSupabase(`roulette_items?id=eq.${encodeURIComponent(itemId)}&select=label`),
   ]);
   const used = new Set(existing.map((result) => result.roulette_participant_id).filter(Boolean));
   const eligible = participants.filter((participant) => !used.has(participant.id));
@@ -1814,6 +1864,20 @@ async function spinRouletteSupabase(requestSupabase, itemId) {
     headers: { Prefer: "return=representation" },
     body: { item_id: itemId, roulette_participant_id: winner.id },
   });
+
+  // Record to unified prize wins
+  const prizeName = itemRow[0] ? itemRow[0].label : "룰렛 상품";
+  await requestSupabase("prize_wins", {
+    method: "POST",
+    body: {
+      prize_name: prizeName,
+      participant_name: winner.display_name,
+      roster_participant_id: winner.roster_participant_id || null,
+      game_type: "roulette",
+      is_used: false
+    }
+  });
+
   return { result: inserted[0], winner };
 }
 
@@ -1963,6 +2027,199 @@ async function writeLocalRoulette(localPath, local) {
   await fs.writeFile(localPath, JSON.stringify(local, null, 2), "utf8");
 }
 
+/* ══════════════════════════════════════════════════════════
+   🏆  UNIFIED PRIZE WINS FILE DATABASE & API SERVICE
+   ══════════════════════════════════════════════════════════ */
+
+async function readLocalPrizeWins(localPath) {
+  try {
+    return JSON.parse(await fs.readFile(localPath, "utf8"));
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+    return [];
+  }
+}
+
+async function writeLocalPrizeWins(localPath, wins) {
+  await fs.mkdir(path.dirname(localPath), { recursive: true });
+  await fs.writeFile(localPath, JSON.stringify(wins, null, 2), "utf8");
+}
+
+async function addLocalPrizeWin(prizeName, participantName, rosterParticipantId, gameType) {
+  const localPath = path.join(__dirname, "../data/dev-prize-wins.json");
+  const wins = await readLocalPrizeWins(localPath);
+  wins.unshift({
+    id: crypto.randomUUID(),
+    prize_name: prizeName,
+    participant_name: participantName,
+    roster_participant_id: rosterParticipantId || null,
+    game_type: gameType,
+    is_used: false,
+    used_at: null,
+    created_at: new Date().toISOString()
+  });
+  await writeLocalPrizeWins(localPath, wins);
+}
+
+async function removeLocalPrizeWins(gameType) {
+  const localPath = path.join(__dirname, "../data/dev-prize-wins.json");
+  const wins = await readLocalPrizeWins(localPath);
+  const filtered = wins.filter((w) => w.game_type !== gameType);
+  await writeLocalPrizeWins(localPath, filtered);
+}
+
+async function handleGetPrizeWins(queryParams) {
+  const { requestSupabase, hasSupabaseConfig } = require("./moras/match-service");
+  
+  const search = String(queryParams.search || "").trim();
+  const gameType = String(queryParams.gameType || "").trim();
+  const isUsed = String(queryParams.isUsed || "").trim();
+  const sortBy = String(queryParams.sortBy || "created_at").trim();
+  const order = String(queryParams.order || "desc").trim();
+  const page = Math.max(1, parseInt(queryParams.page || "1", 10));
+  const limit = Math.max(10, parseInt(queryParams.limit || "10", 10));
+  const offset = (page - 1) * limit;
+
+  try {
+    if (hasSupabaseConfig()) {
+      let queryStr = `prize_wins?select=*,event_participants:roster_participant_id(id,display_name)`;
+      let filters = [];
+      if (search) {
+        filters.push(`or=(participant_name.ilike.%25${encodeURIComponent(search)}%25,prize_name.ilike.%25${encodeURIComponent(search)}%25)`);
+      }
+      if (gameType && gameType !== "all") {
+        filters.push(`game_type=eq.${encodeURIComponent(gameType)}`);
+      }
+      if (isUsed === "true" || isUsed === "false") {
+        filters.push(`is_used=eq.${isUsed}`);
+      }
+      
+      if (filters.length > 0) {
+        queryStr += `&${filters.join("&")}`;
+      }
+      queryStr += `&order=${sortBy}.${order}`;
+
+      const allRows = await requestSupabase(queryStr);
+      const total = allRows.length;
+      const paginated = allRows.slice(offset, offset + limit);
+
+      return {
+        status: 200,
+        payload: {
+          wins: paginated,
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit)
+        }
+      };
+    } else {
+      const localPath = path.join(__dirname, "../data/dev-prize-wins.json");
+      let wins = await readLocalPrizeWins(localPath);
+
+      if (search) {
+        const lower = search.toLowerCase();
+        wins = wins.filter((w) => 
+          (w.participant_name || "").toLowerCase().includes(lower) || 
+          (w.prize_name || "").toLowerCase().includes(lower)
+        );
+      }
+      if (gameType && gameType !== "all") {
+        wins = wins.filter((w) => w.game_type === gameType);
+      }
+      if (isUsed === "true" || isUsed === "false") {
+        const targetUsed = isUsed === "true";
+        wins = wins.filter((w) => w.is_used === targetUsed);
+      }
+
+      wins.sort((a, b) => {
+        let valA = a[sortBy];
+        let valB = b[sortBy];
+        if (sortBy === "created_at" || sortBy === "used_at") {
+          valA = new Date(valA || 0).getTime();
+          valB = new Date(valB || 0).getTime();
+        } else {
+          valA = String(valA || "").toLowerCase();
+          valB = String(valB || "").toLowerCase();
+        }
+
+        if (valA < valB) return order === "asc" ? -1 : 1;
+        if (valA > valB) return order === "asc" ? 1 : -1;
+        return 0;
+      });
+
+      const total = wins.length;
+      const paginated = wins.slice(offset, offset + limit);
+
+      return {
+        status: 200,
+        payload: {
+          wins: paginated,
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit)
+        }
+      };
+    }
+  } catch (error) {
+    return { status: 500, payload: { error: error.message } };
+  }
+}
+
+async function handleMarkPrizeWinUsed(body) {
+  const { requestSupabase, hasSupabaseConfig } = require("./moras/match-service");
+  const winId = String(body.winId || "").trim();
+
+  if (!winId) {
+    return { status: 400, payload: { error: "당첨 항목 ID가 누락되었습니다." } };
+  }
+
+  try {
+    if (hasSupabaseConfig()) {
+      const rows = await requestSupabase(`prize_wins?id=eq.${encodeURIComponent(winId)}&select=is_used`);
+      if (!rows || rows.length === 0) {
+        return { status: 404, payload: { error: "당첨 내역을 찾을 수 없습니다." } };
+      }
+
+      if (rows[0].is_used) {
+        return { status: 400, payload: { error: "이미 사용 완료 처리된 상품입니다." } };
+      }
+
+      const updated = await requestSupabase(`prize_wins?id=eq.${encodeURIComponent(winId)}`, {
+        method: "PATCH",
+        headers: { Prefer: "return=representation" },
+        body: {
+          is_used: true,
+          used_at: new Date().toISOString()
+        }
+      });
+
+      return { status: 200, payload: { ok: true, win: updated[0] } };
+    } else {
+      const localPath = path.join(__dirname, "../data/dev-prize-wins.json");
+      const wins = await readLocalPrizeWins(localPath);
+      const idx = wins.findIndex((w) => w.id === winId);
+
+      if (idx === -1) {
+        return { status: 404, payload: { error: "당첨 내역을 찾을 수 없습니다." } };
+      }
+
+      if (wins[idx].is_used) {
+        return { status: 400, payload: { error: "이미 사용 완료 처리된 상품입니다." } };
+      }
+
+      wins[idx].is_used = true;
+      wins[idx].used_at = new Date().toISOString();
+
+      await writeLocalPrizeWins(localPath, wins);
+      return { status: 200, payload: { ok: true, win: wins[idx] } };
+    }
+  } catch (error) {
+    return { status: 500, payload: { error: error.message } };
+  }
+}
+
 async function hydrateLocalRouletteRoster(local) {
   local.roster = await readRosterParticipants({ includeInactive: false });
   local.participants = (local.participants || []).filter((item) => item.is_active !== false);
@@ -1977,8 +2234,14 @@ function spinRouletteLocal(local, itemId) {
     throw error;
   }
   const winner = eligible[Math.floor(Math.random() * eligible.length)];
-  const result = { id: crypto.randomUUID(), item_id: itemId, roulette_participant_id: winner.id, created_at: new Date().toISOString(), participant: winner, item: (local.items || []).find((item) => item.id === itemId) };
+  const itemObj = (local.items || []).find((item) => item.id === itemId);
+  const result = { id: crypto.randomUUID(), item_id: itemId, roulette_participant_id: winner.id, created_at: new Date().toISOString(), participant: winner, item: itemObj };
   local.results.unshift(result);
+
+  // Record to local unified prize wins
+  const prizeName = itemObj ? itemObj.label : "룰렛 상품";
+  addLocalPrizeWin(prizeName, winner.display_name, winner.roster_participant_id, "roulette").catch(() => {});
+
   return { result, winner };
 }
 
@@ -2328,6 +2591,11 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (req.method === "GET" && url.pathname === "/prize-results") {
+    send(res, 200, "text/html; charset=utf-8", prizeResultsPage());
+    return;
+  }
+
   if (req.method === "GET" && url.pathname === "/secret") {
     send(res, 200, "text/html; charset=utf-8", secretPage());
     return;
@@ -2402,6 +2670,24 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "POST" && url.pathname === "/api/gachapon") {
     try {
       sendJson(res, 200, await handleGachaponPublicAction(await readJson(req)));
+    } catch (error) {
+      sendJson(res, 400, { error: error.message });
+    }
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/prize-wins") {
+    const queryParams = Object.fromEntries(url.searchParams.entries());
+    const result = await handleGetPrizeWins(queryParams);
+    sendJson(res, result.status, result.payload);
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/prize-wins/use") {
+    try {
+      const body = await readJson(req);
+      const result = await handleMarkPrizeWinUsed(body);
+      sendJson(res, result.status, result.payload);
     } catch (error) {
       sendJson(res, 400, { error: error.message });
     }
@@ -2601,4 +2887,7 @@ module.exports = {
   upcomingEventPage,
   promoPage,
   guidePage,
+  handleGetPrizeWins,
+  handleMarkPrizeWinUsed,
+  prizeResultsPage,
 };

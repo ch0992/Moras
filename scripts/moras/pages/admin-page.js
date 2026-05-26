@@ -1376,6 +1376,7 @@ function adminPage() {
       <button class="tab-btn" data-tab="roulette" id="tab-btn-roulette">추첨 룰렛</button>
       <button class="tab-btn" data-tab="ladder" id="tab-btn-ladder">사다리타기</button>
       <button class="tab-btn" data-tab="gachapon" id="tab-btn-gachapon">가차폰 추첨</button>
+      <button class="tab-btn" data-tab="prizes" id="tab-btn-prizes">상품 당첨결과</button>
     </div>
  
     <!-- Tab Contents 1: Submissions -->
@@ -1702,6 +1703,69 @@ function adminPage() {
         </div>
       </div>
     </div>
+
+    <!-- Tab Contents 6: Prizes -->
+    <div class="tab-content" id="tab-prizes">
+      <div class="filter-panel" style="padding:20px;border-radius:14px;border:1px solid var(--line);background:rgba(10,15,30,0.68);margin-bottom:20px;">
+        <div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:14px;">
+          <input type="text" id="prize-search" placeholder="당첨자 이름 또는 상품명 검색..." style="height:40px;border-radius:8px;border:1px solid var(--line);background:rgba(5,8,17,.72);color:#fff;padding:0 12px;font-size:13.5px;outline:none;">
+          <button type="button" id="btn-prize-search" style="height:40px;padding:0 18px;border-radius:8px;border:0;background:linear-gradient(135deg,#FFE8A3,#F4C35E);color:#03070e;font-weight:900;cursor:pointer;">검색</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3, 1fr) auto;gap:10px;align-items:center;">
+          <div class="filter-item">
+            <select id="prize-filter-game" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--line);background:rgba(5,8,17,.72);color:#fff;padding:0 10px;font-size:13px;cursor:pointer;">
+              <option value="all">⚡ 모든 추첨 게임</option>
+              <option value="roulette">🔮 운명의 룰렛</option>
+              <option value="ladder">🪜 은하수 사다리</option>
+              <option value="gachapon">🪐 기적의 캡슐</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <select id="prize-filter-state" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--line);background:rgba(5,8,17,.72);color:#fff;padding:0 10px;font-size:13px;cursor:pointer;">
+              <option value="all">🎫 모든 상품 사용상태</option>
+              <option value="false">🎁 미사용 (대기중)</option>
+              <option value="true">🔒 사용 완료</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <select id="prize-filter-sort" style="width:100%;height:36px;border-radius:8px;border:1px solid var(--line);background:rgba(5,8,17,.72);color:#fff;padding:0 10px;font-size:13px;cursor:pointer;">
+              <option value="created_at">⏰ 최신 당첨순</option>
+              <option value="prize_name">🎁 상품 가나다순</option>
+              <option value="participant_name">👤 당첨자 가나다순</option>
+              <option value="is_used">🎫 사용상태순</option>
+            </select>
+          </div>
+          <!-- Limit Control Tabs -->
+          <div class="limit-tabs" style="display:flex;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:2px;">
+            <button type="button" class="limit-btn active" data-plimit="10" style="height:28px;padding:0 10px;border-radius:6px;border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;">10개</button>
+            <button type="button" class="limit-btn" data-plimit="20" style="height:28px;padding:0 10px;border-radius:6px;border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;">20개</button>
+            <button type="button" class="limit-btn" data-plimit="50" style="height:28px;padding:0 10px;border-radius:6px;border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;">50개</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>추첨 게임</th>
+              <th>상품 이름</th>
+              <th>당첨자</th>
+              <th>당첨 일시</th>
+              <th>사용 상태</th>
+              <th>사용 일시</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody id="prize-wins-tbody">
+            <tr><td colspan="7" class="muted" style="text-align:center;padding:24px 0;">당첨결과 데이터를 불러오는 중...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Container -->
+      <div class="pagination-row" id="prize-pagination" style="display:flex;justify-content:center;gap:6px;margin-top:18px;"></div>
+    </div>
   </main>
  
   <script>
@@ -1815,7 +1879,13 @@ function adminPage() {
           loadGachapon();
           startGachaponPoll();
         }
-        if (tabName !== "roulette" && tabName !== "ladder" && tabName !== "gachapon") {
+        if (tabName === "prizes") {
+          stopRoulettePoll();
+          stopLadderPoll();
+          stopGachaponPoll();
+          loadPrizeWins();
+        }
+        if (tabName !== "roulette" && tabName !== "ladder" && tabName !== "gachapon" && tabName !== "prizes") {
           stopRoulettePoll();
           stopLadderPoll();
           stopGachaponPoll();
@@ -1828,6 +1898,49 @@ function adminPage() {
     document.querySelector("#logout").addEventListener("click", async () => {
       await fetch("/api/admin/logout", { method: "POST" });
       location.href = "/admin";
+    });
+
+    // Prize Wins Filters Event Listeners
+    document.getElementById("btn-prize-search").addEventListener("click", () => {
+      prizeSearchQuery = document.getElementById("prize-search").value.trim();
+      prizePage = 1;
+      loadPrizeWins();
+    });
+
+    document.getElementById("prize-search").addEventListener("keyup", (e) => {
+      if (e.key === "Enter") {
+        prizeSearchQuery = document.getElementById("prize-search").value.trim();
+        prizePage = 1;
+        loadPrizeWins();
+      }
+    });
+
+    document.getElementById("prize-filter-game").addEventListener("change", () => {
+      prizeFilterGame = document.getElementById("prize-filter-game").value;
+      prizePage = 1;
+      loadPrizeWins();
+    });
+
+    document.getElementById("prize-filter-state").addEventListener("change", () => {
+      prizeFilterState = document.getElementById("prize-filter-state").value;
+      prizePage = 1;
+      loadPrizeWins();
+    });
+
+    document.getElementById("prize-filter-sort").addEventListener("change", () => {
+      prizeFilterSort = document.getElementById("prize-filter-sort").value;
+      prizePage = 1;
+      loadPrizeWins();
+    });
+
+    document.querySelectorAll('#tab-prizes .limit-btn').forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll('#tab-prizes .limit-btn').forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        prizeLimit = parseInt(btn.dataset.plimit, 10);
+        prizePage = 1;
+        loadPrizeWins();
+      });
     });
  
     // Run Match Engine
@@ -3570,6 +3683,122 @@ function adminPage() {
       render();
       gachaponTimerInterval = setInterval(render, 1000);
     }
+
+    // Prize Wins Tab State & Helpers
+    let prizeSearchQuery = "";
+    let prizeFilterGame = "all";
+    let prizeFilterState = "all";
+    let prizeFilterSort = "created_at";
+    let prizeLimit = 10;
+    let prizePage = 1;
+
+    async function loadPrizeWins() {
+      const tbody = document.getElementById("prize-wins-tbody");
+      tbody.innerHTML = '<tr><td colspan="7" class="muted" style="text-align:center;padding:24px 0;">당첨결과 데이터를 불러오는 중...</td></tr>';
+      
+      let url = "/api/prize-wins?page=" + prizePage + "&limit=" + prizeLimit + "&sortBy=" + prizeFilterSort;
+      if (prizeSearchQuery) {
+        url += "&search=" + encodeURIComponent(prizeSearchQuery);
+      }
+      if (prizeFilterGame !== "all") {
+        url += "&gameType=" + encodeURIComponent(prizeFilterGame);
+      }
+      if (prizeFilterState !== "all") {
+        url += "&isUsed=" + encodeURIComponent(prizeFilterState);
+      }
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "결과 조회를 실패했습니다.");
+        renderPrizeWins(data);
+      } catch (error) {
+        tbody.innerHTML = '<tr><td colspan="7" class="error" style="text-align:center;padding:24px 0;color:#FCA5A5;">' + escapeHtml(error.message) + '</td></tr>';
+      }
+    }
+
+    function renderPrizeWins(payload) {
+      const tbody = document.getElementById("prize-wins-tbody");
+      const wins = payload.wins || [];
+      
+      if (wins.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="muted" style="text-align:center;padding:24px 0;">당첨결과 내역이 없습니다.</td></tr>';
+        document.getElementById("prize-pagination").innerHTML = "";
+        return;
+      }
+
+      tbody.innerHTML = wins.map((win) => {
+        let gameEmoji = "🔮";
+        let gameLabel = "룰렛";
+        if (win.game_type === "ladder") {
+          gameEmoji = "🪜";
+          gameLabel = "사다리";
+        } else if (win.game_type === "gachapon") {
+          gameEmoji = "🪐";
+          gameLabel = "기적의 캡슐";
+        }
+
+        const isUsed = !!win.is_used;
+        const stateBadge = isUsed 
+          ? '<span style="color:#34D399;font-weight:bold;background:rgba(16,185,129,0.1);padding:4px 8px;border-radius:6px;border:1px solid rgba(16,185,129,0.2)">🔒 사용 완료</span>'
+          : '<span style="color:#F472B6;font-weight:bold;background:rgba(236,72,153,0.1);padding:4px 8px;border-radius:6px;border:1px solid rgba(236,72,153,0.2)">🎁 미사용</span>';
+
+        const usedTimeText = win.used_at ? formatDateTime(win.used_at) : "-";
+        
+        return '<tr>' +
+          '<td>' + gameEmoji + ' ' + gameLabel + '</td>' +
+          '<td style="color:#FFE8A3;font-weight:bold;">' + escapeHtml(win.prize_name) + '</td>' +
+          '<td>' + escapeHtml(win.participant_name) + '</td>' +
+          '<td>' + formatDateTime(win.created_at) + '</td>' +
+          '<td>' + stateBadge + '</td>' +
+          '<td>' + usedTimeText + '</td>' +
+          '<td>' +
+            (isUsed ? '-' : '<button type="button" class="btn-secondary" style="height:28px;font-size:11px;padding:0 8px;border-color:rgba(16,185,129,0.4);color:#34D399;" onclick="adminClaimPrize(\\'' + escapeHtml(win.id) + '\\', \\'' + escapeHtml(win.prize_name) + '\\')">사용 완료</button>') +
+          '</td>' +
+          '</tr>';
+      }).join("");
+
+      renderPrizeWinsPagination(payload.page, payload.totalPages);
+    }
+
+    function renderPrizeWinsPagination(current, total) {
+      const container = document.getElementById("prize-pagination");
+      if (total <= 1) {
+        container.innerHTML = "";
+        return;
+      }
+
+      let html = '';
+      html += '<button type="button" class="page-btn" ' + (current === 1 ? 'disabled' : '') + ' onclick="adminChangePrizePage(' + (current - 1) + ')">◀</button>';
+      for (let i = 1; i <= total; i++) {
+        html += '<button type="button" class="page-btn ' + (current === i ? 'active' : '') + '" onclick="adminChangePrizePage(' + i + ')">' + i + '</button>';
+      }
+      html += '<button type="button" class="page-btn" ' + (current === total ? 'disabled' : '') + ' onclick="adminChangePrizePage(' + (current + 1) + ')">▶</button>';
+      container.innerHTML = html;
+    }
+
+    window.adminChangePrizePage = function(pageNumber) {
+      prizePage = pageNumber;
+      loadPrizeWins();
+    };
+
+    window.adminClaimPrize = async function(winId, prizeName) {
+      const confirmMsg = "관리자 권한으로 [ " + prizeName + " ] 상품을 사용 완료 처리하시겠습니까?\\n확인 후에는 번복할 수 없습니다.";
+      if (!confirm(confirmMsg)) return;
+
+      try {
+        const response = await fetch("/api/prize-wins/use", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ winId })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "사용 완료 처리에 실패했습니다.");
+        loadPrizeWins();
+      } catch (error) {
+        alert("에러: " + error.message);
+      }
+    };
 
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, (char) => ({

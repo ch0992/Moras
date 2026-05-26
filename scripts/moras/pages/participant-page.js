@@ -1581,6 +1581,7 @@ function page() {
     <div class="welcome-links">
       <a class="welcome-link-btn" href="/applicants">신청자 목록 확인하기</a>
       <a class="welcome-link-btn" href="/results">매칭결과 확인하기</a>
+      <a class="welcome-link-btn" href="/prize-results" style="grid-column: span 2; border-color: rgba(255, 232, 163, 0.4); color: #FFE8A3; background: rgba(197, 155, 63, 0.08); font-weight: 900;">🏆 추첨게임 당첨결과 확인하기</a>
     </div>
 
     <div class="welcome-divider"></div>
