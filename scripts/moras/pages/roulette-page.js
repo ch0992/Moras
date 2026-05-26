@@ -650,13 +650,29 @@ function roulettePage() {
         this.x = x;
         this.y = y;
         const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 6 + 1.5;
+        // Increased speed for wider spread (Math.random() * 8.5 + 2.5)
+        const speed = Math.random() * 8.5 + 2.5;
         this.vx = Math.cos(angle) * speed;
-        this.vy = Math.sin(angle) * speed - 1.5;
-        this.hue = hue + Math.floor(Math.random() * 60) - 30;
+        // Float upwards slightly more
+        this.vy = Math.sin(angle) * speed - 1.8;
+        
+        // 28% chance of sparkling gold/white glitter particle, 72% vibrant colored particle
+        this.isGlitter = Math.random() < 0.28;
+        if (this.isGlitter) {
+          this.hue = 42 + Math.floor(Math.random() * 8); // Gold/white range
+          this.saturation = 100;
+          this.lightness = 90;
+          this.decay = 0.015 + Math.random() * 0.015; // glitter fades faster for sparkle
+        } else {
+          this.hue = hue + Math.floor(Math.random() * 100) - 50; // Wider colorful spectrum
+          this.saturation = 100;
+          this.lightness = 65;
+          this.decay = 0.007 + Math.random() * 0.007; // colored sparks live longer for wide spread
+        }
+        
         this.alpha = 1;
-        this.decay = 0.012 + Math.random() * 0.012;
-        this.gravity = 0.12;
+        this.gravity = 0.06; // reduced gravity so they float elegantly
+        this.size = 1.5 + Math.random() * 2.5; // slightly larger particles
       }
       Spark.prototype.update = function() {
         this.x += this.vx;
@@ -667,32 +683,38 @@ function roulettePage() {
       };
       Spark.prototype.draw = function() {
         ctx.beginPath();
-        ctx.arc(this.x, this.y, 2 + Math.random() * 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = "hsla(" + this.hue + ", 100%, 65%," + this.alpha + ")";
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = "hsla(" + this.hue + ", 100%, 65%, 1)";
+        // Dynamic sparkle size: twinkles slightly as it flies
+        const sparkleSize = this.size * this.alpha * (0.75 + Math.random() * 0.4);
+        ctx.arc(this.x, this.y, Math.max(0.1, sparkleSize), 0, Math.PI * 2);
+        if (this.isGlitter) {
+          ctx.fillStyle = "hsla(" + this.hue + ", " + this.saturation + "%, " + this.lightness + "%, " + this.alpha + ")";
+        } else {
+          ctx.fillStyle = "hsla(" + this.hue + ", 100%, 65%, " + this.alpha + ")";
+        }
         ctx.fill();
-        ctx.shadowBlur = 0;
       };
       
       function explode(x, y, hue) {
-        const count = 80 + Math.floor(Math.random() * 40);
+        // Generates 60 to 80 particles for a gorgeous, dense explosion
+        const count = 60 + Math.floor(Math.random() * 20);
         for (let i = 0; i < count; i++) {
           particles.push(new Spark(x, y, hue));
         }
       }
       
-      for (let i = 0; i < 3; i++) {
+      // Launched 4 initial fireworks in quick succession of varying heights and coordinates
+      for (let i = 0; i < 4; i++) {
         setTimeout(() => {
           if (active) fireworks.push(new Firework());
-        }, i * 350);
+        }, i * 250);
       }
       
+      // Denser launch loop to fill the screen with fireworks
       const launchInterval = setInterval(() => {
-        if (active && fireworks.length < 4) {
+        if (active && fireworks.length < 5) {
           fireworks.push(new Firework());
         }
-      }, 600);
+      }, 500);
       
       setTimeout(() => {
         clearInterval(launchInterval);
