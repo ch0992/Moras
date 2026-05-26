@@ -988,18 +988,17 @@ function roulettePage() {
             cft.classList.add("pop");
           }
 
-          // Trigger fireworks and wait for them to finish (6 seconds) before showing the winner popup
-          triggerFireworks().then(function() {
-            wItem.textContent = item.label || "당첨";
-            wName.textContent = name;
-            wPop.classList.add("show");
+          // Show the winner popup immediately!
+          wItem.textContent = item.label || "당첨";
+          wName.textContent = name;
+          wPop.classList.add("show");
 
-            /* Remove popup and cloud highlight after display */
-            setTimeout(() => {
-              wPop.classList.remove("show");
-              cloudZone.querySelectorAll(".cloud-chip").forEach(c => c.classList.remove("lit"));
-              resolve();
-            }, 2600);
+          // Trigger fireworks and wait for them to finish (6 seconds)
+          triggerFireworks().then(function() {
+            // Once fireworks are done, close the popup and resolve to move to the next draw
+            wPop.classList.remove("show");
+            cloudZone.querySelectorAll(".cloud-chip").forEach(c => c.classList.remove("lit"));
+            resolve();
           });
         }, 12000);
       });
