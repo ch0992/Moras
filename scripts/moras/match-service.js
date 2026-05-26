@@ -310,11 +310,20 @@ function buildScoreNarrative(male, female, detail) {
   return `${male.displayName}님과 ${female.displayName}님은 MBTI ${male.mbti || "미입력"}-${female.mbti || "미입력"} 조합에서 ${detail.mbtiScore}점, 사주 ${maleDay}-${femaleDay} 흐름에서 ${detail.sajuScore}점으로 계산되었습니다. 두 기준의 편차 보정은 ${detail.consistencyScore}점이며, 최종적으로 ${detail.relationshipType}에 가까운 조합입니다.`;
 }
 
+function isMaritalCompatible(a, b) {
+  const aRange = Array.isArray(a.matchingMaritalRange) ? a.matchingMaritalRange : [];
+  const bRange = Array.isArray(b.matchingMaritalRange) ? b.matchingMaritalRange : [];
+  if (aRange.length > 0 && b.maritalStatus && !aRange.includes(b.maritalStatus)) return false;
+  if (bRange.length > 0 && a.maritalStatus && !bRange.includes(a.maritalStatus)) return false;
+  return true;
+}
+
 function buildScoreDetails(males, females) {
   const pairDetails = [];
 
   for (const male of males) {
     for (const female of females) {
+      if (!isMaritalCompatible(male, female)) continue;
       const mbtiScore = scoreMbtiCompatibility(male.mbti, female.mbti);
       const sajuScore = scoreSajuCompatibility(male, female);
       pairDetails.push({
@@ -369,10 +378,11 @@ function solveBipartiteMatching(males, females, scoreMatrix) {
   const matchedFemales = new Set();
   const matchedMales = new Set();
 
-  // Sort all potential pairs by score descending
+  // Sort all potential pairs by score descending (skip incompatible pairs)
   const allPairs = [];
   for (const maleId of maleIds) {
     for (const femaleId of femaleIds) {
+      if (scoreMatrix[maleId]?.[femaleId] === undefined) continue;
       allPairs.push({ maleId, femaleId, score: scoreMatrix[maleId][femaleId] });
     }
   }
@@ -402,6 +412,7 @@ function solveBipartiteMatching(males, females, scoreMatrix) {
         const m2 = matches[j].maleId;
         const f2 = matches[j].femaleId;
 
+        if (scoreMatrix[m1]?.[f2] === undefined || scoreMatrix[m2]?.[f1] === undefined) continue;
         const currentSum = scoreMatrix[m1][f1] + scoreMatrix[m2][f2];
         const swappedSum = scoreMatrix[m1][f2] + scoreMatrix[m2][f1];
 
@@ -452,16 +463,16 @@ async function runMatchingBatch(runId = null) {
     let participants = [];
     if (hasSupabaseConfig()) {
       participants = await requestSupabase("participant_submissions?select=*");
-      // Map properties back
       participants = participants.map((row) => ({
         id: row.id,
         displayName: row.display_name,
         gender: row.gender,
         mbti: row.mbti,
         manse: row.manse_result,
+        maritalStatus: row.marital_status || row.raw_submission?.maritalStatus || null,
+        matchingMaritalRange: row.raw_submission?.matchingMaritalRange || [],
       }));
     } else {
-      // Local JSON fallback
       const localPath = path.join(__dirname, "../../data/dev-submissions.json");
       try {
         const data = await fs.readFile(localPath, "utf8");
@@ -476,6 +487,7 @@ async function runMatchingBatch(runId = null) {
     const activeParticipants = participants.filter((p) => p.gender === "남" || p.gender === "여");
     const males = activeParticipants.filter((p) => p.gender === "남");
     const females = activeParticipants.filter((p) => p.gender === "여");
+    console.log(`Marital filter: males=${males.map(m => m.maritalStatus).join(",")}, females=${females.map(f => f.maritalStatus).join(",")}`);
 
     console.log(`Active participants: ${activeParticipants.length} (Males: ${males.length}, Females: ${females.length})`);
 
@@ -568,13 +580,14 @@ async function runMatchingBatch(runId = null) {
         });
       }
 
-      // Update match run status to completed
+      const voteDeadline = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       await requestSupabase(`match_runs?id=eq.${currentRunId}`, {
         method: "PATCH",
         headers: { Prefer: "return=minimal" },
         body: {
           status: "completed",
           completed_at: new Date().toISOString(),
+          vote_deadline_at: voteDeadline,
         },
       });
 

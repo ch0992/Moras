@@ -337,7 +337,60 @@ function resultsPage() {
       font-weight: 800;
     }
     .error { color: #FCA5A5; }
-    @media (max-width: 820px) {
+    .deadline-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 12px 18px;
+      background: rgba(255,232,163,0.06);
+      border: 1px solid rgba(255,232,163,0.18);
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    .deadline-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--gold-soft);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .deadline-time {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .deadline-time.expired { color: #f87171; }
+    .match-cta-btn {
+      margin-left: auto;
+      background: var(--gold-soft);
+      color: #0a0a0a;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      font-family: inherit;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    .match-cta-btn:hover { opacity: 0.85; }
+    .vote-badge {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .vote-badge.voted { background: rgba(74,222,128,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+    .vote-badge.pending { background: rgba(255,255,255,0.06); color: var(--muted); }
+    .vote-badge.no-vote { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+
+        @media (max-width: 820px) {
       main { width: min(100vw - 24px, 560px); padding-top: 104px; }
       .hero { padding: 24px 20px; }
       .couple { grid-template-columns: 1fr; }
@@ -369,22 +422,38 @@ function resultsPage() {
         const response = await fetch("/api/results", { cache: "no-store" });
         const body = await response.json();
         if (!response.ok) throw new Error(body.error || "매칭 결과를 불러오지 못했습니다.");
-        renderResults(body.matches || []);
+        renderResults(body.matches || [], body.voteDeadline || null);
       } catch (error) {
         statusEl.textContent = "매칭 결과 조회 실패";
         listEl.innerHTML = '<div class="error">' + escapeHtml(error.message) + '</div>';
       }
     }
 
-    function renderResults(matches) {
+    function renderResults(matches, voteDeadline) {
+      const deadlinePassed = voteDeadline ? new Date(voteDeadline).getTime() < Date.now() : false;
+
+      // Deadline + vote CTA bar
+      let deadlineHtml = "";
+      if (voteDeadline) {
+        const d = new Date(voteDeadline);
+        const fmt = d.getFullYear() + "." + String(d.getMonth()+1).padStart(2,"0") + "." + String(d.getDate()).padStart(2,"0") + " " + String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+        deadlineHtml = '<div class="deadline-bar">' +
+          '<span class="deadline-label">' + (deadlinePassed ? "매칭 선택 종료" : "매칭 선택 마감") + '</span>' +
+          '<span class="deadline-time' + (deadlinePassed ? " expired" : "") + '">' + fmt + '</span>' +
+          '<a href="/match" class="match-cta-btn">매칭 투표하러 가기 →</a>' +
+          '</div>';
+      } else {
+        deadlineHtml = '<div class="deadline-bar"><a href="/match" class="match-cta-btn">매칭 투표하러 가기 →</a></div>';
+      }
+
       statusEl.textContent = matches.length
         ? "총 " + matches.length + "커플 매칭 완료"
         : "아직 공개할 매칭 결과가 없습니다.";
       if (!matches.length) {
-        listEl.innerHTML = '<div class="empty">관리자가 일괄 매칭을 실행하면 이곳에 결과가 표시됩니다.</div>';
+        listEl.innerHTML = deadlineHtml + '<div class="empty">관리자가 일괄 매칭을 실행하면 이곳에 결과가 표시됩니다.</div>';
         return;
       }
-      listEl.innerHTML = matches.map((match, index) => coupleRow(match, index)).join("");
+      listEl.innerHTML = deadlineHtml + matches.map((match, index) => coupleRow(match, index, deadlinePassed)).join("");
       document.querySelectorAll("[data-detail]").forEach((button) => {
         button.addEventListener("click", () => {
           const detail = document.getElementById("detail-" + button.dataset.detail);
@@ -394,7 +463,7 @@ function resultsPage() {
       });
     }
 
-    function coupleRow(match, index) {
+    function coupleRow(match, index, deadlinePassed) {
       const detail = match.score_detail || {};
       const score = Math.round(Number(match.average_score || detail.finalScore || 0));
       const male = match.male || {};
@@ -403,8 +472,8 @@ function resultsPage() {
       return \`
         <article class="couple \${rankClass}">
           <div class="rank">\${escapeHtml(match.rank || index + 1)}위</div>
-          \${personBox("male", "MAN", male)}
-          \${personBox("female", "WOMAN", female)}
+          \${personBox("male", "MAN", male, match.maleVoted, deadlinePassed)}
+          \${personBox("female", "WOMAN", female, match.femaleVoted, deadlinePassed)}
           <div class="score">
             <div class="score-main">\${score}<span>점</span></div>
             <div class="type">\${escapeHtml(detail.relationshipType || "균형 탐색형")}</div>
@@ -426,14 +495,25 @@ function resultsPage() {
       \`;
     }
 
-    function personBox(className, label, person) {
+    function personBox(className, label, person, hasVoted, deadlinePassed) {
       const manse = getManse(person);
       const dayPillar = manse?.saju?.dayPillar || "일주 미확인";
+      let voteStatus = "";
+      if (deadlinePassed) {
+        voteStatus = hasVoted
+          ? '<div class="vote-badge voted">투표 완료</div>'
+          : '<div class="vote-badge no-vote">미투표 (자동 X)</div>';
+      } else {
+        voteStatus = hasVoted
+          ? '<div class="vote-badge voted">투표 완료</div>'
+          : '<div class="vote-badge pending">투표 대기중</div>';
+      }
       return \`
         <div class="person \${className}">
           <span class="label">\${label}</span>
           <div class="name">\${escapeHtml(person.displayName || person.display_name || "이름 없음")}</div>
           <div class="sub">\${escapeHtml(person.mbti || "MBTI 미확인")} · \${escapeHtml(dayPillar)}</div>
+          \${voteStatus}
         </div>
       \`;
     }

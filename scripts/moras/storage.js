@@ -442,6 +442,47 @@ function cryptoRandomId() {
   return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+async function saveRosterRequest({ displayName, gender, contact }) {
+  const name = nullableString(displayName);
+  const normalizedGender = normalizeGender(gender);
+  if (!name) throw new Error("이름을 입력해주세요.");
+  if (!normalizedGender) throw new Error("성별을 선택해주세요.");
+
+  if (hasSupabaseConfig()) {
+    const checkRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/${ROSTER_TABLE}?select=id,is_active&display_name=eq.${encodeURIComponent(name)}`,
+      { headers: supabaseHeaders() },
+    );
+    const existing = await checkRes.json();
+    if (Array.isArray(existing) && existing.length > 0) {
+      if (existing[0].is_active) throw new Error("이미 참가자 명단에 등록된 이름입니다. 이름을 다시 확인해주세요.");
+      throw new Error("이미 추가 요청이 접수된 이름입니다. 운영자 승인을 기다려주세요.");
+    }
+    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/${ROSTER_TABLE}`, {
+      method: "POST",
+      headers: supabaseHeaders({ Prefer: "return=minimal" }),
+      body: JSON.stringify({
+        id: cryptoRandomId(),
+        display_name: name,
+        gender: normalizedGender,
+        is_active: false,
+        updated_at: new Date().toISOString(),
+      }),
+    });
+    if (!insertRes.ok) throw new Error(`요청 저장 실패: ${await insertRes.text()}`);
+  } else {
+    const participants = await readRosterFromLocal();
+    const already = participants.find((p) => normalizeNameKey(p.displayName) === normalizeNameKey(name));
+    if (already) {
+      if (already.isActive) throw new Error("이미 참가자 명단에 등록된 이름입니다.");
+      throw new Error("이미 추가 요청이 접수된 이름입니다. 운영자 승인을 기다려주세요.");
+    }
+    participants.push({ id: cryptoRandomId(), displayName: name, gender: normalizedGender, isActive: false });
+    await writeRosterToLocal(participants);
+  }
+  return { displayName: name, gender: normalizedGender };
+}
+
 module.exports = {
   saveSubmission,
   readSubmissions,
@@ -453,4 +494,5 @@ module.exports = {
   saveRosterParticipant,
   deleteRosterParticipant,
   seedRosterParticipants,
+  saveRosterRequest,
 };

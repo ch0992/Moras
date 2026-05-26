@@ -125,7 +125,7 @@ function applicantsPage() {
     }
     .applicant {
       display: grid;
-      grid-template-columns: 52px minmax(130px, 1.2fr) 90px 100px 110px minmax(180px, 1fr);
+      grid-template-columns: 52px minmax(130px, 1.2fr) 90px 100px 110px minmax(180px, 1fr) auto;
       gap: 12px;
       align-items: center;
       padding: 18px;
@@ -133,6 +133,118 @@ function applicantsPage() {
       border: 1px solid var(--line);
       background: rgba(10, 15, 30, 0.68);
       box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
+    }
+    .analysis-btn {
+      height: 36px;
+      padding: 0 14px;
+      border: 1px solid rgba(147, 197, 253, 0.35);
+      border-radius: 10px;
+      background: rgba(147, 197, 253, 0.08);
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .analysis-btn:hover {
+      background: rgba(147, 197, 253, 0.16);
+      border-color: rgba(147, 197, 253, 0.55);
+    }
+    /* Analysis Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      z-index: 100;
+      padding: 48px 16px 48px;
+      overflow-y: auto;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-card {
+      width: min(760px, 100%);
+      background: #0a0f1e;
+      border: 1px solid rgba(255, 232, 163, 0.22);
+      border-radius: 24px;
+      padding: 36px 32px;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7);
+      transform: translateY(20px);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-overlay.open .modal-card {
+      transform: translateY(0);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .modal-title {
+      color: #FFE8A3;
+      font-size: 20px;
+      font-weight: 900;
+    }
+    .modal-close {
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background 0.2s;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .modal-loading { text-align: center; padding: 48px 0; color: var(--muted); font-size: 15px; font-weight: 700; }
+    .modal-section {
+      margin-bottom: 18px;
+      padding: 18px 20px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .modal-section-title {
+      color: #FFE8A3;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .modal-section p {
+      color: #CBD5E1;
+      font-size: 14.5px;
+      line-height: 1.8;
+      margin: 0;
+      word-break: keep-all;
+    }
+    .modal-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 8px;
+    }
+    .modal-tag {
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.055);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #DDE7F3;
+      font-size: 12px;
+      font-weight: 800;
     }
     .rank {
       display: grid;
@@ -196,8 +308,9 @@ function applicantsPage() {
         grid-column: 2;
       }
       .rank-wrap {
-        grid-row: 1 / span 5;
+        grid-row: 1 / span 6;
       }
+      .modal-card { padding: 24px 18px; }
     }
   </style>
 </head>
@@ -214,9 +327,30 @@ function applicantsPage() {
     </div>
     <section id="list" class="list"></section>
   </main>
+
+  <!-- Analysis Modal -->
+  <div class="modal-overlay" id="analysis-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-title">분석 리포트</div>
+        <button class="modal-close" id="modal-close" type="button">✕</button>
+      </div>
+      <div id="modal-body"><div class="modal-loading">불러오는 중...</div></div>
+    </div>
+  </div>
+
   <script>
     const listEl = document.querySelector("#list");
     const countEl = document.querySelector("#count");
+    const modal = document.querySelector("#analysis-modal");
+    const modalTitle = document.querySelector("#modal-title");
+    const modalBody = document.querySelector("#modal-body");
+
+    document.querySelector("#modal-close").addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+    function openModal() { modal.classList.add("open"); document.body.style.overflow = "hidden"; }
+    function closeModal() { modal.classList.remove("open"); document.body.style.overflow = ""; }
 
     loadApplicants();
 
@@ -251,6 +385,7 @@ function applicantsPage() {
         field("MBTI", '<span class="pill">' + escapeHtml(item.mbti || "미입력") + '</span>', true) +
         field("일주", item.dayPillar || "미확인") +
         field("신청완료시각", formatSubmittedAt(item.submittedAt)) +
+        '<div><button class="analysis-btn" data-id="' + escapeHtml(item.id) + '" data-name="' + escapeHtml(item.name || "이름 없음") + '" type="button">분석결과보기</button></div>' +
         '</article>';
     }
 
@@ -268,6 +403,62 @@ function applicantsPage() {
         hour: "2-digit",
         minute: "2-digit",
       }).format(date);
+    }
+
+    listEl.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".analysis-btn");
+      if (!btn) return;
+      const id = btn.dataset.id;
+      const name = btn.dataset.name;
+      modalTitle.textContent = name + "님의 분석 리포트";
+      modalBody.innerHTML = '<div class="modal-loading">불러오는 중...</div>';
+      openModal();
+      try {
+        const res = await fetch("/api/applicants/" + encodeURIComponent(id));
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "분석 정보를 불러오지 못했습니다.");
+        modalBody.innerHTML = renderAnalysis(data);
+      } catch (error) {
+        modalBody.innerHTML = '<div class="modal-loading" style="color:#FCA5A5">' + escapeHtml(error.message) + '</div>';
+      }
+    });
+
+    function renderAnalysis(data) {
+      const a = data.geminiAnalysis;
+      if (!a || a.status !== "ok") {
+        return '<div class="modal-loading" style="color:var(--muted)">분석 리포트가 없거나 아직 생성 중입니다.</div>';
+      }
+      let html = '';
+      if (a.report_title) {
+        html += '<div class="modal-section"><div class="modal-section-title">리포트 제목</div><p style="color:#FFE8A3;font-size:18px;font-weight:900">' + escapeHtml(a.report_title) + '</p></div>';
+      }
+      if (a.opening_summary) {
+        html += '<div class="modal-section"><div class="modal-section-title">종합 요약</div><p>' + escapeHtml(a.opening_summary) + '</p></div>';
+      }
+      if (a.what_person) {
+        html += '<div class="modal-section"><div class="modal-section-title">나는 어떤 사람인가</div><p>' + escapeHtml(a.what_person) + '</p></div>';
+      }
+      if (a.emotional_energy) {
+        html += '<div class="modal-section"><div class="modal-section-title">감정과 에너지 구조</div><p>' + escapeHtml(a.emotional_energy) + '</p></div>';
+      }
+      if (a.best_partner_style) {
+        html += '<div class="modal-section"><div class="modal-section-title">어울리는 인연 스타일</div><p>' + escapeHtml(a.best_partner_style) + '</p></div>';
+      }
+      if (a.relationship_style) {
+        html += '<div class="modal-section"><div class="modal-section-title">연애 스타일</div><p>' + escapeHtml(a.relationship_style) + '</p></div>';
+      }
+      if (a.growth_guide) {
+        html += '<div class="modal-section"><div class="modal-section-title">성장 가이드</div><p>' + escapeHtml(a.growth_guide) + '</p></div>';
+      }
+      if (a.strength_keywords && a.strength_keywords.length) {
+        html += '<div class="modal-section"><div class="modal-section-title">키워드</div><div class="modal-tags">' +
+          a.strength_keywords.map((k) => '<span class="modal-tag">' + escapeHtml(k) + '</span>').join("") +
+          '</div></div>';
+      }
+      if (a.tone_note) {
+        html += '<div class="modal-section"><div class="modal-section-title">마무리</div><p style="color:#FFE8A3;font-style:italic">' + escapeHtml(a.tone_note) + '</p></div>';
+      }
+      return html || '<div class="modal-loading" style="color:var(--muted)">표시할 분석 내용이 없습니다.</div>';
     }
 
     function escapeHtml(value) {

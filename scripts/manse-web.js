@@ -39,6 +39,8 @@ const { resultsPage } = require("./moras/pages/results-page");
 const { roulettePage } = require("./moras/pages/roulette-page");
 const { ladderPage } = require("./moras/pages/ladder-page");
 const { secretPage } = require("./moras/pages/secret-page");
+const { promoPage } = require("./moras/pages/promo-page");
+const { guidePage } = require("./moras/pages/guide-page");
 
 const PORT = Number(process.env.PORT || 4173);
 const UPCOMING_IMAGE_FILE = path.join(
@@ -1751,10 +1753,18 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method === "GET" && url.pathname === UPCOMING_IMAGE_ROUTE) {
+  if (req.method === "GET" && url.pathname.startsWith("/assets/")) {
     try {
-      const image = await fs.readFile(UPCOMING_IMAGE_FILE);
-      send(res, 200, "image/png", image, [], "public, max-age=86400");
+      const filePath = path.join(__dirname, "..", url.pathname);
+      const ext = path.extname(filePath).toLowerCase();
+      let contentType = "application/octet-stream";
+      if (ext === ".png") contentType = "image/png";
+      else if (ext === ".jpg" || ext === ".jpeg") contentType = "image/jpeg";
+      else if (ext === ".svg") contentType = "image/svg+xml";
+      else if (ext === ".css") contentType = "text/css";
+      
+      const fileContent = await fs.readFile(filePath);
+      send(res, 200, contentType, fileContent, [], "public, max-age=86400");
     } catch {
       send(res, 404, "text/plain; charset=utf-8", "Not found");
     }
@@ -1777,6 +1787,16 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "GET" && url.pathname === "/results") {
     send(res, 200, "text/html; charset=utf-8", resultsPage());
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/promo") {
+    send(res, 200, "text/html; charset=utf-8", promoPage());
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/guide") {
+    send(res, 200, "text/html; charset=utf-8", guidePage());
     return;
   }
 
@@ -2034,4 +2054,6 @@ module.exports = {
   ladderPage,
   secretPage,
   upcomingEventPage,
+  promoPage,
+  guidePage,
 };

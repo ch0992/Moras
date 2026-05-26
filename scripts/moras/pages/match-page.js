@@ -654,7 +654,36 @@ function matchPage() {
     }
 
     /* Vote UI */
-    .vote-panel {
+    .profile-vote-area { margin-top: 12px; text-align: center; }
+    .vote-form { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .vote-select {
+      appearance: none; background: rgba(10,15,30,0.8);
+      border: 1.5px solid rgba(255,232,163,0.4); border-radius: 10px;
+      color: #FFE8A3; font-size: 14px; font-weight: 700;
+      padding: 8px 14px; cursor: pointer; font-family: inherit; min-width: 140px;
+      text-align: center; text-align-last: center;
+    }
+    .vote-select:focus { outline: none; border-color: #FFE8A3; }
+    .btn-vote-submit {
+      background: var(--gold-gradient); color: #0a0a0a; border: none;
+      border-radius: 10px; padding: 8px 22px; font-size: 13px; font-weight: 800;
+      cursor: pointer; transition: opacity 0.15s; font-family: inherit;
+    }
+    .btn-vote-submit:hover { opacity: 0.85; }
+    .btn-vote-submit:disabled { opacity: 0.4; }
+    .vote-status {
+      font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px; margin-top: 8px; display: inline-block;
+    }
+    .vote-status.my-done { background: rgba(74,222,128,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+    .vote-status.waiting { background: rgba(255,255,255,0.06); color: var(--muted); }
+    .vote-status.partner-done { background: rgba(255,232,163,0.12); color: var(--gold); }
+    .vote-status.expired { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+    .vote-prompt { font-size: 13px; font-weight: 700; color: var(--gold); margin-bottom: 2px; }
+    .vote-warning { font-size: 11px; color: #f87171; margin-top: 2px; }
+    .vote-selection-text { font-size: 13px; font-weight: 700; min-height: 36px; line-height: 1.6; text-align: center; transition: color 0.2s; }
+    .vote-selection-text.yes { color: #4ade80; }
+    .vote-selection-text.no { color: #f87171; }
+        .vote-panel {
       border-top: 1px solid var(--line);
       padding-top: 32px;
       text-align: center;
@@ -804,46 +833,17 @@ function matchPage() {
       </defs>
     </svg>
 
-    <!-- Passcode Auth Input Form View -->
+    <!-- Name Search Form View -->
     <div id="auth-view">
-      <h2 style="font-size: 28px; color: #fff;"><span class="logo-cinzel">비밀 연분 확인하기</span></h2>
-      <p>주최측으로부터 제공받은 6자리 비밀번호 코드를 입력하여 당신의 운명적인 인연과 궁합을 확인해 보세요.</p>
-      
-      <!-- 별자리 6노드 SVG 은하 융합 인터랙션 -->
-      <div class="constellation-container">
-        <svg class="constellation-svg" viewBox="0 0 320 80">
-          <defs>
-            <filter id="starGlow">
-              <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          <path class="constellation-base-line" d="M 25 45 L 80 25 L 140 55 L 190 30 L 245 60 L 295 40" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.5" />
-          <path id="active-constellation-path" class="constellation-active-line" d="M 25 45 L 80 25 L 140 55 L 190 30 L 245 60 L 295 40" fill="none" stroke="url(#goldGradient)" stroke-dasharray="290" stroke-dashoffset="290" stroke-width="2" />
-          
-          <circle class="star-node" cx="25" cy="45" r="4.5" />
-          <circle class="star-node" cx="80" cy="25" r="4.5" />
-          <circle class="star-node" cx="140" cy="55" r="4.5" />
-          <circle class="star-node" cx="190" cy="30" r="4.5" />
-          <circle class="star-node" cx="245" cy="60" r="4.5" />
-          <circle class="star-node" cx="295" cy="40" r="5" />
-        </svg>
+      <h2 style="font-size: 28px; color: #fff;"><span class="logo-cinzel">나의 인연 확인하기</span></h2>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:28px;">참가자 명단에 등록된 이름을 입력하여 매칭 결과를 확인하세요.</p>
+      <div style="display:flex;gap:10px;width:100%;max-width:340px;">
+        <input id="name-input" type="text" placeholder="이름 입력" maxlength="30" autocomplete="off"
+          style="flex:1;height:52px;background:rgba(10,15,30,0.72);border:1.5px solid rgba(255,255,255,0.12);border-radius:12px;color:#F8FAFC;font-size:16px;font-weight:600;padding:0 16px;font-family:inherit;outline:none;transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='rgba(255,232,163,0.6)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+        <button id="btn-submit-code" class="btn" style="white-space:nowrap;padding:0 22px;height:52px;border-radius:12px;">조회</button>
       </div>
-
-      <div class="passcode-inputs">
-        <input type="text" class="passcode-digit" maxlength="1" pattern="[0-9]" inputmode="numeric">
-        <input type="text" class="passcode-digit" maxlength="1" pattern="[0-9]" inputmode="numeric">
-        <input type="text" class="passcode-digit" maxlength="1" pattern="[0-9]" inputmode="numeric">
-        <input type="text" class="passcode-digit" maxlength="1" pattern="[0-9]" inputmode="numeric">
-        <input type="text" class="passcode-digit" maxlength="1" pattern="[0-9]" inputmode="numeric">
-        <input type="text" class="passcode-digit" maxlength="1" pattern="[0-9]" inputmode="numeric">
-      </div>
-      
-      <button id="btn-submit-code" class="btn">연분 매칭 조회</button>
-      <div id="auth-error" class="error-msg"></div>
+      <div id="auth-error" class="error-msg" style="margin-top:12px;"></div>
     </div>
 
     <!-- Match detailed Result View -->
@@ -864,6 +864,7 @@ function matchPage() {
           <div class="profile-name" id="male-name">남자</div>
           <div class="profile-gender-mbti" id="male-mbti">남성 · MBTI</div>
           <div class="saju-brief" id="male-saju">사주 정보</div>
+          <div id="male-vote-area" class="profile-vote-area"></div>
         </div>
 
         <!-- 중앙 궁합 서큘러 게이지 바 (Celestial Sun Ring) -->
@@ -885,6 +886,7 @@ function matchPage() {
           <div class="profile-name" id="female-name">여자</div>
           <div class="profile-gender-mbti" id="female-mbti">여성 · MBTI</div>
           <div class="saju-brief" id="female-saju">사주 정보</div>
+          <div id="female-vote-area" class="profile-vote-area"></div>
         </div>
       </div>
 
@@ -898,134 +900,54 @@ function matchPage() {
         </div>
       </div>
 
-      <!-- Private Voting Panel -->
-      <div class="vote-panel">
-        <div id="vote-form-area">
-          <h3>비밀 매칭 선택 투표</h3>
-          <p>이 인연과의 매칭에 찬성하십니까? 이 투표는 상대방에게 즉시 공개되지 않는 비밀투표입니다. 두 분 모두 '찬성'을 선택하시면 최종 매칭이 확정됩니다.</p>
-          <div class="vote-buttons">
-            <button id="vote-yes" class="btn-vote yes">
-              <span>💖 찬성 (인연 이어가기)</span>
-            </button>
-            <button id="vote-no" class="btn-vote no">
-              <span>친구로 남기 (거절)</span>
-            </button>
-          </div>
-          <div id="vote-error" class="error-msg"></div>
-        </div>
-        <div id="vote-success-area" class="vote-success-anim">
-          <div class="vote-success-icon">✨</div>
-          <h3 style="margin-bottom: 4px;">비밀 투표가 접수되었습니다!</h3>
-          <p id="vote-success-msg" style="margin-bottom: 0;">의사가 안전하게 저장되었습니다. 모든 참가자 투표 후 결과가 공지됩니다.</p>
-        </div>
-      </div>
+      <!-- Deadline Notice -->
+      <div id="deadline-notice" style="display:none;margin-top:16px;padding:10px 18px;border-radius:10px;background:rgba(255,232,163,0.08);border:1px solid rgba(255,232,163,0.2);font-size:13px;color:var(--gold);text-align:center;"></div>
     </div>
   </div>
 
   <script>
-    // Autofocus flow for passcode inputs
-    const digits = document.querySelectorAll(".passcode-digit");
-    
-    // 6자리 입력 감지 및 별자리선 연출
-    function updateConstellation() {
-      let code = "";
-      digits.forEach(d => code += d.value);
-      const numActive = code.length;
-      
-      const activePath = document.getElementById("active-constellation-path");
-      // 선 총 길이는 290px
-      const offset = 290 - (290 * numActive) / 6;
-      activePath.style.strokeDashoffset = offset;
-      
-      const starNodes = document.querySelectorAll(".star-node");
-      starNodes.forEach((node, idx) => {
-        if (idx < numActive) {
-          node.classList.add("active");
-        } else {
-          node.classList.remove("active");
-        }
-      });
-      
-      const container = document.querySelector(".constellation-container");
-      if (numActive === 6) {
-        container.classList.add("completed");
-      } else {
-        container.classList.remove("completed");
-      }
-    }
-
-    digits.forEach((digit, index) => {
-      digit.addEventListener("input", (e) => {
-        if (e.target.value.length === 1 && index < digits.length - 1) {
-          digits[index + 1].focus();
-        }
-        updateConstellation();
-        clearAuthError();
-      });
-
-      digit.addEventListener("keydown", (e) => {
-        if (e.key === "Backspace" && e.target.value.length === 0 && index > 0) {
-          digits[index - 1].focus();
-          updateConstellation();
-        }
-      });
-    });
-
-    let currentPasscode = "";
     let currentMatchData = null;
 
-    function clearAuthError() {
-      document.getElementById("auth-error").textContent = "";
-    }
+    const nameInput = document.getElementById('name-input');
+    const submitBtn = document.getElementById('btn-submit-code');
+    const authError = document.getElementById('auth-error');
 
-    // Submit passcode API
-    document.getElementById("btn-submit-code").addEventListener("click", async () => {
-      let code = "";
-      digits.forEach(d => code += d.value);
+    nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitBtn.click(); });
 
-      if (code.length !== 6) {
-        document.getElementById("auth-error").textContent = "6자리 코드를 모두 입력해 주세요.";
-        return;
-      }
-
-      currentPasscode = code;
-      const btn = document.getElementById("btn-submit-code");
-      btn.disabled = true;
-      btn.textContent = "조회 중...";
-
+    submitBtn.addEventListener('click', async () => {
+      const name = nameInput.value.trim();
+      if (!name) { authError.textContent = '이름을 입력해주세요.'; return; }
+      authError.textContent = '';
+      submitBtn.disabled = true;
+      submitBtn.textContent = '조회 중...';
       try {
-        const response = await fetch("/api/match/detail", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ passcode: code })
+        const res = await fetch('/api/match/detail', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name }),
         });
-        const data = await response.json();
-        
-        if (!response.ok) {
-          document.getElementById("auth-error").textContent = data.error || "조회에 실패했습니다.";
-          btn.disabled = false;
-          btn.textContent = "연분 매칭 조회";
+        const data = await res.json();
+        if (!res.ok) {
+          authError.textContent = data.error || '조회에 실패했습니다.';
+          submitBtn.disabled = false;
+          submitBtn.textContent = '조회';
           return;
         }
-
         renderMatchResult(data);
-      } catch (error) {
-        document.getElementById("auth-error").textContent = "서버 통신 오류가 발생했습니다.";
-        btn.disabled = false;
-        btn.textContent = "연분 매칭 조회";
+      } catch {
+        authError.textContent = '서버 통신 오류가 발생했습니다.';
+        submitBtn.disabled = false;
+        submitBtn.textContent = '조회';
       }
     });
 
-    // 만세력 룬 아이콘 및 차트 생성 (홑따옴표와 문자열 결합만 사용으로 이스케이프 빌드 에러 차단)
     function createMiniManseHtml(manse) {
       if (!manse || !manse.pillars) {
         return '<div class="saju-missing" style="color:var(--muted);font-size:12.5px;margin-top:10px;font-weight:500;">사주 정보 비공개</div>';
       }
-      
       var order = ["hour", "day", "month", "year"];
       var labels = { hour: "시", day: "일", month: "월", year: "년" };
       var pillars = manse.pillars;
-      
       var getElementClass = function(el) {
         if (!el) return "";
         if (el.indexOf("木") >= 0 || el.indexOf("목") >= 0) return "elem-wood";
@@ -1035,27 +957,15 @@ function matchPage() {
         if (el.indexOf("水") >= 0 || el.indexOf("수") >= 0) return "elem-water";
         return "";
       };
-      
       var getElementSvg = function(el) {
         if (!el) return "";
-        if (el.indexOf("木") >= 0 || el.indexOf("목") >= 0) {
-          return '<svg class="mini-elem-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C11.5 2 10 5 10 8C10 11 11.5 12 12 12C12.5 12 14 11 14 8C14 5 12.5 2 12 2Z M12 12C9 12 7 14 7 17C7 20 12 22 12 22C12 22 17 20 17 17C17 14 15 12 12 12Z"/></svg>';
-        }
-        if (el.indexOf("火") >= 0 || el.indexOf("화") >= 0) {
-          return '<svg class="mini-elem-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C12 2 17 7 17 11C17 15.5 13.5 18 12 22C10.5 18 7 15.5 7 11C7 7 12 2 12 2Z M12 8C12 8 14.5 11 14.5 13C14.5 15 13 16 12 18C11 16 9.5 15 9.5 13C9.5 11 12 8 12 8Z"/></svg>';
-        }
-        if (el.indexOf("土") >= 0 || el.indexOf("토") >= 0) {
-          return '<svg class="mini-elem-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L2 18H22L12 2Z M12 6L18.5 16H5.5L12 6Z M12 10L15 15H9L12 10Z"/></svg>';
-        }
-        if (el.indexOf("金") >= 0 || el.indexOf("금") >= 0) {
-          return '<svg class="mini-elem-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L4 12L12 22L20 12L12 2Z M12 6L17 12L12 18L7 12L12 6Z"/></svg>';
-        }
-        if (el.indexOf("水") >= 0 || el.indexOf("수") >= 0) {
-          return '<svg class="mini-elem-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M2 12C2 12 5 9 8 12C11 15 13 15 16 12C19 9 22 12 22 12M2 17C2 17 5 14 8 17C11 20 13 20 16 17C19 14 22 17 22 17"/></svg>';
-        }
+        if (el.indexOf("木") >= 0 || el.indexOf("목") >= 0) return '<svg class="mini-elem-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C11.5 2 10 5 10 8C10 11 11.5 12 12 12C12.5 12 14 11 14 8C14 5 12.5 2 12 2Z M12 12C9 12 7 14 7 17C7 20 12 22 12 22C12 22 17 20 17 17C17 14 15 12 12 12Z"/></svg>';
+        if (el.indexOf("火") >= 0 || el.indexOf("화") >= 0) return '<svg class="mini-elem-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C12 2 17 7 17 11C17 15.5 13.5 18 12 22C10.5 18 7 15.5 7 11C7 7 12 2 12 2Z M12 8C12 8 14.5 11 14.5 13C14.5 15 13 16 12 18C11 16 9.5 15 9.5 13C9.5 11 12 8 12 8Z"/></svg>';
+        if (el.indexOf("土") >= 0 || el.indexOf("토") >= 0) return '<svg class="mini-elem-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L2 18H22L12 2Z M12 6L18.5 16H5.5L12 6Z M12 10L15 15H9L12 10Z"/></svg>';
+        if (el.indexOf("金") >= 0 || el.indexOf("금") >= 0) return '<svg class="mini-elem-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L4 12L12 22L20 12L12 2Z M12 6L17 12L12 18L7 12L12 6Z"/></svg>';
+        if (el.indexOf("水") >= 0 || el.indexOf("수") >= 0) return '<svg class="mini-elem-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M2 12C2 12 5 9 8 12C11 15 13 15 16 12C19 9 22 12 22 12M2 17C2 17 5 14 8 17C11 20 13 20 16 17C19 14 22 17 22 17"/></svg>';
         return "";
       };
-      
       var html = '<div class="mini-manse-chart">';
       for (var i = 0; i < order.length; i++) {
         var key = order[i];
@@ -1063,189 +973,169 @@ function matchPage() {
         var p = pillars[key];
         var isDay = (key === "day");
         var highlightClass = isDay ? ' day-highlight' : '';
-        
         if (!p) {
-          html += '<div class="mini-manse-col' + highlightClass + '">' +
-                  '<div class="mini-manse-label">' + label + '</div>' +
-                  '<div class="mini-manse-slot unknown">모름</div>' +
-                  '<div class="mini-manse-slot unknown">모름</div>' +
-                '</div>';
+          html += '<div class="mini-manse-col' + highlightClass + '"><div class="mini-manse-label">' + label + '</div><div class="mini-manse-slot unknown">모름</div><div class="mini-manse-slot unknown">모름</div></div>';
           continue;
         }
-        
         var stemText = p.stem.hangul + p.stem.hanja;
         var branchText = p.branch.hangul + p.branch.hanja;
         var stemClass = getElementClass(p.stem.element);
         var branchClass = getElementClass(p.branch.element);
         var stemSvg = getElementSvg(p.stem.element);
         var branchSvg = getElementSvg(p.branch.element);
-        
-        html += '<div class="mini-manse-col' + highlightClass + '">' +
-                '<div class="mini-manse-label">' + label + '</div>' +
-                '<div class="mini-manse-slot ' + stemClass + '">' +
-                  stemSvg +
-                  '<span class="mini-manse-text">' + stemText + '</span>' +
-                '</div>' +
-                '<div class="mini-manse-slot ' + branchClass + '">' +
-                  branchSvg +
-                  '<span class="mini-manse-text">' + branchText + '</span>' +
-                '</div>' +
-              '</div>';
+        html += '<div class="mini-manse-col' + highlightClass + '"><div class="mini-manse-label">' + label + '</div><div class="mini-manse-slot ' + stemClass + '">' + stemSvg + '<span class="mini-manse-text">' + stemText + '</span></div><div class="mini-manse-slot ' + branchClass + '">' + branchSvg + '<span class="mini-manse-text">' + branchText + '</span></div></div>';
       }
       html += '</div>';
       return html;
     }
 
-    // Render logic
-    function renderMatchResult(data) {
-      currentMatchData = data;
-      document.getElementById("auth-view").style.display = "none";
-      const resultView = document.getElementById("result-view");
-      resultView.style.display = "block";
-
-      // 1. Rank Badge
-      const rankBadge = document.getElementById("rank-badge");
-      rankBadge.textContent = "MATCH RANK " + data.compatibility.rank;
-      if (data.compatibility.isTop) {
-        rankBadge.classList.add("top");
-        rankBadge.textContent = "🏆 1위 운명의 커플 🏆";
+    function renderVoteArea(areaEl, isMine, data) {
+      if (data.deadlinePassed) {
+        areaEl.innerHTML = '<div class="vote-status expired">선택기간 종료</div>';
+        return;
       }
-
-      // 2. Score Circular Progress
-      const score = Math.round(data.compatibility.averageScore);
-      document.getElementById("score-num").textContent = score;
-      
-      // Calculate stroke-dashoffset: radius is 66, circumference is 2 * PI * 66 = 414.69
-      const strokeOffset = 414.69 - (414.69 * score) / 100;
-      setTimeout(() => {
-        document.getElementById("score-bar").style.strokeDashoffset = strokeOffset;
-      }, 150);
-
-      // 3. Profiles mapping based on gender
-      const male = data.partner.gender === "남" ? data.partner : data.me;
-      const female = data.partner.gender === "여" ? data.partner : data.me;
-
-      document.getElementById("male-name").textContent = male.displayName;
-      document.getElementById("male-mbti").textContent = "남성 · " + (male.mbti || "MBTI 비공개");
-      document.getElementById("male-saju").innerHTML = createMiniManseHtml(male.manse);
-
-      document.getElementById("female-name").textContent = female.displayName;
-      document.getElementById("female-mbti").textContent = "여성 · " + (female.mbti || "MBTI 비공개");
-      document.getElementById("female-saju").innerHTML = createMiniManseHtml(female.manse);
-
-      // 4. Keywords
-      const keywordsContainer = document.getElementById("keywords-container");
-      keywordsContainer.innerHTML = "";
-      
-      let allKeywords = [];
-      if (data.compatibility.myPerspective?.keywords) {
-        allKeywords.push(...data.compatibility.myPerspective.keywords);
+      if (!isMine) {
+        areaEl.innerHTML = data.partnerHasVoted
+          ? '<div class="vote-status partner-done">투표 완료</div>'
+          : '<div class="vote-status waiting">투표 대기중...</div>';
+        return;
       }
-      if (data.compatibility.partnerPerspective?.keywords) {
-        allKeywords.push(...data.compatibility.partnerPerspective.keywords);
-      }
-      // Remove duplicates
-      const uniqueKeywords = [...new Set(allKeywords)].slice(0, 5);
-      
-      if (uniqueKeywords.length > 0) {
-        uniqueKeywords.forEach(kw => {
-          const pill = document.createElement("span");
-          pill.className = "keyword-pill";
-          pill.textContent = "#" + kw;
-          keywordsContainer.appendChild(pill);
-        });
-      } else {
-        const defaultKW = ["오행의조화", "MBTI케미", "찰떡궁합"];
-        defaultKW.forEach(kw => {
-          const pill = document.createElement("span");
-          pill.className = "keyword-pill";
-          pill.textContent = "#" + kw;
-          keywordsContainer.appendChild(pill);
-        });
-      }
-
-      // 5. Reasoning text
-      let reasonHtml = "";
-      if (data.compatibility.myPerspective?.reason) {
-        reasonHtml += "<p><strong>나의 궁합 관점:</strong><br>" + escapeHtml(data.compatibility.myPerspective.reason) + "</p>";
-      }
-      if (data.compatibility.partnerPerspective?.reason) {
-        reasonHtml += "<p style='margin-top: 14px;'><strong>상대방의 궁합 관점:</strong><br>" + escapeHtml(data.compatibility.partnerPerspective.reason) + "</p>";
-      }
-      if (!reasonHtml) {
-        reasonHtml = "두 분의 사주 정보와 MBTI를 토대로 상호 배려하며 따뜻하게 공감할 수 있는 훌륭한 시너지가 나타나는 궁합입니다.";
-      }
-      document.getElementById("match-analysis-reason").innerHTML = reasonHtml;
-
-      // 6. Already voted state?
       if (data.hasVoted) {
-        showVoteSuccess(data.myVote);
+        areaEl.innerHTML = '<div class="vote-status my-done">내 투표 접수됨 ✓</div>';
+        return;
       }
+      areaEl.innerHTML = '<div class="vote-form">' +
+        '<div class="vote-prompt">매칭 여부를 선택해주세요.</div>' +
+        '<select id="vote-select" class="vote-select">' +
+        '<option value="" style="text-align:center;">선택하세요</option>' +
+        '<option value="yes" style="text-align:center;">　　O　　</option>' +
+        '<option value="no" style="text-align:center;">　　X　　</option>' +
+        '</select>' +
+        '<div id="vote-selection-text" class="vote-selection-text"></div>' +
+        '<button id="vote-confirm-btn" class="btn-vote-submit">확인</button>' +
+        '<div class="vote-warning">⚠ 선택한 결과는 변경할 수 없습니다</div>' +
+        '<div id="vote-inline-error" class="error-msg" style="margin-top:4px;font-size:12px;"></div>' +
+        '</div>';
+      document.getElementById('vote-select').addEventListener('change', function() {
+        const textEl = document.getElementById('vote-selection-text');
+        if (this.value === 'yes') {
+          textEl.className = 'vote-selection-text yes';
+          textEl.innerHTML = '소중한 인연으로서<br>맞이하고 싶습니다';
+        } else if (this.value === 'no') {
+          textEl.className = 'vote-selection-text no';
+          textEl.innerHTML = '지금은 받아들이기<br>어렵습니다';
+        } else {
+          textEl.className = 'vote-selection-text';
+          textEl.textContent = '';
+        }
+      });
+      document.getElementById('vote-confirm-btn').addEventListener('click', () => submitVote(data));
     }
 
-    // Submit Vote API
-    document.getElementById("vote-yes").addEventListener("click", () => submitVote("yes"));
-    document.getElementById("vote-no").addEventListener("click", () => submitVote("no"));
-
-    async function submitVote(selection) {
-      document.getElementById("vote-error").textContent = "";
-      const yesBtn = document.getElementById("vote-yes");
-      const noBtn = document.getElementById("vote-no");
-
-      yesBtn.disabled = true;
-      noBtn.disabled = true;
-
+    async function submitVote(data) {
+      const selectEl = document.getElementById('vote-select');
+      const errorEl = document.getElementById('vote-inline-error');
+      const selection = selectEl.value;
+      if (!selection) { errorEl.textContent = 'O 또는 X를 선택해주세요.'; return; }
+      errorEl.textContent = '';
+      document.getElementById('vote-confirm-btn').disabled = true;
+      document.getElementById('vote-confirm-btn').textContent = '처리 중...';
       try {
-        const response = await fetch("/api/match/vote", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const res = await fetch('/api/match/vote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            passcode: currentPasscode,
-            selection: selection
-          })
+            matchResultId: data.matchResultId,
+            participantId: data.me.id,
+            selection,
+          }),
         });
-
-        const data = await response.json();
-        if (!response.ok) {
-          document.getElementById("vote-error").textContent = data.error || "투표 등록에 실패했습니다.";
-          yesBtn.disabled = false;
-          noBtn.disabled = false;
+        const result = await res.json();
+        if (!res.ok) {
+          errorEl.textContent = result.error || '투표 등록 실패';
+          document.getElementById('vote-confirm-btn').disabled = false;
+          document.getElementById('vote-confirm-btn').textContent = '확인';
           return;
         }
-
-        showVoteSuccess(selection);
-      } catch (error) {
-        document.getElementById("vote-error").textContent = "통신 중 오류가 발생했습니다.";
-        yesBtn.disabled = false;
-        noBtn.disabled = false;
+        // Seal: show locked state without revealing vote
+        const myGender = data.me.gender;
+        const areaId = myGender === '남' ? 'male-vote-area' : 'female-vote-area';
+        document.getElementById(areaId).innerHTML = '<div class="vote-status my-done">내 투표 접수됨 ✓</div>';
+      } catch {
+        errorEl.textContent = '서버 통신 오류';
+        document.getElementById('vote-confirm-btn').disabled = false;
+        document.getElementById('vote-confirm-btn').textContent = '확인';
       }
     }
 
-    function showVoteSuccess(selection) {
-      document.getElementById("vote-form-area").style.display = "none";
-      const successArea = document.getElementById("vote-success-area");
-      successArea.style.display = "block";
-      
-      const icon = document.querySelector(".vote-success-icon");
-      const msg = document.getElementById("vote-success-msg");
+    function renderMatchResult(data) {
+      currentMatchData = data;
+      document.getElementById('auth-view').style.display = 'none';
+      const resultView = document.getElementById('result-view');
+      resultView.style.display = 'block';
 
-      if (selection === "yes") {
-        icon.textContent = "💖";
-        msg.innerHTML = "당신은 <strong>찬성(인연 이어가기)</strong>을 투표했습니다.<br>상대방 또한 찬성하면 연분이 연결됩니다!";
-      } else {
-        icon.textContent = "🤝";
-        msg.innerHTML = "당신은 <strong>친구로 남기</strong>를 투표했습니다.<br>선택이 안전하게 전달되었습니다.";
+      // Rank badge
+      const rankBadge = document.getElementById('rank-badge');
+      rankBadge.textContent = 'MATCH RANK ' + (data.compatibility.rank || '?');
+      if (data.compatibility.isTop) {
+        rankBadge.classList.add('top');
+        rankBadge.textContent = '🏆 1위 운명의 커플 🏆';
       }
+
+      // Score circle
+      const score = Math.round(data.compatibility.averageScore);
+      document.getElementById('score-num').textContent = score;
+      const strokeOffset = 414.69 - (414.69 * score) / 100;
+      setTimeout(() => { document.getElementById('score-bar').style.strokeDashoffset = strokeOffset; }, 150);
+
+      // Profiles
+      const male = data.partner.gender === '남' ? data.partner : data.me;
+      const female = data.partner.gender === '여' ? data.partner : data.me;
+      document.getElementById('male-name').textContent = male.displayName;
+      document.getElementById('male-mbti').textContent = '남성 · ' + (male.mbti || 'MBTI 비공개');
+      document.getElementById('male-saju').innerHTML = createMiniManseHtml(male.manse);
+      document.getElementById('female-name').textContent = female.displayName;
+      document.getElementById('female-mbti').textContent = '여성 · ' + (female.mbti || 'MBTI 비공개');
+      document.getElementById('female-saju').innerHTML = createMiniManseHtml(female.manse);
+
+      // Vote areas
+      const isMale = data.me.gender === '남';
+      renderVoteArea(document.getElementById('male-vote-area'), isMale, data);
+      renderVoteArea(document.getElementById('female-vote-area'), !isMale, data);
+
+      // Deadline notice
+      const noticeEl = document.getElementById('deadline-notice');
+      if (data.voteDeadline) {
+        const dl = new Date(data.voteDeadline);
+        const fmt = dl.getFullYear() + '-' + String(dl.getMonth()+1).padStart(2,'0') + '-' + String(dl.getDate()).padStart(2,'0') + ' ' + String(dl.getHours()).padStart(2,'0') + ':' + String(dl.getMinutes()).padStart(2,'0');
+        noticeEl.style.display = 'block';
+        noticeEl.textContent = data.deadlinePassed ? '선택 기간이 종료되었습니다.' : '매칭 선택 마감: ' + fmt;
+      }
+
+      // Keywords
+      const kc = document.getElementById('keywords-container');
+      kc.innerHTML = '';
+      let kws = [];
+      if (data.compatibility.myPerspective?.keywords) kws.push(...data.compatibility.myPerspective.keywords);
+      if (data.compatibility.partnerPerspective?.keywords) kws.push(...data.compatibility.partnerPerspective.keywords);
+      const unique = [...new Set(kws)].slice(0, 5);
+      (unique.length ? unique : ['오행의조화', 'MBTI케미', '찰떡궁합']).forEach(kw => {
+        const el = document.createElement('span');
+        el.className = 'keyword-pill';
+        el.textContent = '#' + kw;
+        kc.appendChild(el);
+      });
+
+      // Reasoning
+      let html = '';
+      if (data.compatibility.myPerspective?.reason) html += '<p><strong>나의 궁합 관점:</strong><br>' + esc(data.compatibility.myPerspective.reason) + '</p>';
+      if (data.compatibility.partnerPerspective?.reason) html += '<p style="margin-top:14px;"><strong>상대방의 궁합 관점:</strong><br>' + esc(data.compatibility.partnerPerspective.reason) + '</p>';
+      if (!html) html = '두 분의 사주 정보와 MBTI를 토대로 상호 배려하며 따뜻하게 공감할 수 있는 훌륭한 시너지가 나타나는 궁합입니다.';
+      document.getElementById('match-analysis-reason').innerHTML = html;
     }
 
-    function escapeHtml(value) {
-      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;",
-      }[char]));
+    function esc(str) {
+      return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
   </script>
 </body>

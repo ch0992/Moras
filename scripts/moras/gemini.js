@@ -10,49 +10,46 @@
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 const GEMINI_MAX_OUTPUT_TOKENS = Number.parseInt(process.env.GEMINI_MAX_OUTPUT_TOKENS || "12000", 10);
+const GEMINI_FULL_ATTEMPTS = Number.parseInt(process.env.GEMINI_FULL_ATTEMPTS || "3", 10);
+const GEMINI_LITE_ATTEMPTS = Number.parseInt(process.env.GEMINI_LITE_ATTEMPTS || "1", 10);
 
 async function analyzeManseWithGemini({ name, mbti, birthPlace, result }) {
   if (!GEMINI_API_KEY) {
-    return {
-      status: "skipped",
-      reason: "missing_gemini_api_key",
-      model: GEMINI_MODEL,
-    };
+    throw new Error("Gemini API 키가 설정되지 않아 사주 통찰을 생성할 수 없습니다.");
   }
 
-  // 풀 분석 (3회 재시도)
   const full = await callGemini(
     buildGeminiMansePrompt({ name, mbti, birthPlace, result }),
     GEMINI_MAX_OUTPUT_TOKENS,
-    3
+    GEMINI_FULL_ATTEMPTS
   );
   if (full) return full;
 
-  // 라이트 폴백: 더 짧은 프롬프트로 1회 재시도
   console.warn("[Gemini] 풀 분석 실패. 라이트 폴백을 시도합니다.");
   const lite = await callGemini(
     buildGeminiLitePrompt({ name, mbti, result }),
     4000,
-    1
+    GEMINI_LITE_ATTEMPTS
   );
   if (lite) return { ...lite, model: `${GEMINI_MODEL}-lite` };
 
-  // 완전 실패
-  console.warn("[Gemini] 라이트 폴백도 실패. 분석 불가 상태로 반환합니다.");
-  return { status: "error", reason: "gemini_unavailable", model: GEMINI_MODEL };
+  console.warn("[Gemini] 라이트 폴백도 실패했습니다.");
+  throw new Error("Gemini 사주 통찰 생성이 완료되지 않았습니다. 잠시 후 다시 신청해주세요.");
 }
 
-async function callGemini(prompt, maxOutputTokens, maxAttempts) {
+async function callGemini(prompt, maxOutputTokens, maxAttempts, options = {}) {
+  const model = options.model || GEMINI_MODEL;
+  const schema = options.schema || manseReportSchema();
   const base = process.env.GOOGLE_GEMINI_BASE_URL || "https://generativelanguage.googleapis.com";
-  const endpoint = `${base}/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`;
+  const endpoint = `${base}/v1beta/models/${encodeURIComponent(model)}:generateContent`;
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
       temperature: 0.7,
       maxOutputTokens,
-      responseFormat: {
-        text: { mimeType: "application/json", schema: manseReportSchema() },
-      },
+      responseMimeType: "application/json",
+      responseSchema: toGeminiSchema(schema),
+      thinkingConfig: { thinkingBudget: 0 },
     },
   };
 
@@ -68,26 +65,34 @@ async function callGemini(prompt, maxOutputTokens, maxAttempts) {
       });
       const text = await response.text();
       if (!response.ok) {
-        const retryable = response.status === 503 || response.status === 429 || text.includes("UNAVAILABLE");
+        const retryable = isRetryableGeminiFailure(response.status, text);
         if (retryable && attempt < maxAttempts - 1) {
-          await sleep(1000 * (1 << attempt));
+          await sleep(backoffMs(attempt));
           continue;
         }
-        console.warn(`[Gemini] HTTP ${response.status} 발생.`);
+        console.warn(`[Gemini] HTTP ${response.status} 발생. ${summarizeGeminiError(text)}`);
         return null;
       }
       const body = JSON.parse(text);
       const raw = body.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("\n") || "";
+      const parsed = parseGeminiJson(raw);
+      if (parsed.parseError) {
+        if (attempt < maxAttempts - 1) {
+          await sleep(backoffMs(attempt));
+          continue;
+        }
+        console.warn(`[Gemini] JSON 파싱 실패. ${parsed.parseError}`);
+        return null;
+      }
       return {
         status: "ok",
-        model: GEMINI_MODEL,
+        model,
         analyzedAt: new Date().toISOString(),
-        ...parseGeminiJson(raw),
+        ...parsed,
       };
     } catch (error) {
-      const retryable = String(error.message || error).includes("503") || String(error.message || error).includes("UNAVAILABLE");
-      if (retryable && attempt < maxAttempts - 1) {
-        await sleep(1000 * (1 << attempt));
+      if (attempt < maxAttempts - 1) {
+        await sleep(backoffMs(attempt));
         continue;
       }
       console.warn(`[Gemini] Error: ${error.message}`);
@@ -95,6 +100,39 @@ async function callGemini(prompt, maxOutputTokens, maxAttempts) {
     }
   }
   return null;
+}
+
+function toGeminiSchema(schema) {
+  if (!schema || typeof schema !== "object") return schema;
+  if (Array.isArray(schema)) return schema.map(toGeminiSchema);
+
+  const normalized = {};
+  Object.entries(schema).forEach(([key, value]) => {
+    if (key === "type" && typeof value === "string") {
+      normalized[key] = value.toUpperCase();
+      return;
+    }
+    normalized[key] = toGeminiSchema(value);
+  });
+  return normalized;
+}
+
+function isRetryableGeminiFailure(status, text) {
+  return [408, 409, 425, 429, 500, 502, 503, 504].includes(status)
+    || /UNAVAILABLE|RESOURCE_EXHAUSTED|DEADLINE_EXCEEDED|INTERNAL|timeout/i.test(String(text || ""));
+}
+
+function backoffMs(attempt) {
+  return Math.min(8000, 1000 * (1 << attempt));
+}
+
+function summarizeGeminiError(text) {
+  try {
+    const parsed = JSON.parse(text);
+    return parsed.error?.message ? `message=${parsed.error.message}` : "";
+  } catch {
+    return String(text || "").slice(0, 300);
+  }
 }
 
 function buildGeminiMansePrompt({ name, mbti, birthPlace, result }) {

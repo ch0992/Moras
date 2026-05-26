@@ -227,6 +227,45 @@ function adminPage() {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Moras 관리자 대시보드</title>
+  <script>
+    window.addEventListener('error', function(e) {
+      var errBanner = document.createElement('div');
+      errBanner.style.position = 'fixed';
+      errBanner.style.top = '0';
+      errBanner.style.left = '0';
+      errBanner.style.width = '100%';
+      errBanner.style.background = '#f5576c';
+      errBanner.style.color = '#fff';
+      errBanner.style.padding = '12px 20px';
+      errBanner.style.fontSize = '14px';
+      errBanner.style.zIndex = '99999';
+      errBanner.style.boxShadow = '0 5px 15px rgba(0,0,0,0.5)';
+      errBanner.style.fontFamily = 'monospace';
+      errBanner.style.whiteSpace = 'pre-wrap';
+      errBanner.style.boxSizing = 'border-box';
+      errBanner.innerHTML = '<strong>[JS ERROR]</strong> ' + e.message + ' at ' + e.filename + ':' + e.lineno + ':' + e.colno;
+      document.body.appendChild(errBanner);
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+      var errBanner = document.createElement('div');
+      errBanner.style.position = 'fixed';
+      errBanner.style.top = '0';
+      errBanner.style.left = '0';
+      errBanner.style.width = '100%';
+      errBanner.style.background = '#f5576c';
+      errBanner.style.color = '#fff';
+      errBanner.style.padding = '12px 20px';
+      errBanner.style.fontSize = '14px';
+      errBanner.style.zIndex = '99999';
+      errBanner.style.boxShadow = '0 5px 15px rgba(0,0,0,0.5)';
+      errBanner.style.fontFamily = 'monospace';
+      errBanner.style.whiteSpace = 'pre-wrap';
+      errBanner.style.boxSizing = 'border-box';
+      errBanner.innerHTML = '<strong>[PROMISE REJECTION]</strong> ' + (e.reason ? (e.reason.message || e.reason) : 'Unknown Rejection');
+      document.body.appendChild(errBanner);
+    });
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
@@ -1566,6 +1605,20 @@ function adminPage() {
           <div style="margin-top:18px;padding:16px;border-radius:14px;background:rgba(255,232,163,0.03);border:1px solid rgba(255,232,163,0.1);">
             <h4 style="color:#FFE8A3;margin:0 0 6px;font-size:13px;">💡 상품 목록 연동 안내</h4>
             <p style="color:var(--muted);font-size:11.5px;line-height:1.5;">사다리타기의 추첨 상품은 **'추첨 룰렛' 탭의 '추첨 항목 관리'**에 등록하고 체크박스를 선택한 항목들이 실시간으로 자동 연동됩니다. 룰렛 탭에서 상품 항목을 먼저 준비해주세요.</p>
+          </div>
+
+          <div style="margin-top:14px;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <div>
+              <div style="font-size:13px;font-weight:900;color:#fff;">선택 애니메이션 방식</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px;">열이 선택되기 전 볼이 움직이는 방식</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <select id="ladder-bounce-mode" style="min-height:38px;border-radius:8px;border:1px solid var(--line);background:rgba(5,8,17,.72);color:#fff;padding:0 10px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">
+                <option value="random">랜덤 (기존)</option>
+                <option value="pendulum">좌우 왕복 (점차 느려짐)</option>
+              </select>
+              <button id="ladder-bounce-mode-save" type="button" style="height:38px;padding:0 14px;white-space:nowrap;font-size:13px;">저장</button>
+            </div>
           </div>
 
           <button id="ladder-spin" type="button" style="width:100%;margin-top:18px;height:46px;background:linear-gradient(135deg,#FFE8A3,#F4C35E);color:#03070e;font-weight:900;border:0;border-radius:10px;cursor:pointer;">사다리타기 돌리기 (순차 추첨)</button>
@@ -2914,6 +2967,25 @@ function adminPage() {
         : "(이미 지난 시간)";
     }
 
+    document.getElementById("ladder-bounce-mode-save").addEventListener("click", async () => {
+      const status = document.getElementById("ladder-status");
+      status.textContent = "애니메이션 방식 저장 중...";
+      const res = await fetch("/api/admin/ladder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "saveSettings",
+          eventName: document.getElementById("ladder-event-name").value.trim(),
+          startsAt: (ladderState.settings.starts_at || ladderState.settings.startsAt) ?? null,
+          drawMode: ladderState.settings.draw_mode || "instant",
+          bounceMode: document.getElementById("ladder-bounce-mode").value,
+        }),
+      });
+      const data = await res.json();
+      status.textContent = res.ok ? "애니메이션 방식이 저장되었습니다." : (data.error || "저장 실패");
+      if (res.ok) await loadLadder();
+    });
+
     document.getElementById("ladder-roster-search").addEventListener("input", renderLadderRosterSelect);
     document.getElementById("ladder-add-participant").addEventListener("click", async () => {
       const select = document.getElementById("ladder-roster-select");
@@ -2938,7 +3010,7 @@ function adminPage() {
     });
 
     document.getElementById("ladder-reset-results").addEventListener("click", async () => {
-      if (!confirm("사다리 매칭 결과와 진행 상태만 초기화할까요?\n참가자 명단은 그대로 유지됩니다.")) return;
+      if (!confirm("사다리 매칭 결과와 진행 상태만 초기화할까요?\\n참가자 명단은 그대로 유지됩니다.")) return;
       const status = document.getElementById("ladder-status");
       status.textContent = "사다리 결과 초기화 중...";
       const response = await fetch("/api/admin/ladder", {
@@ -2953,7 +3025,7 @@ function adminPage() {
     });
 
     document.getElementById("ladder-reset").addEventListener("click", async () => {
-      if (!confirm("참가자, 매칭 결과, 타이머 세팅을 전부 초기화할까요?\n상품 정보는 룰렛 탭에 그대로 보존됩니다.")) return;
+      if (!confirm("참가자, 매칭 결과, 타이머 세팅을 전부 초기화할까요?\\n상품 정보는 룰렛 탭에 그대로 보존됩니다.")) return;
       const status = document.getElementById("ladder-status");
       status.textContent = "전체 사다리 초기화 중...";
       const response = await fetch("/api/admin/ladder", {
@@ -2968,7 +3040,7 @@ function adminPage() {
     });
 
     document.getElementById("ladder-add-all").addEventListener("click", async () => {
-      if (!confirm("전체 참가자 명단(활성)을 모두 사다리타기에 추가할까요?\n이미 추가된 참가자는 건너뜁니다.")) return;
+      if (!confirm("전체 참가자 명단(활성)을 모두 사다리타기에 추가할까요?\\n이미 추가된 참가자는 건너뜁니다.")) return;
       const status = document.getElementById("ladder-status");
       status.textContent = "전체 참가자를 사다리에 추가하는 중...";
       const response = await fetch("/api/admin/ladder", {
@@ -3025,6 +3097,7 @@ function adminPage() {
         document.getElementById("ladder-event-name").value = settings.event_name || "";
         document.getElementById("ladder-start-time").value = toDateTimeLocalValue(settings.starts_at || settings.startsAt);
         document.getElementById("ladder-draw-mode").value = settings.draw_mode || "instant";
+        document.getElementById("ladder-bounce-mode").value = settings.bounce_mode || "random";
         updateLadderTimerDisplay();
         renderLadderRosterSelect();
         renderLadderParticipantsAndResults();

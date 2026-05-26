@@ -93,7 +93,7 @@ function buildViewModel(result, input) {
     lunarText: `${formatLunar(result.normalizedLunarDate)} ${input.timeUnknown ? "시간모름" : input.time}`,
     locationText: `${input.birthPlace || "출생지 미입력"} (진태양시 보정 적용)`,
     notice:
-      "생년월일시와 출생지는 공개 화면이나 결과 페이지에 노출되지 않으며, 운영자 확인을 위해 관리자 화면에서만 조회됩니다. 매칭에는 MBTI와 계산된 만세력 결과를 사용합니다.",
+      "생년월일시와 출생지는 공개 화면 및 관리자 화면에 노출되지 않으며, 별도의 보안 페이지에만 저장됩니다. 매칭에는 MBTI와 계산된 만세력 결과를 사용합니다.",
     geminiAnalysis: input.geminiAnalysis || null,
   };
 }
@@ -106,6 +106,9 @@ function buildSubmission(input, birthPlace, result, geminiAnalysis) {
     displayName: nullableString(input.name),
     gender: normalizeGender(input.gender),
     maritalStatus: normalizeMaritalStatus(input.maritalStatus),
+    matchingMaritalRange: Array.isArray(input.matchingMaritalRange)
+      ? input.matchingMaritalRange.filter((s) => ["미혼", "기혼", "돌싱"].includes(s))
+      : [],
     mbti: normalizeMbti(input.mbti),
     birthDate: input.date,
     birthTime: input.timeUnknown ? null : input.time,
@@ -173,6 +176,49 @@ function stemColorName(stem) {
 }
 
 async function handleManseApi(body) {
+  const prepared = await prepareManseSubmission(body);
+  return completeManseSubmission(prepared);
+}
+
+async function handleManseStartApi(body) {
+  const prepared = await prepareManseSubmission(body);
+  return {
+    analysisRequest: prepared,
+    view: buildViewModel(prepared.result, {
+      ...prepared.input,
+      birthPlace: prepared.birthPlace.name,
+      geminiAnalysis: { status: "pending" },
+    }),
+  };
+}
+
+async function handleManseAnalyzeApi(body) {
+  const prepared = body?.analysisRequest || body;
+  if (!prepared?.input || !prepared?.birthPlace || !prepared?.result) {
+    throw new Error("분석 요청 정보가 올바르지 않습니다. 신청 버튼을 다시 눌러주세요.");
+  }
+
+  const rosterParticipant = await findRosterParticipantById(prepared.input.rosterParticipantId);
+  if (!rosterParticipant || rosterParticipant.isActive === false) {
+    throw new Error("참가자 명단에서 신청자를 선택해주세요.");
+  }
+  if (await hasSubmissionForRosterParticipant(rosterParticipant.id)) {
+    throw new Error("이미 이벤트 신청이 완료된 참가자입니다.");
+  }
+
+  return completeManseSubmission({
+    input: {
+      ...prepared.input,
+      rosterParticipantId: rosterParticipant.id,
+      name: rosterParticipant.displayName,
+      gender: rosterParticipant.gender,
+    },
+    birthPlace: prepared.birthPlace,
+    result: prepared.result,
+  });
+}
+
+async function prepareManseSubmission(body) {
   const rosterParticipant = await findRosterParticipantById(body.rosterParticipantId);
   if (!rosterParticipant || rosterParticipant.isActive === false) {
     throw new Error("참가자 명단에서 신청자를 선택해주세요.");
@@ -197,20 +243,29 @@ async function handleManseApi(body) {
     timezone: birthPlace.timezone,
     timeCorrection: true,
   });
+
+  return {
+    input: normalizedBody,
+    birthPlace,
+    result,
+  };
+}
+
+async function completeManseSubmission({ input, birthPlace, result }) {
   const geminiAnalysis = await analyzeManseWithGemini({
-    name: normalizedBody.name,
-    mbti: normalizeMbti(normalizedBody.mbti),
+    name: input.name,
+    mbti: normalizeMbti(input.mbti),
     birthPlace: birthPlace.name,
     result,
   });
-  const submission = await saveSubmission(buildSubmission(normalizedBody, birthPlace, result, geminiAnalysis));
+  const submission = await saveSubmission(buildSubmission(input, birthPlace, result, geminiAnalysis));
 
   return {
     submission,
     result,
     geminiAnalysis,
     view: buildViewModel(result, {
-      ...normalizedBody,
+      ...input,
       birthPlace: birthPlace.name,
       submissionId: submission.id,
       geminiAnalysis,
@@ -272,4 +327,4 @@ async function seedTestSubmissionsFromRoster() {
   return { created, skipped, total: roster.length };
 }
 
-module.exports = { handleManseApi, seedTestSubmissionsFromRoster, CITIES };
+module.exports = { handleManseApi, handleManseStartApi, handleManseAnalyzeApi, seedTestSubmissionsFromRoster, CITIES };

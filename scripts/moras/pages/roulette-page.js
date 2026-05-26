@@ -242,7 +242,10 @@ function roulettePage() {
   <!-- Self-registration + participants + results -->
   <main>
     <section class="join-panel" id="join-panel">
-      <h2>🎟️ 룰렛 참가신청하기</h2>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <h2 style="margin:0;">🎟️ 룰렛 참가신청하기</h2>
+        <button type="button" id="btn-roulette-request" title="목록에 신규 사용자 추가 요청" style="height:30px;padding:0 12px;border:1px solid rgba(255,232,163,0.28);border-radius:8px;background:rgba(255,232,163,0.1);color:var(--gold);font-family:inherit;font-size:11px;font-weight:900;letter-spacing:0.06em;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,232,163,0.18)'" onmouseout="this.style.background='rgba(255,232,163,0.1)'">추가요청</button>
+      </div>
       <div class="join-search">
         <input id="join-input" placeholder="내 이름을 검색하세요..." autocomplete="off">
         <button id="join-search-btn" type="button">검색</button>
@@ -251,7 +254,30 @@ function roulettePage() {
         <div style="color:var(--muted);font-size:13px;padding:8px 4px;">이름을 입력하고 검색 버튼을 누르세요.</div>
       </div>
       <div class="join-msg" id="join-msg"></div>
+      <p style="margin:10px 0 0;color:rgba(255,255,255,0.3);font-size:11.5px;">* 목록에서 검색이 되지 않는 경우 우측 상단의 추가요청 버튼을 눌러 정보를 입력하여 운영자에게 요청해주세요.</p>
     </section>
+
+  <!-- 추가요청 Modal -->
+  <div id="roulette-request-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:200;align-items:center;justify-content:center;padding:24px;">
+    <div style="width:min(420px,100%);background:#0a0f1e;border:1px solid rgba(255,232,163,0.28);border-radius:22px;padding:30px 26px;box-shadow:0 40px 100px rgba(0,0,0,0.7);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+        <div style="color:var(--gold);font-size:18px;font-weight:900;">목록 추가 요청</div>
+        <button type="button" id="roulette-request-close" style="width:34px;height:34px;border:1px solid rgba(255,255,255,0.12);border-radius:10px;background:rgba(255,255,255,0.05);color:var(--muted);font-size:17px;cursor:pointer;">✕</button>
+      </div>
+      <form id="roulette-request-form">
+        <label style="display:block;margin:0 0 6px;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">이름 <span style="color:#f5576c">*</span></label>
+        <input id="rrr-name" type="text" required placeholder="실명을 입력해주세요" style="width:100%;height:44px;border:1px solid rgba(255,255,255,0.1);border-radius:12px;background:rgba(5,8,17,0.72);color:#fff;padding:0 16px;font-size:14.5px;box-sizing:border-box;margin-bottom:14px;font-family:inherit">
+        <label style="display:block;margin:0 0 6px;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">성별 <span style="color:#f5576c">*</span></label>
+        <select id="rrr-gender" required style="width:100%;height:44px;border:1px solid rgba(255,255,255,0.1);border-radius:12px;background:rgba(5,8,17,0.72);color:#fff;padding:0 16px;font-size:14.5px;box-sizing:border-box;margin-bottom:14px;font-family:inherit;appearance:auto">
+          <option value="" disabled selected>성별 선택</option>
+          <option value="남">남</option>
+          <option value="여">여</option>
+        </select>
+        <div id="rrr-error" style="color:#f5576c;font-size:13px;font-weight:600;min-height:18px;margin-bottom:8px;text-align:center"></div>
+        <button type="submit" style="width:100%;height:46px;border:0;border-radius:12px;background:linear-gradient(135deg,#FFE8A3 0%,#C59B3F 50%,#FFE8A3 100%);color:#03070e;font-family:inherit;font-weight:900;font-size:15px;cursor:pointer;">추가 요청하기</button>
+      </form>
+    </div>
+  </div>
 
     <div class="draw-section">
       <div class="draw-card">
@@ -285,6 +311,46 @@ function roulettePage() {
     const cdNumEl = document.getElementById("cd-num");
     /* cloudFlashText is queried fresh each use since rebuildCloud resets innerHTML */
     function getCloudFlash() { return document.getElementById("cloud-flash-text"); }
+
+    /* ── 추가요청 모달 ─────────────────────────────── */
+    const rrModal = document.getElementById("roulette-request-modal");
+    document.getElementById("btn-roulette-request").addEventListener("click", () => {
+      rrModal.style.display = "flex";
+      document.getElementById("rrr-name").focus();
+    });
+    document.getElementById("roulette-request-close").addEventListener("click", () => {
+      rrModal.style.display = "none";
+    });
+    rrModal.addEventListener("click", (e) => { if (e.target === rrModal) rrModal.style.display = "none"; });
+    document.getElementById("roulette-request-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById("rrr-error");
+      errEl.textContent = "";
+      const submitBtn = e.target.querySelector("button[type='submit']");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "요청 중...";
+      try {
+        const res = await fetch("/api/roster/request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            displayName: document.getElementById("rrr-name").value.trim(),
+            gender: document.getElementById("rrr-gender").value,
+          }),
+        });
+        const body = await res.json();
+        if (!res.ok) throw new Error(body.error || "요청에 실패했습니다.");
+        rrModal.style.display = "none";
+        document.getElementById("rrr-name").value = "";
+        document.getElementById("rrr-gender").value = "";
+        alert("추가 요청이 접수되었습니다. 운영자 승인 후 목록에 추가됩니다.");
+      } catch (error) {
+        errEl.textContent = error.message;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "추가 요청하기";
+      }
+    });
 
     /* ── State ────────────────────────────────────── */
     let seenResults   = new Set();
@@ -848,12 +914,10 @@ function roulettePage() {
           let bassOffsets = []; t = 0;
           bass.forEach(([f, len]) => { bassOffsets.push([f, t, len * TEMPO * 0.85]); t += len * TEMPO; });
 
-          let loopCount = 0;
-          const maxLoops = 120;
           let stopped = false;
 
           function scheduleLoop(startAt) {
-            if (stopped || loopCount++ > maxLoops) return;
+            if (stopped) return;
             melOffsets.forEach(([f, off, dur]) => {
               const o = c.createOscillator(); const g = c.createGain();
               o.type = "square"; o.frequency.value = f;
@@ -985,7 +1049,6 @@ function roulettePage() {
         if (!m) SFX.startBgm();
       });
       document.body.appendChild(btn);
-      /* Auto-start BGM on first user interaction (browser policy) */
       document.addEventListener("click", function startOnce() {
         SFX.startBgm();
         document.removeEventListener("click", startOnce);

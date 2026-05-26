@@ -37,7 +37,7 @@ function ladderPage() {
 
     /* ── HEADER ─────────────────────────────────── */
     .logo { display:block; text-align:center; padding:22px 0 0; font-family:'Cinzel',serif; font-size:clamp(26px,4vw,50px); font-weight:800; background:var(--gold-g); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; text-decoration:none; letter-spacing:.08em; }
-    main { width:min(100vw - 32px, 960px); margin:0 auto; padding-top:14px; }
+    main { width:min(100vw - 24px, 1800px); margin:0 auto; padding-top:14px; }
 
     /* ── SHOW HEAD ──────────────────────────────── */
     .show-head { display:grid; grid-template-columns:200px 1fr 200px; gap:12px; align-items:center; margin:16px 0 10px; }
@@ -68,8 +68,8 @@ function ladderPage() {
     .ladder-panel { border:1px solid var(--line); border-radius:22px; background:var(--panel); padding:24px; display:flex; flex-direction:column; align-items:center; gap:16px; width:100%; position:relative; }
     
     /* ── CANVAS AREA ────────────────────────────── */
-    .canvas-wrap { position:relative; width:100%; max-width:860px; background:radial-gradient(circle at center, #060b18 0%, #03060d 100%); border-radius:16px; border:1px solid rgba(255,255,255,.05); overflow:hidden; box-shadow:inset 0 0 30px rgba(0,0,0,0.8); }
-    canvas { display:block; width:100%; height:480px; }
+    .canvas-wrap { position:relative; width:100%; background:radial-gradient(circle at center, #060b18 0%, #03060d 100%); border-radius:16px; border:1px solid rgba(255,255,255,.05); overflow:visible; box-shadow:inset 0 0 30px rgba(0,0,0,0.8); cursor:none; }
+    canvas { display:block; width:100%; height:700px; }
 
     .status-bar { width:100%; text-align:center; font-size:14px; font-weight:700; color:rgba(255,255,255,.7); min-height:22px; }
 
@@ -175,8 +175,8 @@ function ladderPage() {
   <!-- Countdown popup -->
   <div class="cd-pop" id="cd-pop">
     <div class="cd-card">
-      <div class="cd-label">🪜 다음 사다리 타기</div>
-      <div class="cd-prize" id="cd-prize">참가자</div>
+      <div class="cd-label">🎁 다음 추첨 상품</div>
+      <div class="cd-prize" id="cd-prize">상품명</div>
       <div class="cd-num" id="cd-num">5</div>
     </div>
   </div>
@@ -220,6 +220,13 @@ function ladderPage() {
     const canvas        = document.getElementById("ladder-canvas");
     const ctx           = canvas.getContext("2d");
     const canvasWrap    = document.getElementById("canvas-wrap");
+    const magCanvas     = document.createElement("canvas");
+    const magCtx        = magCanvas.getContext("2d");
+    let mouseOnCanvas   = false;
+    let mouseCanvasX    = 0;
+    let mouseCanvasY    = 0;
+    const MAG_RADIUS    = 90;
+    const MAG_ZOOM      = 2.8;
     
     const wPop          = document.getElementById("w-pop");
     const wItem         = document.getElementById("w-item");
@@ -237,6 +244,7 @@ function ladderPage() {
     let lastPCount      = -1;
     let latestResults   = [];
     let roulettePrizes  = { items: [], selectedItemIds: [] };
+    let bounceMode      = "random";
 
     // Canvas & Ladder details
     let columns = [];
@@ -257,11 +265,27 @@ function ladderPage() {
     // Resize canvas
     function resizeCanvas() {
       canvas.width = canvasWrap.clientWidth;
-      canvas.height = 480;
+      canvas.height = 700;
+      magCanvas.width = canvas.width;
+      magCanvas.height = canvas.height;
+      preComputePaths();
       drawLadder();
     }
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
+
+    // Magnifier mouse tracking
+    canvas.addEventListener("mousemove", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseCanvasX = (e.clientX - rect.left) * (canvas.width / rect.width);
+      mouseCanvasY = (e.clientY - rect.top) * (canvas.height / rect.height);
+      mouseOnCanvas = true;
+      if (!animating) drawLadder();
+    });
+    canvas.addEventListener("mouseleave", () => {
+      mouseOnCanvas = false;
+      if (!animating) drawLadder();
+    });
 
     /* ── Data loading ─────────────────────────────── */
     async function loadState() {
@@ -310,6 +334,7 @@ function ladderPage() {
       roulettePrizes = data.roulettePrizes || { items: [], selectedItemIds: [] };
 
       eventTitle.textContent = settings.event_name || "Moras 사다리타기";
+      bounceMode = settings.bounce_mode || "random";
       targetCount.textContent = participants.length;
       viewerCount.textContent = String(data.activeViewerCount ?? 1);
 
@@ -410,84 +435,154 @@ function ladderPage() {
 
       // Sort bridges by top-down level (yRatio)
       horizontalLines.sort((a, b) => a.yRatio - b.yRatio);
+
+      // Reset labels — preAssignedParticipant set after canvas resize in preComputePaths()
+      columns.forEach(col => { col.topPrize = null; col.preAssignedParticipant = null; });
+    }
+
+    /* ── Pre-compute ghost leg paths to place participant names at bottom ── */
+    function preComputePaths() {
+      if (participants.length < 2 || canvas.height < 100) return;
+      columns.forEach(col => { col.preAssignedParticipant = null; });
+      participants.forEach((p, i) => {
+        if (!columns[i]) return;
+        const solved = solveGhostLeg(i);
+        if (columns[solved.endCol]) {
+          columns[solved.endCol].preAssignedParticipant = p.display_name;
+        }
+      });
     }
 
     /* ── Render HTML Canvas Ladder ── */
+    const COL_COLORS = [
+      "#06B6D4","#EC4899","#10B981","#F59E0B","#8B5CF6",
+      "#EF4444","#F97316","#84CC16","#14B8A6","#A855F7",
+      "#FB7185","#34D399","#FBBF24","#60A5FA","#C084FC",
+      "#F87171","#4ADE80","#FCD34D","#67E8F9","#E879F9",
+    ];
+
     function drawLadder() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const N = columns.length;
       if (N < 2) return;
 
-      const paddingX = Math.min(80, canvas.width / (N + 1));
-      const startY = 64;
-      const endY = canvas.height - 70;
+      const paddingX = Math.max(30, Math.min(60, canvas.width / (N + 1)));
+      const startY = 80;
+      const endY = canvas.height - 80;
       const stepX = (canvas.width - paddingX * 2) / (N - 1);
 
-      // 1. Draw horizontal bridges
-      ctx.strokeStyle = "rgba(255,255,255, 0.16)";
-      ctx.lineWidth = 4;
+      // 1. Draw horizontal bridges (colored by fromCol)
       horizontalLines.forEach(line => {
+        const color = COL_COLORS[line.fromCol % COL_COLORS.length];
         const x1 = paddingX + line.fromCol * stepX;
         const x2 = paddingX + line.toCol * stepX;
         const y = startY + line.yRatio * (endY - startY);
-        
+        ctx.strokeStyle = "rgba(255,255,255,0.18)";
+        ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(x1, y);
         ctx.lineTo(x2, y);
         ctx.stroke();
       });
 
-      // 2. Draw vertical rails
+      // 2. Draw vertical rails + labels
       columns.forEach((col, i) => {
         const x = paddingX + i * stepX;
-        
-        // draw rail glow
-        ctx.strokeStyle = "rgba(255,255,255,0.06)";
-        ctx.lineWidth = 10;
+        const color = COL_COLORS[i % COL_COLORS.length];
+
+        // Rail glow (column color)
+        ctx.strokeStyle = color + "22";
+        ctx.lineWidth = 12;
         ctx.beginPath();
         ctx.moveTo(x, startY);
         ctx.lineTo(x, endY);
         ctx.stroke();
 
-        // draw core rail
-        ctx.strokeStyle = "rgba(255,255,255, 0.35)";
-        ctx.lineWidth = 3;
+        // Rail core
+        ctx.strokeStyle = color + "88";
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
         ctx.moveTo(x, startY);
         ctx.lineTo(x, endY);
         ctx.stroke();
 
-        // draw participant names at the top
-        ctx.fillStyle = "#fff";
-        ctx.font = "bold 13px 'Noto Sans KR', sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(col.displayName.slice(0, 4), x, startY - 24);
-
-        // draw circle node at top
-        ctx.fillStyle = "rgba(255,255,255,0.18)";
+        // TOP circle (prize origin — gold if prize revealed, else dim)
+        ctx.fillStyle = col.topPrize ? "rgba(255,232,163,0.3)" : (color + "33");
         ctx.beginPath();
-        ctx.arc(x, startY, 7, 0, 2 * Math.PI);
+        ctx.arc(x, startY, 9, 0, 2 * Math.PI);
         ctx.fill();
-        ctx.strokeStyle = "#fff";
+        ctx.strokeStyle = col.topPrize ? "#FFE8A3" : color;
         ctx.lineWidth = 2;
+        ctx.shadowColor = col.topPrize ? "rgba(255,232,163,0.7)" : color;
+        ctx.shadowBlur = col.topPrize ? 14 : 6;
         ctx.stroke();
+        ctx.shadowBlur = 0;
 
-        // draw bottom node
-        ctx.fillStyle = "rgba(255,232,163,0.1)";
+        // TOP: prize label — vertical text
+        ctx.save();
+        ctx.translate(x, startY - 14);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = "left";
+        ctx.font = "bold 11px 'Noto Sans KR', sans-serif";
+        ctx.fillStyle = col.topPrize ? "#FFE8A3" : "rgba(255,255,255,0.22)";
+        ctx.fillText((col.topPrize || "?").slice(0, 10), 0, 0);
+        ctx.restore();
+
+        // BOTTOM circle (participant landing — colored)
+        ctx.fillStyle = col.preAssignedParticipant ? (color + "33") : "rgba(255,255,255,0.05)";
         ctx.beginPath();
-        ctx.arc(x, endY, 8, 0, 2 * Math.PI);
+        ctx.arc(x, endY, 9, 0, 2 * Math.PI);
         ctx.fill();
-        ctx.strokeStyle = "rgba(255,232,163,0.4)";
+        ctx.strokeStyle = col.preAssignedParticipant ? color : "rgba(255,255,255,0.2)";
+        ctx.lineWidth = 2;
+        ctx.shadowColor = col.preAssignedParticipant ? color : "transparent";
+        ctx.shadowBlur = col.preAssignedParticipant ? 10 : 0;
         ctx.stroke();
+        ctx.shadowBlur = 0;
 
-        // draw prize tags at bottom (assigned dynamically according to who hits it)
-        const prizeLabel = col.assignedPrize ? col.assignedPrize.slice(0, 6) : "?";
-        ctx.fillStyle = col.assignedPrize ? "var(--gold)" : "rgba(255,255,255,0.3)";
-        ctx.font = "900 11px 'Noto Sans KR', sans-serif";
-        ctx.fillText(prizeLabel, x, endY + 28);
+        // BOTTOM: participant name — vertical text with column color
+        ctx.save();
+        ctx.translate(x, endY + 14);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = "right";
+        ctx.font = "bold 12px 'Noto Sans KR', sans-serif";
+        ctx.fillStyle = col.preAssignedParticipant ? color : "rgba(255,255,255,0.18)";
+        ctx.shadowColor = col.preAssignedParticipant ? color : "transparent";
+        ctx.shadowBlur = col.preAssignedParticipant ? 8 : 0;
+        ctx.fillText((col.preAssignedParticipant || "?").slice(0, 6), 0, 0);
+        ctx.shadowBlur = 0;
+        ctx.restore();
       });
 
-      // 3. Draw active running neon beam
+      // 3. Draw bouncing selection highlight
+      if (runner && runner.bouncing !== undefined) {
+        const bCol = runner.bouncing;
+        const bx = paddingX + bCol * stepX;
+        const bColor = COL_COLORS[bCol % COL_COLORS.length];
+
+        // Column spotlight
+        const grad = ctx.createRadialGradient(bx, startY, 0, bx, startY, 60);
+        grad.addColorStop(0, bColor + "55");
+        grad.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(bx - 60, startY - 20, 120, endY - startY + 40);
+
+        // Glowing ball at top
+        ctx.save();
+        ctx.shadowColor = bColor;
+        ctx.shadowBlur = 30;
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(bx, startY, 13, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.strokeStyle = bColor;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.restore();
+      }
+
+      // 4. Draw active running neon beam
       if (runner && runner.running) {
         ctx.shadowBlur = 18;
         ctx.shadowColor = "var(--neon-blue)";
@@ -515,6 +610,50 @@ function ladderPage() {
 
         // Reset shadow
         ctx.shadowBlur = 0;
+      }
+
+      // Magnifier lens
+      if (mouseOnCanvas) {
+        magCanvas.width = canvas.width;
+        magCanvas.height = canvas.height;
+        magCtx.drawImage(canvas, 0, 0);
+
+        const r = MAG_RADIUS;
+        const zf = MAG_ZOOM;
+        const mx = mouseCanvasX;
+        const my = mouseCanvasY;
+
+        // Clip circle and draw zoomed portion
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(mx, my, r, 0, Math.PI * 2);
+        // Slight dark tint inside lens
+        ctx.fillStyle = "rgba(3,7,14,0.15)";
+        ctx.fill();
+        ctx.clip();
+        ctx.drawImage(magCanvas, mx - r / zf, my - r / zf, (r * 2) / zf, (r * 2) / zf, mx - r, my - r, r * 2, r * 2);
+        ctx.restore();
+
+        // Gold glow border
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(mx, my, r, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(255,232,163,0.9)";
+        ctx.lineWidth = 2;
+        ctx.shadowColor = "rgba(255,232,163,0.55)";
+        ctx.shadowBlur = 18;
+        ctx.stroke();
+        ctx.restore();
+
+        // Crosshair
+        ctx.save();
+        ctx.strokeStyle = "rgba(255,232,163,0.5)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(mx - 10, my); ctx.lineTo(mx + 10, my);
+        ctx.moveTo(mx, my - 10); ctx.lineTo(mx, my + 10);
+        ctx.stroke();
+        ctx.restore();
       }
     }
 
@@ -605,8 +744,8 @@ function ladderPage() {
     async function runQueue(queue, curCount) {
       animating = true;
       for (const result of queue) {
-        const pName = result.participant?.display_name || "참가자";
-        await showCountdown(pName);
+        const prizeName = result.prize_label || "상품 추첨";
+        await showCountdown(prizeName);
         await animateLadderClimb(result);
         seenResults.add(result.id);
         
@@ -635,7 +774,7 @@ function ladderPage() {
         cdNumEl.style.animation = "none";
         cdNumEl.offsetHeight; // reflow
         cdNumEl.style.animation = "";
-        statusEl.textContent = pName + " 사다리 준비 중...";
+        statusEl.textContent = "🎁 " + pName + " 추첨 준비 중...";
         statusBar.textContent = "5초 후 사다리타기가 시작됩니다";
 
         SFX.countdownBeep(count);
@@ -657,35 +796,158 @@ function ladderPage() {
       });
     }
 
+    /* ── Generate bounce sequence ending at targetCol ── */
+    function generateBounceSequence(N, targetCol) {
+      const positions = [];
+      let cur = Math.floor(Math.random() * N);
+      const totalBounces = 48 + Math.floor(Math.random() * 16); // 48-64 bounces
+
+      // Fast random walk phase (first 65%)
+      const fastCount = Math.floor(totalBounces * 0.65);
+      for (let i = 0; i < fastCount; i++) {
+        positions.push(cur);
+        const dir = Math.random() < 0.5 ? -1 : 1;
+        cur = Math.max(0, Math.min(N - 1, cur + dir));
+      }
+
+      // Slow convergence phase (last 35%): drift toward target
+      const slowCount = totalBounces - fastCount;
+      for (let i = 0; i < slowCount; i++) {
+        positions.push(cur);
+        const diff = targetCol - cur;
+        if (diff !== 0) {
+          const correctProb = 0.55 + (i / slowCount) * 0.44;
+          const go = Math.random() < correctProb ? (diff > 0 ? 1 : -1) : (diff > 0 ? -1 : 1);
+          cur = Math.max(0, Math.min(N - 1, cur + go));
+        }
+      }
+      positions.push(targetCol); // guaranteed landing
+      return positions;
+    }
+
+    /* ── Pendulum: full left→right→left sweeps, decelerating ── */
+    function generatePendulumSequence(N, targetCol) {
+      const positions = [];
+      let pos = 0;
+      let vel = N - 1;
+      let dir = 1;
+      const damping = 0.72;
+      while (vel >= 0.5) {
+        const steps = Math.round(vel);
+        for (let s = 0; s < steps; s++) {
+          pos = Math.max(0, Math.min(N - 1, pos + dir));
+          positions.push(pos);
+        }
+        dir = -dir;
+        vel *= damping;
+      }
+      while (pos !== targetCol) {
+        pos += targetCol > pos ? 1 : -1;
+        positions.push(pos);
+      }
+      positions.push(targetCol);
+      return positions;
+    }
+
+    /* ── Bounce phase: ball sweeps L/R then locks onto target column ── */
+    function runBouncePhase(targetCol, prizeName) {
+      return new Promise(resolve => {
+        const N = columns.length;
+        const seq = bounceMode === "pendulum"
+          ? generatePendulumSequence(N, targetCol)
+          : generateBounceSequence(N, targetCol);
+        const totalBounces = seq.length;
+
+        // Pre-compute timestamps (quadratic deceleration: 55ms → 480ms)
+        const times = [0];
+        let t = 0;
+        for (let i = 1; i < totalBounces; i++) {
+          const p = i / totalBounces;
+          t += 55 + p * p * 425;
+          times.push(t);
+        }
+        const totalDuration = t;
+
+        const startTime = performance.now();
+        let lastIdx = -1;
+
+        function tick(now) {
+          const elapsed = now - startTime;
+          // Find current bounce index
+          let idx = times.findLastIndex ? times.findLastIndex(ts => ts <= elapsed) : (() => {
+            let r = 0;
+            for (let j = 0; j < times.length; j++) if (times[j] <= elapsed) r = j;
+            return r;
+          })();
+          idx = Math.min(idx, totalBounces - 1);
+
+          if (idx !== lastIdx) {
+            lastIdx = idx;
+            const col = seq[idx];
+            runner = { bouncing: col };
+            const progress = idx / totalBounces;
+            SFX.bounceClick(progress, col);
+            drawLadder();
+          }
+
+          if (elapsed < totalDuration) {
+            requestAnimationFrame(tick);
+          } else {
+            // Lock on target
+            runner = { bouncing: targetCol };
+            drawLadder();
+            SFX.bounceSettle();
+            statusBar.textContent = "🎯 선택 완료! 사다리 하강 시작...";
+            setTimeout(() => {
+              runner = null;
+              resolve();
+            }, 900);
+          }
+        }
+
+        statusEl.textContent = "추첨 중...";
+        statusBar.textContent = "상품이 열을 선택하고 있습니다...";
+        SFX.startBounceBgm();
+        requestAnimationFrame(tick);
+      });
+    }
+
     /* ── HTML5 Canvas Ghost Leg Neon Run Animation ── */
     function animateLadderClimb(result) {
       return new Promise(resolve => {
         const startId = result.ladder_participant_id;
         const startIdx = columns.findIndex(col => col.participantId === startId);
-        
-        const solved = solveGhostLeg(startIdx >= 0 ? startIdx : 0);
-        const traj = solved.points;
-        const finalColIndex = solved.endCol;
+        const targetCol = startIdx >= 0 ? startIdx : 0;
 
-        // Assign the backend prize to this specific bottom column tag for visuals!
-        columns[finalColIndex].assignedPrize = result.prize_label;
+        // Phase 1: Bounce → Phase 2: Descend
+        runBouncePhase(targetCol, result.prize_label).then(() => {
+          // Reveal prize at top of starting column
+          columns[targetCol].topPrize = result.prize_label;
 
-        // Set up runner state
-        runner = {
-          running: true,
-          points: traj,
-          curSeg: 0,
-          curX: traj[0].x,
-          curY: traj[0].y,
-          segProgress: 0,
-          trailPoints: [{ x: traj[0].x, y: traj[0].y }]
-        };
+          const solved = solveGhostLeg(targetCol);
+          const traj = solved.points;
 
-        SFX.spinStart();
-        SFX.fadeBgm(0.03, 1.5);
-        SFX.startTick(75);
-        statusBar.textContent = result.participant?.display_name + " 님 사다리 활주 중...";
-        statusEl.textContent = "실시간 사다리 추첨 진행 중";
+          // Set up runner state for descent
+          runner = {
+            running: true,
+            points: traj,
+            curSeg: 0,
+            curX: traj[0].x,
+            curY: traj[0].y,
+            segProgress: 0,
+            trailPoints: [{ x: traj[0].x, y: traj[0].y }]
+          };
+
+          SFX.stopBounceBgm();
+          SFX.spinStart();
+          SFX.fadeBgm(0.03, 1.5);
+          SFX.startTick(75);
+          statusBar.textContent = result.participant?.display_name + " 님 사다리 활주 중...";
+          statusEl.textContent = "실시간 사다리 추첨 진행 중";
+          startDescentAnimation();
+        });
+
+        function startDescentAnimation() {
 
         let lastTickTime = Date.now();
         const speed = 0.095; // segment traverse step
@@ -752,7 +1014,8 @@ function ladderPage() {
           }, 3500);
         }
 
-        requestAnimationFrame(animate);
+          requestAnimationFrame(animate);
+        } // end startDescentAnimation
       });
     }
 
@@ -884,11 +1147,10 @@ function ladderPage() {
           let bassOffsets = []; t = 0;
           bass.forEach(([f, len]) => { bassOffsets.push([f, t, len * TEMPO * 0.85]); t += len * TEMPO; });
 
-          let loopCount = 0;
           let stopped = false;
 
           function scheduleLoop(startAt) {
-            if (stopped || loopCount++ > 120) return;
+            if (stopped) return;
             melOffsets.forEach(([f, off, dur]) => {
               const o = c.createOscillator(); const g = c.createGain();
               o.type = "triangle"; o.frequency.value = f;
@@ -979,8 +1241,62 @@ function ladderPage() {
         },
         toggleMute() {
           muted = !muted;
-          if (muted) this.stopBgm();
+          if (muted) { this.stopBgm(); this.stopBounceBgm(); }
           return muted;
+        },
+
+        // ── Bounce phase SFX ──────────────────────────
+        bounceClick(progress, col) {
+          if (muted) return;
+          // High pitch at start, descending as it slows down
+          const freq = 1200 - progress * 600 + (col % 4) * 40;
+          const vol = 0.09 + (1 - progress) * 0.08;
+          note(freq, 0.03, vol, "square");
+        },
+        bounceSettle() {
+          if (muted) return;
+          // Landing chime: ascending triad
+          [[880, 0], [1100, 0.08], [1320, 0.16], [1760, 0.28]].forEach(([f, w]) =>
+            note(f, 0.28, 0.18, "triangle", w)
+          );
+          noise(0.12, 0.06);
+        },
+        startBounceBgm() {
+          if (muted) return;
+          const c = getCtx();
+          if (this._bounceBgm) return;
+          const freqs = [523, 659, 784, 1047, 784, 659];
+          let idx = 0;
+          let stopped = false;
+          let nextNoteTime = c.currentTime;
+          const noteInterval = 0.088;
+          const lookahead = 0.25;
+          const masterG = c.createGain();
+          masterG.gain.value = 0.06;
+          masterG.connect(c.destination);
+          let timerId;
+          function schedule() {
+            if (stopped) return;
+            while (nextNoteTime < c.currentTime + lookahead) {
+              const f = freqs[idx % freqs.length];
+              const o = c.createOscillator();
+              const g = c.createGain();
+              o.type = "square";
+              o.frequency.value = f;
+              g.gain.setValueAtTime(0.5, nextNoteTime);
+              g.gain.exponentialRampToValueAtTime(0.0001, nextNoteTime + 0.08);
+              o.connect(g); g.connect(masterG);
+              o.start(nextNoteTime); o.stop(nextNoteTime + 0.09);
+              idx++;
+              nextNoteTime += noteInterval;
+            }
+            timerId = setTimeout(schedule, 100);
+          }
+          schedule();
+          this._bounceBgm = { stop() { stopped = true; clearTimeout(timerId); masterG.gain.setTargetAtTime(0, c.currentTime, 0.1); } };
+        },
+        stopBounceBgm() {
+          if (this._bounceBgm) { this._bounceBgm.stop(); this._bounceBgm = null; }
         }
       };
     })();

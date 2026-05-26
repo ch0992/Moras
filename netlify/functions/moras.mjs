@@ -39,6 +39,8 @@ const {
   ladderPage,
   secretPage,
   upcomingEventPage,
+  promoPage,
+  guidePage,
 } = manseWeb;
 
 export default async (request) => {
@@ -67,6 +69,14 @@ export default async (request) => {
 
     if (request.method === "GET" && url.pathname === "/results") {
       return html(resultsPage());
+    }
+
+    if (request.method === "GET" && url.pathname === "/promo") {
+      return html(promoPage());
+    }
+
+    if (request.method === "GET" && url.pathname === "/guide") {
+      return html(guidePage());
     }
 
     if (request.method === "GET" && url.pathname === "/roulette") {
@@ -239,6 +249,8 @@ export const config = {
     "/admin",
     "/match",
     "/results",
+    "/promo",
+    "/guide",
     "/roulette",
     "/ladder",
     "/health",
