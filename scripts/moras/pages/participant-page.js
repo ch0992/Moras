@@ -1103,6 +1103,13 @@ function page() {
       transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s, background 0.25s, box-shadow 0.25s;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
     }
+    .welcome-game-btn.disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      pointer-events: none;
+      box-shadow: none !important;
+      transform: none !important;
+    }
     .game-btn-roulette {
       border-color: rgba(236, 72, 153, 0.35);
       background: rgba(236, 72, 153, 0.05);
@@ -1590,8 +1597,8 @@ function page() {
       <div class="welcome-games-title">🪐 Moras 추첨게임</div>
       <div class="welcome-games-row">
         <a class="welcome-game-btn game-btn-roulette" href="/roulette">🔮 운명의 룰렛</a>
-        <a class="welcome-game-btn game-btn-ladder" href="/ladder">🪜 은하수 사다리</a>
-        <a class="welcome-game-btn game-btn-gachapon" href="/gachapon">💫 기적의 캡슐</a>
+        <a class="welcome-game-btn game-btn-ladder disabled" title="사다리 준비 중">🪜 은하수 사다리 (대기)</a>
+        <a class="welcome-game-btn game-btn-gachapon disabled" title="기적의 캡슐 준비 중">💫 기적의 캡슐 (대기)</a>
       </div>
     </div>
   </div>
