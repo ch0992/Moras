@@ -435,7 +435,7 @@ function guidePage() {
     
     .real-screen-img {
       width: 100%;
-      max-height: 480px;
+      height: 380px;
       object-fit: contain;
       border-radius: 16px;
       border: 1.5px solid rgba(255, 255, 255, 0.1);
@@ -444,11 +444,12 @@ function guidePage() {
       display: block;
       margin: 0 auto;
       background: #020408;
+      cursor: zoom-in;
     }
     .real-screen-img:hover {
-      transform: translateY(-4px) scale(1.01);
-      border-color: rgba(0, 242, 254, 0.35);
-      box-shadow: 0 18px 40px rgba(0, 242, 254, 0.15);
+      transform: translateY(-4px) scale(1.015);
+      border-color: var(--cyan);
+      box-shadow: 0 18px 40px rgba(0, 242, 254, 0.25);
     }
     
     .mockup-images-row {
@@ -805,7 +806,87 @@ function guidePage() {
         margin-top: 12px;
         box-shadow: none;
       }
-      .speech-arrow { display: none; }
+    }
+    
+    /* Image Lightbox Overlay Styles */
+    .lightbox-modal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      padding-top: 50px;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(3, 7, 18, 0.93);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: all 0.3s ease;
+    }
+    .lightbox-content {
+      margin: auto;
+      display: block;
+      width: 90%;
+      max-width: 780px;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 20px;
+      border: 1.5px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 242, 254, 0.08);
+      animation: lightboxZoom 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes lightboxZoom {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .lightbox-close {
+      position: absolute;
+      top: 24px;
+      right: 32px;
+      color: #fff;
+      font-size: 38px;
+      font-weight: 800;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .lightbox-close:hover {
+      color: var(--cyan);
+      transform: scale(1.08) rotate(90deg);
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(0, 242, 254, 0.3);
+    }
+    .lightbox-caption {
+      margin: auto;
+      display: block;
+      width: 80%;
+      max-width: 600px;
+      text-align: center;
+      color: #94a3b8;
+      padding: 16px 0;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    @media (max-width: 600px) {
+      .lightbox-close {
+        top: 16px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+        font-size: 30px;
+      }
+      .lightbox-content {
+        max-height: 70vh;
+      }
     }
   </style>
 </head>
@@ -1110,7 +1191,46 @@ function guidePage() {
     
     updateCountdown();
     setInterval(updateCountdown, 1000);
+
+    // Image Lightbox zoom logic
+    const lightbox = document.getElementById("image-lightbox");
+    const lightboxImg = document.getElementById("lightbox-img");
+    const lightboxCaption = document.getElementById("lightbox-caption");
+    const closeBtn = document.querySelector(".lightbox-close");
+
+    document.querySelectorAll(".real-screen-img").forEach(img => {
+      img.addEventListener("click", function() {
+        lightbox.style.display = "block";
+        lightboxImg.src = this.src;
+        lightboxCaption.textContent = this.alt;
+        document.body.style.overflow = "hidden"; // Disable background scrolling when lightbox is open
+      });
+    });
+
+    function closeLightbox() {
+      lightbox.style.display = "none";
+      document.body.style.overflow = ""; // Restore background scrolling
+    }
+
+    closeBtn.addEventListener("click", closeLightbox);
+    lightbox.addEventListener("click", function(e) {
+      if (e.target !== lightboxImg) {
+        closeLightbox();
+      }
+    });
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape" && lightbox.style.display === "block") {
+        closeLightbox();
+      }
+    });
   </script>
+
+  <!-- Image Lightbox Overlay Modal -->
+  <div id="image-lightbox" class="lightbox-modal">
+    <span class="lightbox-close">&times;</span>
+    <img class="lightbox-content" id="lightbox-img" alt="확대 이미지">
+    <div id="lightbox-caption" class="lightbox-caption"></div>
+  </div>
 </body>
 </html>`;
 }
