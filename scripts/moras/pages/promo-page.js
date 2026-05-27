@@ -682,23 +682,23 @@ function promoPage() {
       <div class="timezone-grid">
         <div class="timezone-card">
           <div class="tz-flag">🇺🇸</div>
-          <div class="tz-name">북미 (EST/CST/PST)</div>
-          <div class="tz-time">11월 16일 새벽 5:00 / 4:00 / 2:00</div>
+          <div class="tz-name">북미 (EDT/CDT/PDT)</div>
+          <div class="tz-time">5월 31일 밤 11:00 / 10:00 / 8:00</div>
         </div>
         <div class="timezone-card">
           <div class="tz-flag">🇰🇷</div>
           <div class="tz-name">한국 (KST)</div>
-          <div class="tz-time">11월 16일 저녁 7:00</div>
+          <div class="tz-time">6월 1일 낮 12:00</div>
         </div>
         <div class="timezone-card">
           <div class="tz-flag">🇦🇺</div>
-          <div class="tz-name">호주 (AEDT)</div>
-          <div class="tz-time">11월 16일 밤 9:00</div>
+          <div class="tz-name">호주 (AEST)</div>
+          <div class="tz-time">6월 1일 낮 1:00</div>
         </div>
         <div class="timezone-card">
           <div class="tz-flag">🇪🇺</div>
-          <div class="tz-name">유럽 (CET)</div>
-          <div class="tz-time">11월 16일 오전 11:00</div>
+          <div class="tz-name">유럽 (CEST)</div>
+          <div class="tz-time">6월 1일 새벽 5:00</div>
         </div>
       </div>
       
@@ -826,7 +826,7 @@ function promoPage() {
     
     <!-- Final CTA Card -->
     <section class="final-cta">
-      <h3 class="final-title" id="final-cta-status">우주가 속삭이는 당신의 짝, 11월 16일에 찾아갑니다</h3>
+      <h3 class="final-title" id="final-cta-status">우주가 속삭이는 당신의 짝, 6월 1일에 찾아갑니다</h3>
       <p class="final-desc">
         본 이벤트는 아래 카운트다운 타이머가 종료되는 즉시 신청이 개방됩니다.<br>
         태어난 오행과 MBTI의 조화가 이끄는 운명적인 매치메이킹을 기대하세요!
