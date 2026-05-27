@@ -1026,10 +1026,26 @@ function page() {
       font-weight: 700;
     }
     .welcome-btn {
-      max-width: 320px;
+      width: 100%;
+      max-width: 360px;
       height: 56px;
       font-size: 18px;
       margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .welcome-btn:disabled {
+      background: #1e293b !important;
+      color: #64748b !important;
+      border: 1px solid rgba(255, 255, 255, 0.05) !important;
+      cursor: not-allowed !important;
+      box-shadow: none !important;
+      transform: none !important;
+      opacity: 0.85;
+      font-size: 14.5px !important;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
     }
     .welcome-links {
       display: grid;
@@ -1982,6 +1998,42 @@ function page() {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }, 450);
     }
+
+    // Countdown Timer for btnStart (Event start lock)
+    const eventStartTime = new Date("2026-06-01T03:00:00Z").getTime();
+    
+    function padNum(n) {
+      return String(n).padStart(2, "0");
+    }
+    
+    function updateWelcomeBtnTimer() {
+      const remaining = eventStartTime - Date.now();
+      
+      if (remaining <= 0) {
+        btnStart.disabled = false;
+        btnStart.textContent = "이벤트 신청 및 운명의 만세력 조회";
+        return;
+      }
+      
+      btnStart.disabled = true;
+      
+      const totalSec = Math.floor(remaining / 1000);
+      const days = Math.floor(totalSec / 86400);
+      const hours = Math.floor((totalSec % 86400) / 3600);
+      const minutes = Math.floor((totalSec % 3600) / 60);
+      const seconds = totalSec % 60;
+      
+      let timeStr = "";
+      if (days > 0) {
+        timeStr += days + "일 ";
+      }
+      timeStr += padNum(hours) + ":" + padNum(minutes) + ":" + padNum(seconds);
+      
+      btnStart.textContent = "이벤트 오픈 대기 중... (" + timeStr + " 남음)";
+    }
+    
+    updateWelcomeBtnTimer();
+    const btnTimerInterval = setInterval(updateWelcomeBtnTimer, 1000);
 
     // Initialize Welcome Gate Action
     btnStart.addEventListener("click", () => {
