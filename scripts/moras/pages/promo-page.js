@@ -915,7 +915,7 @@ function promoPage() {
       <article class="comic-card" id="panel-finale">
         <div class="panel-header">
           <span class="panel-number">2</span>
-          <h3 class="panel-title">피날레 파티: 매칭이 끝나고 펼쳐지는 대형 룰렛 & 사다리 쇼!</h3>
+          <h3 class="panel-title">피날레 파티: 매칭이 끝나고 펼쳐지는 대형 룰렛 쇼!</h3>
           <span class="panel-narrator narrator-benji">Benji & Hayoon</span>
         </div>
         <div class="comic-img-container">
@@ -926,15 +926,15 @@ function promoPage() {
             <div class="speaker speaker-benji">벤지</div>
             <p class="dialogue-text">
               "자, 최고의 하이라이트는 지금부터야! 모든 매칭 결과 확정이 완료되면,<br>
-              참가자 전원이 함께 감상하며 즐길 수 있는 **실시간 대형 네온 룰렛 쇼**와 **네온 사다리타기(Ghost Leg)**가 구동돼!"
+              참가자 전원이 함께 감상하며 즐길 수 있는 **실시간 대형 네온 룰렛 쇼**가 구동돼!"
             </p>
           </div>
           
           <div class="bubble bubble-hayoon bubble-right">
             <div class="speaker speaker-hayoon">하윤</div>
             <p class="dialogue-text">
-              "맞아! 매칭이 끝난 직후 피날레 축제로 구동되는 만큼, 풍성한 기프티콘과 풍성한 커피 쿠폰 등<br>
-              다양한 경품 추첨 쇼가 화려한 불꽃놀이 연출과 함께 펼쳐질 테니, **마지막 피날레까지 많은 관심과 기대를 부탁할게!** 🌌🎡💖"
+              "맞아! 매칭이 끝난 직후 피날레 축제로 구동되는 만큼, 일방권, 강제노래지목권, 우선선택권, 질문권 등<br>
+              다양한 항목 추첨 쇼가 화려한 불꽃놀이 연출과 함께 펼쳐질 테니, **마지막 피날레까지 많은 관심과 기대를 부탁할게!** 🌌🎡💖"
             </p>
           </div>
         </div>
