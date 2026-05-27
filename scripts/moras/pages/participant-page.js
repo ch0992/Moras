@@ -1061,6 +1061,165 @@ function page() {
       box-shadow: 0 16px 34px rgba(197, 155, 63, 0.16);
     }
 
+    /* 🪐 Celestial Guide Journey Cards (Special Buttons above start button) */
+    .welcome-guide-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      max-width: 580px;
+      margin: 0 auto 28px;
+      width: 100%;
+    }
+    
+    .guide-card {
+      position: relative;
+      border-radius: 16px;
+      text-decoration: none;
+      overflow: hidden;
+      display: block;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    
+    .card-glow {
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    .card-promo .card-glow {
+      background: radial-gradient(circle at center, rgba(255, 71, 87, 0.08) 0%, transparent 60%);
+    }
+    
+    .card-guide .card-glow {
+      background: radial-gradient(circle at center, rgba(0, 242, 254, 0.08) 0%, transparent 60%);
+    }
+    
+    .guide-card:hover .card-glow {
+      opacity: 1;
+    }
+    
+    .card-inner {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      gap: 14px;
+      background: rgba(13, 20, 40, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      transition: background 0.3s ease;
+    }
+    
+    .guide-card:hover .card-inner {
+      background: rgba(13, 20, 40, 0.8);
+    }
+    
+    .card-icon {
+      font-size: 22px;
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      flex-shrink: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .card-content {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      flex-grow: 1;
+    }
+    
+    .card-title {
+      font-size: 15px;
+      font-weight: 900;
+      color: #ffffff;
+      margin-bottom: 2px;
+      transition: color 0.3s ease;
+    }
+    
+    .card-desc {
+      font-size: 11px;
+      font-weight: 500;
+      color: #94a3b8;
+      line-height: 1.3;
+    }
+    
+    .card-arrow {
+      color: #64748b;
+      display: grid;
+      place-items: center;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateX(-4px);
+      opacity: 0.7;
+    }
+    
+    .guide-card:hover .card-arrow {
+      color: #ffffff;
+      transform: translateX(2px);
+      opacity: 1;
+      filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
+    }
+    
+    /* Cosmic Neon Themes per card */
+    .card-promo {
+      border-color: rgba(255, 71, 87, 0.18);
+    }
+    .card-promo:hover {
+      border-color: rgba(255, 71, 87, 0.45);
+      box-shadow: 0 15px 35px rgba(255, 71, 87, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      transform: translateY(-3px);
+    }
+    .card-promo:hover .card-icon {
+      background: rgba(255, 71, 87, 0.15);
+      border-color: rgba(255, 71, 87, 0.35);
+      box-shadow: 0 0 15px rgba(255, 71, 87, 0.2);
+      transform: scale(1.05);
+    }
+    .card-promo:hover .card-title {
+      color: #ff4757;
+    }
+    
+    .card-guide {
+      border-color: rgba(0, 242, 254, 0.18);
+    }
+    .card-guide:hover {
+      border-color: rgba(0, 242, 254, 0.45);
+      box-shadow: 0 15px 35px rgba(0, 242, 254, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      transform: translateY(-3px);
+    }
+    .card-guide:hover .card-icon {
+      background: rgba(0, 242, 254, 0.15);
+      border-color: rgba(0, 242, 254, 0.35);
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+      transform: scale(1.05);
+    }
+    .card-guide:hover .card-title {
+      color: #00f2fe;
+    }
+    
+    @media (max-width: 580px) {
+      .welcome-guide-cards {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 0 16px;
+      }
+    }
+
     .welcome-divider {
       height: 1px;
       background: linear-gradient(90deg, transparent, rgba(255, 232, 163, 0.18), transparent);
@@ -1584,6 +1743,37 @@ function page() {
       본인의 <strong>MBTI</strong>와 <strong>우주적 만세력(Saju)</strong>이 직조해내는 신비로운 조화와<br>
       오행의 어우러짐을 Celestial 밤하늘 아래에서 탐독해보세요.
     </div>
+    <!-- Special Webtoon & Guide Navigation Cards -->
+    <div class="welcome-guide-cards">
+      <a href="/promo" class="guide-card card-promo" title="Moras를 쉽게 소개해 드리는 웹툰 감상">
+        <div class="card-glow"></div>
+        <div class="card-inner">
+          <div class="card-icon">🎨</div>
+          <div class="card-content">
+            <span class="card-title">소개웹툰</span>
+            <span class="card-desc">벤지 & 밀라의 MBTI 사주 꿀케미 툰</span>
+          </div>
+          <div class="card-arrow">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </a>
+      
+      <a href="/guide" class="guide-card card-guide" title="신청부터 투표까지 실전 진행방법 안내">
+        <div class="card-glow"></div>
+        <div class="card-inner">
+          <div class="card-icon">🪜</div>
+          <div class="card-content">
+            <span class="card-title">이벤트 신청방법</span>
+            <span class="card-desc">신청서 작성부터 실시간 매칭까지</span>
+          </div>
+          <div class="card-arrow">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </a>
+    </div>
+
     <button id="btn-start" class="welcome-btn">이벤트 신청 및 운명의 만세력 조회</button>
     <div class="welcome-links">
       <a class="welcome-link-btn" href="/applicants">신청자 목록 확인하기</a>
