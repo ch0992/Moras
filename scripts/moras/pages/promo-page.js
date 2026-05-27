@@ -425,7 +425,7 @@ function promoPage() {
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 16.5%;
+      height: 18.5%;
       background: #02040a; /* Covers the old baked-in date perfectly */
       display: flex;
       align-items: center;
@@ -439,23 +439,44 @@ function promoPage() {
       text-align: center;
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 4px;
     }
     
     .overlay-date {
       font-family: 'Outfit', sans-serif;
-      font-size: clamp(14px, 2.3vw, 22px);
+      font-size: clamp(13px, 2.2vw, 21px);
       font-weight: 800;
       color: #ffffff;
       letter-spacing: 0.05em;
       line-height: 1.1;
     }
     
+    .overlay-global-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      opacity: 0.9;
+    }
+    
+    .overlay-global-item {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(8px, 1.2vw, 11px);
+      font-weight: 700;
+      color: #cbd5e1;
+      letter-spacing: 0.04em;
+    }
+    
+    .overlay-global-divider {
+      color: rgba(255, 255, 255, 0.15);
+      font-size: clamp(8px, 1.2vw, 11px);
+    }
+    
     .overlay-sub {
       font-family: 'Outfit', sans-serif;
-      font-size: clamp(8px, 1.4vw, 11px);
+      font-size: clamp(7.5px, 1.2vw, 10px);
       font-weight: 700;
-      color: #94a3b8;
+      color: #64748b;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       line-height: 1.1;
@@ -495,7 +516,7 @@ function promoPage() {
       }
       .cover-overlay-bar {
         padding: 0 12px;
-        height: 18%;
+        height: 20%;
       }
     }
     
@@ -820,7 +841,14 @@ function promoPage() {
           <img class="comic-img" src="/assets/marketing/promo/cover.png" alt="Moras Promotional Webtoon Cover Banner Illustration">
           <div class="cover-overlay-bar">
             <div class="overlay-center">
-              <div class="overlay-date">2026.06.01 | MON | 12:00 | SEOUL</div>
+              <div class="overlay-date">2026.06.01 | MON | 12:00 | SEOUL (KST)</div>
+              <div class="overlay-global-row">
+                <span class="overlay-global-item">🇺🇸 NY 05.31 23:00</span>
+                <span class="overlay-global-divider">|</span>
+                <span class="overlay-global-item">🇪🇺 PARIS 06.01 05:00</span>
+                <span class="overlay-global-divider">|</span>
+                <span class="overlay-global-item">🇦🇺 SYDNEY 06.01 13:00</span>
+              </div>
               <div class="overlay-sub">FIND YOUR DESTINY WITH <span class="cyan-text">MBTI & SAJU!</span></div>
             </div>
             <div class="overlay-right">
