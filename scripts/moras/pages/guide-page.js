@@ -970,7 +970,8 @@ function guidePage() {
             <div class="char-speech-bubble bubble-purple">
               <b>분석가 밀라의 우주 공식 🔮</b><br><br>
               "여기서부턴 나 밀라가 사주 영역 안내를 도와줄게! 🔮 성격 케미를 계산할 **MBTI**를 정확히 고르고, 태어난 **생년월일과 시간**을 분 단위까지 정확히 입력해줘!<br><br>
-              시간과 출생도시가 정밀할수록 경도가 보정된 **'진태양시'** 만세력이 연산되어 궁합도 분석이 훨씬 정확해진단다! 시각을 모를 땐 <b>[모름]</b>을 체크해도 괜찮아."
+              시간과 출생도시가 정밀할수록 경도가 보정된 **'진태양시'** 만세력이 연산되어 궁합도 분석이 훨씬 정확해진단다! 시각을 모를 땐 <b>[모름]</b>을 체크해도 괜찮아.<br><br>
+              <b>⚠️ 정보 수정 안내:</b> 만약 제출을 완료한 후에 본인의 정보를 잘못 입력한 것을 발견했다면, 스스로 수정할 수 없으므로 반드시 <b>운영자에게 문의하여 정보 초기화 및 재신청</b>을 요청해야 한단다!"
             </div>
           </div>
           
@@ -994,7 +995,7 @@ function guidePage() {
       <section class="guide-block">
         <div class="guide-section-header">
           <span class="guide-section-num">3</span>
-          <h3 class="guide-section-title">제출 즉시 나타나는 나의 우주 오행 차트 (사주 결과 화면)</h3>
+          <h3 class="guide-section-title">제출 즉시 나타나는 나의 사주 만세력 분석 결과</h3>
         </div>
         
         <div class="guide-step-row">
@@ -1003,29 +1004,17 @@ function guidePage() {
             <div class="mini-char-avatar emo-mila" data-name="밀라">🔮</div>
             <div class="char-speech-bubble bubble-purple">
               <b>분석가 밀라의 오행 해설 🔮</b><br><br>
-              "맨 하단의 <b>[이벤트 신청]</b> 단추를 누르면, 즉석에서 본인의 <b>오행(나무, 불, 흙, 쇠, 물) 조화도 원형 차트</b>와 만세력 일주 해석 리포트가 렌더링되어 눈앞에 바로 등장합니다!<br><br>
-              나를 상징하는 우주 기운 차트를 통해 내가 어떤 기운이 강하고 어떤 상대가 내 부족한 기운을 채워줄지 미리 분석해 볼 수 있지요."
+              "맨 하단의 <b>[이벤트 신청]</b> 단추를 누르면, 즉석에서 본인의 <b>사주 만세력 분석 결과</b>와 만세력 일주 해석 리포트가 눈앞에 등장합니다!<br><br>
+              나를 상징하는 일주(일간과 일지)와 천간, 지지, 십성, 12운성 등 우주의 기운이 정밀하게 연산되어 표시되며, 이를 통해 내가 어떤 기운이 강하고 어떤 상대가 내 부족한 기운을 채워줄 수 있을지 미리 살펴볼 수 있단다!"
             </div>
           </div>
           
           <!-- Right Column: Screen Mockup -->
           <div class="guide-screen-col">
-            <div class="app-screen-mockup" style="text-align:center;">
-              <div style="font-size:11px;font-weight:bold;margin-bottom:14px;color:var(--cyan);">[제출 성료 - 나의 오행 밸런스]</div>
-              
-              <div class="disc-container-mockup">
-                <div class="manse-disc-mockup">
-                  <div class="manse-disc-inner">
-                    <span class="mini-manse-text">甲子</span>
-                  </div>
-                </div>
-                <div style="font-size:12px;font-weight:900;color:var(--gold);margin-top:10px;">태어난 날의 일주(日柱): 갑자(甲子)</div>
-              </div>
-              
-              <div style="display:flex;justify-content:center;gap:6px;font-size:11px;margin-top:4px;">
-                <span style="color:#2ecc71;background:rgba(46,204,113,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(46,204,113,0.2);">木 3 (나무)</span>
-                <span style="color:#f5576c;background:rgba(245,87,108,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(245,87,108,0.2);">火 2 (불)</span>
-                <span style="color:#3498db;background:rgba(52,152,219,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(52,152,219,0.2);">水 1 (물)</span>
+            <div class="mockup-images-row">
+              <div class="mockup-image-wrapper" style="max-width:340px;">
+                <img class="real-screen-img" src="/assets/guide/media__1779851078065.png" alt="나의 사주 만세력 분석 결과">
+                <div class="mockup-image-label">나의 사주 만세력 분석 결과</div>
               </div>
             </div>
           </div>
