@@ -1062,11 +1062,11 @@ function guidePage() {
         </div>
       </section>
       
-      <!-- STEP 5: Public Results page \`/results\` (Hayoon Miniature) -->
+      <!-- STEP 5: Check Applicant List & Matching Status (Lobby & Roster / Hayoon Miniature) -->
       <section class="guide-block">
         <div class="guide-section-header">
           <span class="guide-section-num">5</span>
-          <h3 class="guide-section-title">매칭 결과 공개 및 랭킹 조회 (결과 공개 화면 \`/results\`)</h3>
+          <h3 class="guide-section-title">신청 대기실 버튼 및 실시간 신청자 목록 확인</h3>
         </div>
         
         <div class="guide-step-row">
@@ -1074,25 +1074,86 @@ function guidePage() {
           <div class="guide-char-col">
             <div class="mini-char-avatar emo-hayoon" data-name="하윤">🎀</div>
             <div class="char-speech-bubble bubble-pink">
-              <b>하윤이의 결과 중계 🎀</b><br><br>
-              "매칭 결과가 개개인에 공개되면, \`/results\` 페이지에서 커플들의 **매칭 랭킹 순위**를 볼 수 있어! 1위부터 순서대로 나열된 커플들을 감상해봐!<br><br>
-              오른쪽의 **[상세]** 버튼을 탭하면, 두 사람의 첫인상, MBTI 대화 성향 리듬, 사주 일주 분석, 그리고 대화 시 주의할 카운셀링 가이드까지 무진장 자세하게 읽어볼 수 있다구!"
+              <b>하윤이의 대기실 안내 🎀</b><br><br>
+              "대기실 로비에서 <b>[신청자 목록 확인하기]</b> 버튼을 누르면, 실시간으로 등록 완료된 대원들의 명단을 볼 수 있어! 🌌<br><br>
+              이름, 성별, MBTI, 사주 일주, 그리고 신청 시각이 명쾌하게 공개되니, 우리 은하계 대원들이 어떤 성향을 가졌는지 먼저 확인하고 설레는 마음으로 매칭 결과를 함께 기다려보자!"
             </div>
           </div>
           
           <!-- Right Column: Screen Mockup -->
           <div class="guide-screen-col">
-            <div class="app-screen-mockup">
-              <div class="couple-row-mockup rank-1">
-                <div style="font-size:11px;font-weight:900;color:var(--gold);">1위</div>
-                <div class="partner-box-mockup male">벤지 (남) · ENFP</div>
-                <div class="partner-box-mockup female">하윤 (여) · INFJ</div>
-                <div class="couple-score-mockup">94<span style="font-size:8px;color:var(--muted);">점</span></div>
+            <div class="mockup-images-row">
+              <div class="mockup-image-wrapper">
+                <img class="real-screen-img" src="/assets/guide/media__1779847034540.png" alt="MORAS 신청 대기실 로비 버튼">
+                <div class="mockup-image-label">대기실 로비 화면</div>
               </div>
-              
-              <div style="background:#0a0f1d;border:1px solid rgba(162,155,254,0.3);border-radius:10px;padding:12px;font-size:11px;line-height:1.5;color:#CBD5E1;">
-                <strong>[1위 커플 관계 풀이 상세]</strong><br>
-                두 사람의 첫인상은 서서히 온도가 오르는 리듬을 가집니다. 벤지님의 적극성과 하윤님의 차분함이 오행의 나무와 불의 기운처럼 조화롭게 순환되어...
+              <div class="mockup-image-wrapper">
+                <img class="real-screen-img" src="/assets/guide/media__1779847086178.png" alt="현재 이벤트 신청자 목록">
+                <div class="mockup-image-label">이벤트 신청자 목록</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 6: Event Matching Results & Personal Lookup (Results Screen & Name Lookup / Hayoon Miniature) -->
+      <section class="guide-block">
+        <div class="guide-section-header">
+          <span class="guide-section-num">6</span>
+          <h3 class="guide-section-title">이벤트 매칭결과 확인 및 본인 매칭 조회</h3>
+        </div>
+        
+        <div class="guide-step-row">
+          <!-- Left Column: Character Miniature Speech Bubble -->
+          <div class="guide-char-col">
+            <div class="mini-char-avatar emo-hayoon" data-name="하윤">🎀</div>
+            <div class="char-speech-bubble bubble-pink">
+              <b>하윤이의 결과 확인 🎀</b><br><br>
+              "운영진이 매칭 알고리즘 가동을 끝마치면, 로비에 <b>[매칭결과 확인하기]</b> 버튼이 활성화되어 전체 커플 목록과 궁합 점수가 오픈돼!<br><br>
+              여기서 본인의 상세 매핑을 열어보고 투표에 참여하려면, <b>[매칭 투표하러 가기 ->]</b> 버튼을 클릭한 후 본인의 이름을 조회 창에 입력하면 된단다!"
+            </div>
+          </div>
+          
+          <!-- Right Column: Screen Mockup -->
+          <div class="guide-screen-col">
+            <div class="mockup-images-row">
+              <div class="mockup-image-wrapper">
+                <img class="real-screen-img" src="/assets/guide/media__1779847131238.png" alt="이벤트 매칭결과 전체 목록">
+                <div class="mockup-image-label">이벤트 매칭 결과 목록</div>
+              </div>
+              <div class="mockup-image-wrapper">
+                <img class="real-screen-img" src="/assets/guide/media__1779847141457.png" alt="나의 인연 확인하기 이름 입력 조회">
+                <div class="mockup-image-label">나의 인연 확인 조회창</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 7: 1:1 Detailed Saju compatibility & Vote (Vote Detail Screen / Mila Miniature) -->
+      <section class="guide-block">
+        <div class="guide-section-header">
+          <span class="guide-section-num">7</span>
+          <h3 class="guide-section-title">두 사람의 인연 오행 대조 및 최종 매칭 투표</h3>
+        </div>
+        
+        <div class="guide-step-row">
+          <!-- Left Column: Character Miniature Speech Bubble -->
+          <div class="guide-char-col">
+            <div class="mini-char-avatar emo-mila" data-name="밀라">🔮</div>
+            <div class="char-speech-bubble bubble-purple">
+              <b>분석가 밀라의 오행 투표소 🔮</b><br><br>
+              "드디어 가장 중요한 최종 운명의 제어실입니다! 두 사람의 태어난 시/일/월/년의 <b>사주 오행 원소 천간지지 대조도</b>가 정밀한 오방색 칩으로 펼쳐지며, **시너지 원형 게이지**가 점수화됩니다.<br><br>
+              서로의 만세력 궁합을 꼼꼼하게 확인하신 후, 이 만남을 소중한 인연으로 맞이하고 싶다면 하단의 <b>[O]</b> 버튼과 <b>[확인]</b> 버튼을 탭하여 최종 찬성 투표를 완성해주세요!"
+            </div>
+          </div>
+          
+          <!-- Right Column: Screen Mockup -->
+          <div class="guide-screen-col">
+            <div class="mockup-images-row">
+              <div class="mockup-image-wrapper" style="max-width:340px;">
+                <img class="real-screen-img" src="/assets/guide/media__1779847174612.png" alt="1위 운명의 커플 두 사람의 인연 사주 분석 및 찬성 선택 투표">
+                <div class="mockup-image-label">두 사람의 인연 상세 & 투표</div>
               </div>
             </div>
           </div>
