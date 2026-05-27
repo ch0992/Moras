@@ -1223,6 +1223,13 @@ function guidePage() {
     <p>&copy; 2026 MORAS. All rights reserved.</p>
     <p>재미와 조화로운 커뮤니티 연결을 목표로 합니다. 결정론적인 운명 해석은 피해주세요. | <a href="/admin">어드민 로그인</a></p>
   </footer>
+
+  <!-- Image Lightbox Overlay Modal -->
+  <div id="image-lightbox" class="lightbox-modal">
+    <span class="lightbox-close">&times;</span>
+    <img class="lightbox-content" id="lightbox-img" alt="확대 이미지">
+    <div id="lightbox-caption" class="lightbox-caption"></div>
+  </div>
   
   <script>
     // Countdown Target: 2026-06-01T03:00:00Z
@@ -1315,13 +1322,6 @@ function guidePage() {
       }
     });
   </script>
-
-  <!-- Image Lightbox Overlay Modal -->
-  <div id="image-lightbox" class="lightbox-modal">
-    <span class="lightbox-close">&times;</span>
-    <img class="lightbox-content" id="lightbox-img" alt="확대 이미지">
-    <div id="lightbox-caption" class="lightbox-caption"></div>
-  </div>
 </body>
 </html>`;
 }
