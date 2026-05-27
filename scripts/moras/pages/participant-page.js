@@ -1974,6 +1974,16 @@ function page() {
     const stageResult = document.querySelector("#stage-result");
     const btnStart = document.querySelector("#btn-start");
     const globalHomeLogo = document.querySelector(".global-home-logo");
+
+    // Check URL parameters to skip welcome screen and show saju input directly
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("direct") === "saju" || urlParams.get("stage") === "input") {
+      stageWelcome.classList.remove("active");
+      stageWelcome.classList.add("stage-hidden");
+      stageInput.classList.remove("stage-hidden");
+      stageInput.classList.add("active");
+      globalHomeLogo.classList.add("is-visible");
+    }
     const oracleMessages = [
       "만세력의 별자리를 정렬하는 중...",
       "오행의 흐름과 균형을 읽는 중...",

@@ -1349,6 +1349,7 @@ function adminPage() {
         <div class="muted" style="margin-top: 4px;">오픈채팅 이벤트 MBTI & 사주 기반 매칭 엔진 대시보드</div>
       </div>
       <div class="header-nav">
+        <a href="/?direct=saju" target="_blank">사주보기 바로가기</a>
         <a href="/" target="_blank">참가자 등록화면</a>
         <button id="logout" type="button">로그아웃</button>
       </div>
