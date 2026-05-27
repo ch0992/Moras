@@ -273,6 +273,154 @@ function guidePage() {
       box-shadow: 0 25px 60px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.05);
     }
     
+    /* NEW GRID LAYOUT: CHARACTER MINIATURE + SCREEN MOCKUP */
+    .guide-step-row {
+      display: grid;
+      grid-template-columns: minmax(260px, 320px) minmax(320px, 1fr);
+      gap: 32px;
+      align-items: center;
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.45), inset 0 1px 1px rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      transition: all 0.3s ease;
+    }
+    
+    .guide-step-row:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 35px 80px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255,255,255,0.1);
+    }
+    
+    .guide-char-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      text-align: center;
+    }
+    
+    .mini-char-avatar {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      border: 2.5px solid transparent;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mini-char-avatar:hover {
+      transform: scale(1.08) rotate(4deg);
+    }
+    
+    .mini-char-avatar::after {
+      content: attr(data-name);
+      position: absolute;
+      bottom: -6px;
+      font-size: 11px;
+      font-weight: 900;
+      color: #fff;
+      padding: 3px 12px;
+      border-radius: 12px;
+      background: rgba(13, 20, 40, 0.95);
+      border: 1px solid rgba(255,255,255,0.08);
+      letter-spacing: 0.05em;
+    }
+    
+    .mini-char-avatar.emo-hayoon {
+      background: radial-gradient(circle, rgba(255, 71, 87, 0.15) 0%, rgba(13, 20, 40, 0.9) 100%);
+      border-color: rgba(255, 71, 87, 0.45);
+      box-shadow: 0 0 20px rgba(255, 71, 87, 0.25);
+    }
+    .mini-char-avatar.emo-hayoon::after {
+      border-color: rgba(255, 71, 87, 0.3);
+      color: var(--pink);
+    }
+    
+    .mini-char-avatar.emo-mila {
+      background: radial-gradient(circle, rgba(162, 155, 254, 0.15) 0%, rgba(13, 20, 40, 0.9) 100%);
+      border-color: rgba(162, 155, 254, 0.45);
+      box-shadow: 0 0 20px rgba(162, 155, 254, 0.25);
+    }
+    .mini-char-avatar.emo-mila::after {
+      border-color: rgba(162, 155, 254, 0.3);
+      color: var(--purple);
+    }
+    
+    .char-speech-bubble {
+      position: relative;
+      background: rgba(8, 12, 24, 0.65);
+      border-radius: 18px;
+      padding: 20px;
+      border: 1.5px solid rgba(255,255,255,0.06);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      width: 100%;
+      text-align: left;
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: #e2e8f0;
+      transition: all 0.3s ease;
+    }
+    
+    /* Speech Bubble Pointer Arrows */
+    .char-speech-bubble::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 0 10px 10px 10px;
+      border-style: solid;
+      border-color: transparent transparent rgba(8, 12, 24, 0.9) transparent;
+      display: block;
+      width: 0;
+      z-index: 2;
+    }
+    .char-speech-bubble::after {
+      content: '';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 0 11px 11px 11px;
+      border-style: solid;
+      border-color: transparent transparent rgba(255,255,255,0.06) transparent;
+      display: block;
+      width: 0;
+      z-index: 1;
+    }
+    .char-speech-bubble b {
+      color: #ffffff;
+      font-size: 14.5px;
+    }
+    
+    .char-speech-bubble.bubble-pink {
+      border-color: rgba(255, 71, 87, 0.25);
+      box-shadow: 0 8px 24px rgba(255, 71, 87, 0.04);
+    }
+    .char-speech-bubble.bubble-pink::after {
+      border-color: transparent transparent rgba(255, 71, 87, 0.25) transparent;
+    }
+    
+    .char-speech-bubble.bubble-purple {
+      border-color: rgba(162, 155, 254, 0.25);
+      box-shadow: 0 8px 24px rgba(162, 155, 254, 0.04);
+    }
+    .char-speech-bubble.bubble-purple::after {
+      border-color: transparent transparent rgba(162, 155, 254, 0.25) transparent;
+    }
+    
+    .guide-screen-col {
+      width: 100%;
+    }
+    
     /* REAL APP SCREENSHOT MOCKUPS */
     .app-screen-mockup {
       width: 100%;
@@ -283,6 +431,57 @@ function guidePage() {
       border-radius: 18px;
       padding: 24px;
       box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    }
+    
+    .real-screen-img {
+      width: 100%;
+      max-height: 480px;
+      object-fit: contain;
+      border-radius: 16px;
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: block;
+      margin: 0 auto;
+      background: #020408;
+    }
+    .real-screen-img:hover {
+      transform: translateY(-4px) scale(1.01);
+      border-color: rgba(0, 242, 254, 0.35);
+      box-shadow: 0 18px 40px rgba(0, 242, 254, 0.15);
+    }
+    
+    .mockup-images-row {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      width: 100%;
+    }
+    .mockup-image-wrapper {
+      flex: 1;
+      max-width: 240px;
+      position: relative;
+    }
+    .mockup-image-label {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    @media (max-width: 600px) {
+      .mockup-images-row {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+      .mockup-image-wrapper {
+        width: 100%;
+        max-width: 280px;
+      }
     }
     
     /* Form inputs mockup */
@@ -469,84 +668,6 @@ function guidePage() {
       color: #e2a78d;
     }
     
-    /* FLOATING EMOTICON SPEECH CARDS */
-    .emoticon-speech {
-      position: absolute;
-      background: rgba(10, 15, 30, 0.95);
-      border: 1.5px solid var(--line);
-      border-radius: 14px;
-      padding: 12px 14px;
-      width: 220px;
-      box-shadow: 0 10px 25px rgba(0, 242, 254, 0.12);
-      z-index: 10;
-      font-size: 12.5px;
-      line-height: 1.5;
-      color: #e2e8f0;
-      transition: all 0.3s ease;
-    }
-    .emoticon-speech:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 30px rgba(0, 242, 254, 0.2);
-    }
-    
-    .emoticon-speech.pos-1 { top: 20px; left: 16px; border-color: rgba(255, 71, 87, 0.4); }
-    .emoticon-speech.pos-2 { bottom: 20px; right: 16px; border-color: rgba(162, 155, 254, 0.4); }
-    .emoticon-speech.pos-3 { top: 30px; right: 16px; border-color: rgba(255, 71, 87, 0.4); }
-    .emoticon-speech.pos-4 { bottom: 30px; left: 16px; border-color: rgba(162, 155, 254, 0.4); }
-    
-    .emo-header {
-      font-size: 11px;
-      font-weight: 800;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .emo-header::before {
-      content: '';
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      display: inline-block;
-    }
-    
-    .emo-hayoon { color: var(--pink); }
-    .emo-hayoon::before { background: var(--pink); box-shadow: 0 0 6px var(--pink); }
-    
-    .emo-mila { color: var(--purple); }
-    .emo-mila::before { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
-    
-    .emo-benji { color: var(--orange); }
-    .emo-benji::before { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
-    
-    .speech-arrow {
-      position: absolute;
-      width: 0;
-      height: 0;
-      border-style: solid;
-    }
-    /* Arrow directions */
-    .emoticon-speech.pos-1 .speech-arrow {
-      top: 50%; right: -8px; transform: translateY(-50%);
-      border-width: 8px 0 8px 8px;
-      border-color: transparent transparent transparent rgba(10, 15, 30, 0.95);
-    }
-    .emoticon-speech.pos-2 .speech-arrow {
-      top: 50%; left: -8px; transform: translateY(-50%);
-      border-width: 8px 8px 8px 0;
-      border-color: transparent rgba(10, 15, 30, 0.95) transparent transparent;
-    }
-    .emoticon-speech.pos-3 .speech-arrow {
-      top: 50%; left: -8px; transform: translateY(-50%);
-      border-width: 8px 8px 8px 0;
-      border-color: transparent rgba(10, 15, 30, 0.95) transparent transparent;
-    }
-    .emoticon-speech.pos-4 .speech-arrow {
-      top: 50%; right: -8px; transform: translateY(-50%);
-      border-width: 8px 0 8px 8px;
-      border-color: transparent transparent transparent rgba(10, 15, 30, 0.95);
-    }
-    
     /* Timezone countdown grid */
     .countdown-board {
       margin: 12px auto;
@@ -665,6 +786,19 @@ function guidePage() {
       .nav-links { display: none; }
       main { margin: 94px auto 60px; gap: 32px; }
       .screenshot-container { padding: 15px; }
+      
+      .guide-step-row {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        padding: 20px;
+      }
+      .guide-char-col {
+        width: 100%;
+      }
+      .char-speech-bubble {
+        width: 100%;
+        box-shadow: none;
+      }
       .emoticon-speech {
         position: static;
         width: 100%;
@@ -707,349 +841,293 @@ function guidePage() {
     <!-- Comic Long-form Webtoon Scroller -->
     <div class="guide-scroller">
       
-      <!-- STEP 1 & 2: Roster Lookup & Roster Request (Screenshot Mockup + Hayoon Emoticon) -->
+      <!-- STEP 1: Roster Lookup & Roster Request (Welcome Screen & Search / Hayoon Miniature) -->
       <section class="guide-block">
         <div class="guide-section-header">
           <span class="guide-section-num">1</span>
-          <h3 class="guide-section-title">닉네임 명단 검색 및 추가 요청 (실제 가입 화면)</h3>
+          <h3 class="guide-section-title">웰컴 대기실 진입 및 신청자 명단 검색</h3>
         </div>
         
-        <div class="screenshot-container">
-          <!-- Screenshot Background Mockup -->
-          <div class="app-screen-mockup">
-            <div style="text-align:center;font-size:11px;font-weight:bold;margin-bottom:12px;color:var(--gold);">[MORAS 신청 대기실]</div>
-            <div class="form-group-mockup">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                <label style="margin:0;">신청자 선택 (Roster Lookup)</label>
-                <span style="font-size:9.5px;color:#FFE8A3;border:1px solid rgba(255,232,163,0.3);padding:2px 6px;border-radius:6px;background:rgba(255,232,163,0.08);">추가요청</span>
-              </div>
-              <div class="form-input-mockup highlight">🔍 벤지 (Benji / 남)</div>
-            </div>
-            <div class="form-row-mockup">
-              <div>
-                <label>이름 (Name)</label>
-                <div class="form-input-mockup" style="color:#CBD5E1;">벤지</div>
-              </div>
-              <div>
-                <label>성별 (Gender)</label>
-                <div class="form-input-mockup" style="color:#CBD5E1;">남성</div>
-              </div>
+        <div class="guide-step-row">
+          <!-- Left Column: Character Miniature Speech Bubble -->
+          <div class="guide-char-col">
+            <div class="mini-char-avatar emo-hayoon" data-name="하윤">🎀</div>
+            <div class="char-speech-bubble bubble-pink">
+              <b>하윤이의 안내 🎀</b><br><br>
+              "어서 와! MORAS 대기실이야! 🌌 별자리 카운트다운 타이머가 다 되면 하단 버튼이 자동으로 열리며, 그전에도 <b>[소개웹툰]</b>과 <b>[이벤트 신청방법]</b>을 볼 수 있어!<br><br>
+              신청 단계에서는 본인의 닉네임을 검색해서 고르면 이름과 성별이 자동으로 기입된단다. 만약 내 이름이 없다면 <b>[추가요청]</b> 버튼으로 승인을 신청해줘!"
             </div>
           </div>
           
-          <!-- Floating Cute Emoticon Cards -->
-          <div class="emoticon-speech pos-1">
-            <span class="speech-arrow"></span>
-            <div class="emo-header emo-hayoon">하윤이의 닉네임 비법 🎀</div>
-            "첫 단추는 바로 **'신청자 선택'**창이야! 본인의 닉네임을 검색하고 아래 자동 완성창에서 콕 눌러주면, 이름과 성별이 자동으로 기입돼!"
-          </div>
-          
-          <div class="emoticon-speech pos-2">
-            <span class="speech-arrow"></span>
-            <div class="emo-header emo-hayoon">하윤이의 닉네임 비법 🎀</div>
-            "앗! 만약 내 이름이 리스트에 안 나온다구? 걱정 마! 우측 상단의 **[추가요청]** 단추를 눌러 성함과 성별을 적고 신청하면 운영자님이 즉시 넣어주실 거야!"
+          <!-- Right Column: Screen Mockup -->
+          <div class="guide-screen-col">
+            <div class="mockup-images-row">
+              <div class="mockup-image-wrapper">
+                <img class="real-screen-img" src="/assets/guide/media__1779845935400.png" alt="MORAS 웰컴 대기실 카운트다운">
+                <div class="mockup-image-label">웰컴 대기실 (카운트다운)</div>
+              </div>
+              <div class="mockup-image-wrapper">
+                <img class="real-screen-img" src="/assets/guide/media__1779845956127.png" alt="신청자 검색 및 성별 자동 기입">
+                <div class="mockup-image-label">신청자 검색 (Roster Lookup)</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
       
-      <!-- STEP 3 & 4: MBTI & Saju birth details (Screenshot Mockup + Mila Emoticon) -->
+      <!-- STEP 2: MBTI & Saju birth details (Saju Section - Mila Miniature) -->
       <section class="guide-block">
         <div class="guide-section-header">
           <span class="guide-section-num">2</span>
-          <h3 class="guide-section-title">MBTI 성향 및 우주 만세력 기입 (실제 가입 화면)</h3>
+          <h3 class="guide-section-title">혼인상태, MBTI 성향 및 사주 오행 기입</h3>
         </div>
         
-        <div class="screenshot-container">
-          <!-- Screenshot Background Mockup -->
-          <div class="app-screen-mockup">
-            <div class="form-row-mockup">
-              <div>
-                <label>혼인상태</label>
-                <div class="form-input-mockup" style="color:#CBD5E1;">미혼 선택</div>
-              </div>
-              <div>
-                <label>MBTI 성향</label>
-                <div class="form-input-mockup highlight">🎭 ENFP 선택</div>
-              </div>
-            </div>
-            
-            <div class="form-row-mockup">
-              <div>
-                <label>생년월일 (Birth Date)</label>
-                <div class="form-input-mockup" style="color:#CBD5E1;">📅 2001-05-14</div>
-              </div>
-              <div>
-                <label>시간 (Birth Time)</label>
-                <div class="form-input-mockup highlight">⏰ 23시 43분</div>
-              </div>
-            </div>
-            
-            <div class="form-row-mockup" style="margin-bottom:8px;">
-              <div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);">
-                <input type="checkbox" checked disabled> 시간 모름 (Unknown)
-              </div>
-              <div>
-                <div class="form-input-mockup highlight-gold">☀️ 양력 달력 지정</div>
-              </div>
-            </div>
-            
-            <div class="form-group-mockup">
-              <label>출생 장소 (Birth Place)</label>
-              <div class="form-input-mockup highlight">📍 서울특별시 (Seoul / KST)</div>
+        <div class="guide-step-row">
+          <!-- Left Column: Character Miniature Speech Bubble -->
+          <div class="guide-char-col">
+            <div class="mini-char-avatar emo-mila" data-name="밀라">🔮</div>
+            <div class="char-speech-bubble bubble-purple">
+              <b>분석가 밀라의 우주 공식 🔮</b><br><br>
+              "여기서부턴 나 밀라가 사주 영역 안내를 도와줄게! 🔮 성격 케미를 계산할 **MBTI**를 정확히 고르고, 태어난 **생년월일과 시간**을 분 단위까지 정확히 입력해줘!<br><br>
+              시간과 출생도시가 정밀할수록 경도가 보정된 **'진태양시'** 만세력이 연산되어 궁합도 분석이 훨씬 정확해진단다! 시각을 모를 땐 <b>[모름]</b>을 체크해도 괜찮아."
             </div>
           </div>
           
-          <!-- Floating Cute Emoticon Cards -->
-          <div class="emoticon-speech pos-3">
-            <span class="speech-arrow"></span>
-            <div class="emo-header emo-mila">분석가 밀라의 우주 공식 🔮</div>
-            "성격 궁합 점수의 50%를 차지하는 **MBTI**를 먼저 고르고, 태어난 **연월일과 정확한 시각(Hour/Minute)**을 분 단위까지 정성스레 기입해 주세요!"
-          </div>
-          
-          <div class="emoticon-speech pos-4">
-            <span class="speech-arrow"></span>
-            <div class="emo-header emo-mila">분석가 밀라의 우주 공식 🔮</div>
-            "정확한 태어난 시각과 출생 도시를 기입할수록, 경도 왜곡을 완전히 배제한 **'진태양시'**가 보정 계산되어 사주 분석의 신뢰도가 최대화됩니다! 시각을 모르실 때는 **[모름]** 체크박스를 탭해 주세요."
+          <!-- Right Column: Screen Mockup -->
+          <div class="guide-screen-col">
+            <div class="mockup-images-row">
+              <div class="mockup-image-wrapper">
+                <img class="real-screen-img" src="/assets/guide/media__1779846000121.png" alt="혼인상태 돌싱 및 매칭 범위 설정">
+                <div class="mockup-image-label">혼인상태 및 매칭 범위</div>
+              </div>
+              <div class="mockup-image-wrapper">
+                <img class="real-screen-img" src="/assets/guide/media__1779846012326.png" alt="생년월일 및 출생장소 기입 완료">
+                <div class="mockup-image-label">사주 및 출생정보 입력</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
       
-      <!-- STEP 5: Element Chart Result Display (Screenshot Mockup + Mila & Hayoon) -->
+      <!-- STEP 3: Element Chart Result Display (Saju Section - Mila Miniature) -->
       <section class="guide-block">
         <div class="guide-section-header">
           <span class="guide-section-num">3</span>
-          <h3 class="guide-section-title">제출 즉시 나타나는 나의 우주 오행 차트 (제출 완료 화면)</h3>
+          <h3 class="guide-section-title">제출 즉시 나타나는 나의 우주 오행 차트 (사주 결과 화면)</h3>
         </div>
         
-        <div class="screenshot-container">
-          <!-- Screenshot Background Mockup -->
-          <div class="app-screen-mockup" style="text-align:center;">
-            <div style="font-size:11px;font-weight:bold;margin-bottom:14px;color:var(--cyan);">[제출 성료 - 운명의 만세력 조회]</div>
-            
-            <div class="disc-container-mockup">
-              <div class="manse-disc-mockup">
-                <div class="manse-disc-inner">
-                  <span class="mini-manse-text">甲子</span>
+        <div class="guide-step-row">
+          <!-- Left Column: Character Miniature Speech Bubble -->
+          <div class="guide-char-col">
+            <div class="mini-char-avatar emo-mila" data-name="밀라">🔮</div>
+            <div class="char-speech-bubble bubble-purple">
+              <b>분석가 밀라의 오행 해설 🔮</b><br><br>
+              "맨 하단의 <b>[이벤트 신청]</b> 단추를 누르면, 즉석에서 본인의 <b>오행(나무, 불, 흙, 쇠, 물) 조화도 원형 차트</b>와 만세력 일주 해석 리포트가 렌더링되어 눈앞에 바로 등장합니다!<br><br>
+              나를 상징하는 우주 기운 차트를 통해 내가 어떤 기운이 강하고 어떤 상대가 내 부족한 기운을 채워줄지 미리 분석해 볼 수 있지요."
+            </div>
+          </div>
+          
+          <!-- Right Column: Screen Mockup -->
+          <div class="guide-screen-col">
+            <div class="app-screen-mockup" style="text-align:center;">
+              <div style="font-size:11px;font-weight:bold;margin-bottom:14px;color:var(--cyan);">[제출 성료 - 나의 오행 밸런스]</div>
+              
+              <div class="disc-container-mockup">
+                <div class="manse-disc-mockup">
+                  <div class="manse-disc-inner">
+                    <span class="mini-manse-text">甲子</span>
+                  </div>
                 </div>
+                <div style="font-size:12px;font-weight:900;color:var(--gold);margin-top:10px;">태어난 날의 일주(日柱): 갑자(甲子)</div>
               </div>
-              <div style="font-size:12px;font-weight:900;color:var(--gold);margin-top:10px;">태어난 날의 일주(日柱): 갑자(甲子)</div>
+              
+              <div style="display:flex;justify-content:center;gap:6px;font-size:11px;margin-top:4px;">
+                <span style="color:#2ecc71;background:rgba(46,204,113,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(46,204,113,0.2);">木 3 (나무)</span>
+                <span style="color:#f5576c;background:rgba(245,87,108,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(245,87,108,0.2);">火 2 (불)</span>
+                <span style="color:#3498db;background:rgba(52,152,219,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(52,152,219,0.2);">水 1 (물)</span>
+              </div>
             </div>
-            
-            <div style="display:flex;justify-content:center;gap:6px;font-size:11px;margin-top:4px;">
-              <span style="color:#2ecc71;background:rgba(46,204,113,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(46,204,113,0.2);">木 3 (나무)</span>
-              <span style="color:#f5576c;background:rgba(245,87,108,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(245,87,108,0.2);">火 2 (불)</span>
-              <span style="color:#3498db;background:rgba(52,152,219,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(52,152,219,0.2);">水 1 (물)</span>
-            </div>
-          </div>
-          
-          <!-- Floating Cute Emoticon Cards -->
-          <div class="emoticon-speech pos-1">
-            <span class="speech-arrow"></span>
-            <div class="emo-header emo-mila">분석가 밀라의 오행 해설 🔮</div>
-            "자신의 정보를 다 적고 맨 하단의 **[제출하기]** 단추를 누르면, 즉석에서 본인의 **오행(나무, 불, 흙, 쇠, 물) 조화도 원형 차트**와 만세력 일주 해석 리포트가 렌더링되어 눈앞에 바로 등장합니다!"
-          </div>
-          
-          <div class="emoticon-speech pos-2">
-            <span class="speech-arrow"></span>
-            <div class="emo-header emo-hayoon">하윤이의 감탄 🎀</div>
-            "우와! 귀여운 내 우주 기운 차트가 바로 떴어! 한 줄 소개글이나 번거로운 프로필 사진 제출이 필요 없어서 **30초 만에 가입이 뚝딱 완료**되었어!"
           </div>
         </div>
       </section>
       
-      <!-- STEP 6: The Operator Calculation & Matching (Mila Explaining calculations) -->
+      <!-- STEP 4: The Operator Calculation & Matching (Saju Section - Mila Miniature) -->
       <section class="guide-block">
         <div class="guide-section-header">
           <span class="guide-section-num">4</span>
           <h3 class="guide-section-title">매칭 연산: MBTI와 사주 오행의 보완 연산 (알고리즘 진행 과정)</h3>
         </div>
         
-        <div class="screenshot-container">
-          <div class="app-screen-mockup">
-            <div style="font-size:11px;font-weight:bold;margin-bottom:12px;color:var(--muted);text-align:center;">[매칭 알고리즘 가동 백그라운드]</div>
-            
-            <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px;font-size:11.5px;">
-              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                <span>1. MBTI 소통 궁합 가중치</span>
-                <span style="color:var(--cyan);font-weight:bold;">COMPATIBLE ✔</span>
-              </div>
-              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                <span>2. 일주 오행 상보성(서로 채워줌)</span>
-                <span style="color:var(--gold);font-weight:bold;">BALANCED ✔</span>
-              </div>
-              <div style="display:flex;justify-content:space-between;">
-                <span>3. 2-opt 이분 전역 최적화 매칭</span>
-                <span style="color:var(--purple);font-weight:bold;">MAX GLOBAL HAPPY ✔</span>
-              </div>
+        <div class="guide-step-row">
+          <!-- Left Column: Character Miniature Speech Bubble -->
+          <div class="guide-char-col">
+            <div class="mini-char-avatar emo-mila" data-name="밀라">🔮</div>
+            <div class="char-speech-bubble bubble-purple">
+              <b>분석가 밀라의 궁합 연산 🔮</b><br><br>
+              "신청 완료 후 운영자가 연산을 실행하면, 본인과 파트너 간의 **MBTI 대화 리듬 점수**와 태어난 오행 간에 **서로가 부족한 기운을 시원하게 보완해 주는 사주 결합 점수**를 정밀하게 추출합니다.<br><br>
+              추출된 총체적 매트릭스를 기반으로 최적화 알고리즘인 **'2-opt 전역 매칭 최적화'**를 수행하여, 모든 대원이 최고의 궁합을 만날 수 있게 조율한답니다."
             </div>
           </div>
           
-          <div class="emoticon-speech pos-3">
-            <span class="speech-arrow"></span>
-            <div class="emo-header emo-mila">분석가 밀라의 궁합 연산 🔮</div>
-            "신청 마감 후 운영자가 연산을 실행하면, 본인과 파트너 간의 **MBTI 대화 리듬 점수**와 태어난 오행 간에 **서로가 부족한 기운을 시원하게 보완해 주는 사주 결합 점수**를 정밀하게 추출합니다."
-          </div>
-          
-          <div class="emoticon-speech pos-4">
-            <span class="speech-arrow"></span>
-            <div class="emo-header emo-mila">분석가 밀라의 궁합 연산 🔮</div>
-            "추출된 총체적 매트릭스를 기반으로 최적화 알고리즘인 **'2-opt Bipartite Bipartite Matching'**을 수행하여, 참가자 전원이 고르게 최상의 궁합 상대를 만나도록 분배를 결정합니다!"
+          <!-- Right Column: Screen Mockup -->
+          <div class="guide-screen-col">
+            <div class="mockup-images-row">
+              <div class="mockup-image-wrapper" style="max-width:320px;">
+                <img class="real-screen-img" src="/assets/guide/media__1779846024716.png" alt="사주 분석 및 매칭 리포트 생성 중">
+                <div class="mockup-image-label">분석 리포트 생성 중</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
-
-      <!-- STEP 7: Public Results page \`/results\` (Screenshot Mockup + Hayoon Emoticon) -->
+      
+      <!-- STEP 5: Public Results page \`/results\` (Hayoon Miniature) -->
       <section class="guide-block">
         <div class="guide-section-header">
           <span class="guide-section-num">5</span>
           <h3 class="guide-section-title">매칭 결과 공개 및 랭킹 조회 (결과 공개 화면 \`/results\`)</h3>
         </div>
         
-        <div class="screenshot-container">
-          <!-- Screenshot Background Mockup -->
-          <div class="app-screen-mockup">
-            <div class="couple-row-mockup rank-1">
-              <div style="font-size:11px;font-weight:900;color:var(--gold);">1위</div>
-              <div class="partner-box-mockup male">벤지 (남) · ENFP</div>
-              <div class="partner-box-mockup female">하윤 (여) · INFJ</div>
-              <div class="couple-score-mockup">94<span style="font-size:8px;color:var(--muted);">점</span></div>
-            </div>
-            
-            <div style="background:#0a0f1d;border:1px solid rgba(162,155,254,0.3);border-radius:10px;padding:12px;font-size:11px;line-height:1.5;color:#CBD5E1;">
-              <strong>[1위 커플 관계 풀이 상세]</strong><br>
-              두 사람의 첫인상은 서서히 온도가 오르는 리듬을 가집니다. 벤지님의 적극성과 하윤님의 차분함이 오행의 나무와 불의 기운처럼 조화롭게 순환되어...
+        <div class="guide-step-row">
+          <!-- Left Column: Character Miniature Speech Bubble -->
+          <div class="guide-char-col">
+            <div class="mini-char-avatar emo-hayoon" data-name="하윤">🎀</div>
+            <div class="char-speech-bubble bubble-pink">
+              <b>하윤이의 결과 중계 🎀</b><br><br>
+              "매칭 결과가 개개인에 공개되면, \`/results\` 페이지에서 커플들의 **매칭 랭킹 순위**를 볼 수 있어! 1위부터 순서대로 나열된 커플들을 감상해봐!<br><br>
+              오른쪽의 **[상세]** 버튼을 탭하면, 두 사람의 첫인상, MBTI 대화 성향 리듬, 사주 일주 분석, 그리고 대화 시 주의할 카운셀링 가이드까지 무진장 자세하게 읽어볼 수 있다구!"
             </div>
           </div>
           
-          <!-- Floating Cute Emoticon Cards -->
-          <div class="emoticon-speech pos-1">
-            <span class="speech-arrow"></span>
-            <div class="emo-header emo-hayoon">하윤이의 결과 중계 🎀</div>
-            "매칭 결과가 개개인에 공개되면, \`/results\` 페이지에서 커플들의 **매칭 랭킹 순위**를 볼 수 있어! 1위부터 순서대로 나열된 커플들을 감상해봐!"
-          </div>
-          
-          <div class="emoticon-speech pos-2">
-            <span class="speech-arrow"></span>
-            <div class="emo-header emo-hayoon">하윤이의 결과 중계 🎀</div>
-            "오른쪽의 **[상세]** 버튼을 탭하면, 두 사람의 첫인상, MBTI 대화 성향 리듬, 사주 일주 분석, 그리고 대화 시 주의할 카운셀링 가이드까지 무진장 자세하게 읽어볼 수 있다구!"
+          <!-- Right Column: Screen Mockup -->
+          <div class="guide-screen-col">
+            <div class="app-screen-mockup">
+              <div class="couple-row-mockup rank-1">
+                <div style="font-size:11px;font-weight:900;color:var(--gold);">1위</div>
+                <div class="partner-box-mockup male">벤지 (남) · ENFP</div>
+                <div class="partner-box-mockup female">하윤 (여) · INFJ</div>
+                <div class="couple-score-mockup">94<span style="font-size:8px;color:var(--muted);">점</span></div>
+              </div>
+              
+              <div style="background:#0a0f1d;border:1px solid rgba(162,155,254,0.3);border-radius:10px;padding:12px;font-size:11px;line-height:1.5;color:#CBD5E1;">
+                <strong>[1위 커플 관계 풀이 상세]</strong><br>
+                두 사람의 첫인상은 서서히 온도가 오르는 리듬을 가집니다. 벤지님의 적극성과 하윤님의 차분함이 오행의 나무와 불의 기운처럼 조화롭게 순환되어...
+              </div>
+            </div>
           </div>
         </div>
       </section>
       
-      <!-- STEP 8: Star Passcode Verification (Screenshot Mockup + Hayoon Emoticon) -->
+      <!-- STEP 6: Star Passcode Verification (Hayoon Miniature) -->
       <section class="guide-block">
         <div class="guide-section-header">
           <span class="guide-section-num">6</span>
           <h3 class="guide-section-title">6자리 별자리 암호 입력 (보안 인증 화면 \`/match\`)</h3>
         </div>
         
-        <div class="screenshot-container">
-          <!-- Screenshot Background Mockup -->
-          <div class="app-screen-mockup" style="text-align:center;">
-            <div style="font-size:10px;font-weight:bold;margin-bottom:8px;color:var(--gold);">[별자리 보안 통제소]</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">본인의 6자리 Constellation 비밀번호를 입력하세요</div>
-            
-            <div class="passcode-grid-mockup">
-              <div class="pass-digit-mockup">1</div>
-              <div class="pass-digit-mockup">4</div>
-              <div class="pass-digit-mockup">7</div>
-              <div class="pass-digit-mockup">3</div>
-              <div class="pass-digit-mockup">9</div>
-              <div class="pass-digit-mockup">*</div>
+        <div class="guide-step-row">
+          <!-- Left Column: Character Miniature Speech Bubble -->
+          <div class="guide-char-col">
+            <div class="mini-char-avatar emo-hayoon" data-name="하윤">🎀</div>
+            <div class="char-speech-bubble bubble-pink">
+              <b>하윤이의 암호 팁 🎀</b><br><br>
+              "내 매칭 대상을 상세 조회하고 최종 찬반 선택을 하기 위해선, 나만의 **[6자리 별자리 비밀번호]**를 통과해야 해!<br><br>
+              이 별자리 암호 인증이 있기 때문에, 나 외에 다른 사람은 내 은밀한 사주 상세 매칭 카드와 투표 상태를 들여다볼 수 없으니 완전 철통 보안이지!"
             </div>
-            
-            <div class="form-submit-mockup-btn" style="height:34px;font-size:12px;">별자리 은하계 인증</div>
           </div>
           
-          <!-- Floating Cute Emoticon Cards -->
-          <div class="emoticon-speech pos-3">
-            <span class="speech-arrow"></span>
-            <div class="emo-header emo-hayoon">하윤이의 귓속말 🎀</div>
-            "내 매칭 대상을 상세 조회하고 최종 찬반 선택을 하기 위해선, 나만의 **[6자리 별자리 비밀번호]**를 통과해야 해!"
-          </div>
-          
-          <div class="emoticon-speech pos-4">
-            <span class="speech-arrow"></span>
-            <div class="emo-header emo-hayoon">하윤이의 귓속말 🎀</div>
-            "이 별자리 암호 인증이 있기 때문에, 나 외에 다른 사람은 내 은밀한 사주 상세 매칭 카드와 투표 상태를 들여다볼 수 없으니 완전 철통 보안이지!"
+          <!-- Right Column: Screen Mockup -->
+          <div class="guide-screen-col">
+            <div class="app-screen-mockup" style="text-align:center;">
+              <div style="font-size:10px;font-weight:bold;margin-bottom:8px;color:var(--gold);">[별자리 보안 통제소]</div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">본인의 6자리 Constellation 비밀번호를 입력하세요</div>
+              
+              <div class="passcode-grid-mockup">
+                <div class="pass-digit-mockup">1</div>
+                <div class="pass-digit-mockup">4</div>
+                <div class="pass-digit-mockup">7</div>
+                <div class="pass-digit-mockup">3</div>
+                <div class="pass-digit-mockup">9</div>
+                <div class="pass-digit-mockup">*</div>
+              </div>
+              
+              <div class="form-submit-mockup-btn" style="height:34px;font-size:12px;">별자리 은하계 인증</div>
+            </div>
           </div>
         </div>
       </section>
       
-      <!-- STEP 9: Aura Merger Matchup & Voting (Screenshot Mockup + Mila Emoticon) -->
+      <!-- STEP 7: Aura Merger Matchup & Voting (Hayoon Miniature) -->
       <section class="guide-block">
         <div class="guide-section-header">
           <span class="guide-section-num">7</span>
           <h3 class="guide-section-title">매칭 찬반 투표 선택 (1:1 매칭 제어실 \`/match\`)</h3>
         </div>
         
-        <div class="screenshot-container">
-          <!-- Screenshot Background Mockup -->
-          <div class="app-screen-mockup">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-              <div class="partner-box-mockup male" style="padding:6px;font-size:10px;">나: 벤지 (남)</div>
-              
-              <div class="vs-separator" style="width:70px;height:70px;margin:0;">
-                <div class="aura-circle-mockup" style="width:60px;height:60px;">
-                  <span style="font-size:11px;font-weight:900;color:#fff;transform:rotate(0deg);">94점</span>
+        <div class="guide-step-row">
+          <!-- Left Column: Character Miniature Speech Bubble -->
+          <div class="guide-char-col">
+            <div class="mini-char-avatar emo-hayoon" data-name="하윤">🎀</div>
+            <div class="char-speech-bubble bubble-pink">
+              <b>하윤이의 찬반 투표 🎀</b><br><br>
+              "보안을 뚫고 들어가면 파트너와의 오행 결합도와 만세력 대조표를 확인하고 투표를 수행할 수 있어!<br><br>
+              <b>찬성(Emerald 💚)</b>과 <b>거절(Rose 💔)</b> 3D Glass 버튼 중 신중하게 선택해줘. 남녀 모두 찬성을 완료해야 최종 인연으로 매칭이 성립된단다!"
+            </div>
+          </div>
+          
+          <!-- Right Column: Screen Mockup -->
+          <div class="guide-screen-col">
+            <div class="app-screen-mockup">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                <div class="partner-box-mockup male" style="padding:6px;font-size:10px;">나: 벤지 (남)</div>
+                
+                <div class="vs-separator" style="width:70px;height:70px;margin:0;">
+                  <div class="aura-circle-mockup" style="width:60px;height:60px;">
+                    <span style="font-size:11px;font-weight:900;color:#fff;transform:rotate(0deg);">94점</span>
+                  </div>
                 </div>
+                
+                <div class="partner-box-mockup female" style="padding:6px;font-size:10px;">상대: 하윤 (여)</div>
               </div>
               
-              <div class="partner-box-mockup female" style="padding:6px;font-size:10px;">상대: 하윤 (여)</div>
+              <div class="form-row-mockup" style="margin-top:10px;">
+                <div class="glass-btn-mockup yes">💚 찬성 (Agree)</div>
+                <div class="glass-btn-mockup no">💔 거절 (Reject)</div>
+              </div>
             </div>
-            
-            <div class="form-row-mockup" style="margin-top:10px;">
-              <div class="glass-btn-mockup yes">💚 찬성 (Agree)</div>
-              <div class="glass-btn-mockup no">💔 거절 (Reject)</div>
-            </div>
-          </div>
-          
-          <!-- Floating Cute Emoticon Cards -->
-          <div class="emoticon-speech pos-1">
-            <span class="speech-arrow"></span>
-            <div class="emo-header emo-mila">분석가 밀라의 조언 🔮</div>
-            "보안을 뚫고 들어가면 파트너와의 오행 결합도와 만세력 대조표를 확인하고 투표를 수행할 수 있습니다.<br>
-            **찬성(Emerald 💚)**과 **거절(Rose 💔)**을 신중하게 선택해 주세요."
-          </div>
-          
-          <div class="emoticon-speech pos-2">
-            <span class="speech-arrow"></span>
-            <div class="emo-header emo-mila">분석가 밀라의 조언 🔮</div>
-            "서로가 **모두 찬성 투표**를 완료해야 최종 인연으로 최종 승인됩니다! 매칭 마감 시각이 되기 전에 꼭 잊지 말고 투표해 주세요."
           </div>
         </div>
       </section>
       
-      <!-- STEP 10: Grand Finale live events (Screenshot Mockup + Benji Emoticon) -->
+      <!-- STEP 8: Grand Finale live events (Hayoon Miniature) -->
       <section class="guide-block" id="panel-finale">
         <div class="guide-section-header">
           <span class="guide-section-num">8</span>
           <h3 class="guide-section-title">그랜드 피날레 축제: 실시간 네온 룰렛 & 사다리 쇼 (\`/roulette\` & \`/ladder\`)</h3>
         </div>
         
-        <div class="screenshot-container">
-          <!-- Screenshot Background Mockup -->
-          <div class="app-screen-mockup" style="text-align:center;padding:16px;">
-            <div style="font-size:11px;font-weight:bold;margin-bottom:10px;color:var(--orange);">[MORAS 피날레 라이브 추첨]</div>
-            
-            <div style="background:#020408;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px;font-size:11px;line-height:1.4;text-align:left;">
-              <div style="color:var(--cyan);font-weight:bold;margin-bottom:4px;">🎡 실시간 네온 룰렛 작동 중 (8초 타이머)</div>
-              <div style="color:var(--gold);font-weight:bold;">🪜 실시간 사다리 질주 (Ghost Leg 궤적 추적 완료)</div>
-              <div style="margin-top:6px;font-size:10px;color:var(--muted);">당첨자: 벤지 -> 스타벅스 커피 쿠폰 당첨! 🎉</div>
+        <div class="guide-step-row">
+          <!-- Left Column: Character Miniature Speech Bubble -->
+          <div class="guide-char-col">
+            <div class="mini-char-avatar emo-hayoon" data-name="하윤">🎀</div>
+            <div class="char-speech-bubble bubble-pink">
+              <b>하윤이의 피날레 중계 🎀</b><br><br>
+              "매칭 투표 단계까지 완전히 끝나고 나면, 축제의 마지막 피날레 대막이 열려! 바로 전원이 실시간으로 관람하는 **네온 룰렛 & 사다리타기 경품 쇼**!<br><br>
+              어드민 타이머 싱크에 맞추어 사다리를 꺾어 타고 내려가 경품을 타가는 화합의 장이 마련되니, 마지막 피날레까지 꼭 끝까지 함께 즐겨줘! 🌌🎡"
             </div>
           </div>
           
-          <!-- Floating Cute Emoticon Cards -->
-          <div class="emoticon-speech pos-3">
-            <span class="speech-arrow"></span>
-            <div class="emo-header emo-benji">축제 마스터 벤지 🦊</div>
-            "매칭 투표 단계까지 완전히 끝나고 나면, 축제의 마지막 피날레 대막이 열립니다! 바로 전원이 실시간으로 관람하는 **네온 룰렛 & 사다리타기 경품 쇼**!"
-          </div>
-          
-          <div class="emoticon-speech pos-4">
-            <span class="speech-arrow"></span>
-            <div class="emo-header emo-benji">축제 마스터 벤지 🦊</div>
-            "어드민 타이머 싱크에 맞추어 사다리를 꺾어 타고 내려가 경품을 타가는 전 대원 화합의 장이 마련되니, **이벤트 종료 직후 피날레까지 많은 관심과 기대를 꼭 부탁할게!**"
+          <!-- Right Column: Screen Mockup -->
+          <div class="guide-screen-col">
+            <div class="app-screen-mockup" style="text-align:center;padding:16px;">
+              <div style="font-size:11px;font-weight:bold;margin-bottom:10px;color:var(--orange);">[MORAS 피날레 라이브 추첨]</div>
+              
+              <div style="background:#020408;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px;font-size:11px;line-height:1.4;text-align:left;">
+                <div style="color:var(--cyan);font-weight:bold;margin-bottom:4px;">🎡 실시간 네온 룰렛 작동 중 (8초 타이머)</div>
+                <div style="color:var(--gold);font-weight:bold;">🪜 실시간 사다리 질주 (Ghost Leg 궤적 추적 완료)</div>
+                <div style="margin-top:6px;font-size:10px;color:var(--muted);">당첨자: 벤지 -> 스타벅스 커피 쿠폰 당첨! 🎉</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -1139,7 +1217,6 @@ function guidePage() {
       const seconds = totalSec % 60;
       
       elements.days.textContent = padNum(days);
-      elements.hours.textContent = padNum(days); // Wait! Bug here in old code copy: hours should be padNum(hours)! Good catch.
       elements.hours.textContent = padNum(hours);
       elements.minutes.textContent = padNum(minutes);
       elements.seconds.textContent = padNum(seconds);
