@@ -419,6 +419,86 @@ function promoPage() {
       transform: scale(1.02);
     }
     
+    /* Cover Banner Image Overlay for correcting baked-in date */
+    .cover-overlay-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 16.5%;
+      background: #02040a; /* Covers the old baked-in date perfectly */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      z-index: 5;
+    }
+    
+    .overlay-center {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    
+    .overlay-date {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(14px, 2.3vw, 22px);
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 0.05em;
+      line-height: 1.1;
+    }
+    
+    .overlay-sub {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(8px, 1.4vw, 11px);
+      font-weight: 700;
+      color: #94a3b8;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+    
+    .overlay-sub .cyan-text {
+      color: var(--cyan);
+      text-shadow: 0 0 8px rgba(0, 242, 254, 0.4);
+    }
+    
+    .overlay-right {
+      position: absolute;
+      right: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.85;
+    }
+    
+    .overlay-logo-icon {
+      color: #ffffff;
+    }
+    
+    .overlay-logo-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 8px;
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.1;
+      text-align: left;
+      letter-spacing: 0.05em;
+    }
+    
+    @media (max-width: 540px) {
+      .overlay-right {
+        display: none;
+      }
+      .cover-overlay-bar {
+        padding: 0 12px;
+        height: 18%;
+      }
+    }
+    
     /* Narrative & Speech Bubbles */
     .comic-dialogue-area {
       padding: 32px 28px;
@@ -738,6 +818,16 @@ function promoPage() {
         </div>
         <div class="comic-img-container">
           <img class="comic-img" src="/assets/marketing/promo/cover.png" alt="Moras Promotional Webtoon Cover Banner Illustration">
+          <div class="cover-overlay-bar">
+            <div class="overlay-center">
+              <div class="overlay-date">2026.06.01 | MON | 12:00 | SEOUL</div>
+              <div class="overlay-sub">FIND YOUR DESTINY WITH <span class="cyan-text">MBTI & SAJU!</span></div>
+            </div>
+            <div class="overlay-right">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="overlay-logo-icon"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              <div class="overlay-logo-text">MBTI &<br>SAJU</div>
+            </div>
+          </div>
         </div>
         <div class="comic-dialogue-area">
           <div class="bubble bubble-benji">
