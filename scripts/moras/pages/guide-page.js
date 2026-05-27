@@ -1110,7 +1110,7 @@ function guidePage() {
             <div class="char-speech-bubble bubble-pink">
               <b>하윤이의 결과 확인 🎀</b><br><br>
               "운영진이 매칭 알고리즘 가동을 끝마치면, 로비에 <b>[매칭결과 확인하기]</b> 버튼이 활성화되어 전체 커플 목록과 궁합 점수가 오픈돼!<br><br>
-              여기서 본인의 상세 매핑을 열어보고 투표에 참여하려면, <b>[매칭 투표하러 가기 ->]</b> 버튼을 클릭한 후 본인의 이름을 조회 창에 입력하면 된단다!"
+              예를 들어 나 하윤이와의 매칭 궁합 점수는 무려 **100점 만점**! 🎀 여기서 본인의 상세 매핑을 열어보고 투표에 참여하려면, <b>[매칭 투표하러 가기 ->]</b> 버튼을 클릭한 후 본인의 이름을 조회 창에 입력하면 된단다!"
             </div>
           </div>
           
@@ -1143,7 +1143,7 @@ function guidePage() {
             <div class="mini-char-avatar emo-mila" data-name="밀라">🔮</div>
             <div class="char-speech-bubble bubble-purple">
               <b>분석가 밀라의 오행 투표소 🔮</b><br><br>
-              "드디어 가장 중요한 최종 운명의 제어실입니다! 두 사람의 태어난 시/일/월/년의 <b>사주 오행 원소 천간지지 대조도</b>가 정밀한 오방색 칩으로 펼쳐지며, **시너지 원형 게이지**가 점수화됩니다.<br><br>
+              "드디어 가장 중요한 최종 운명의 제어실입니다! 두 사람의 태어난 시/일/월/년의 <b>사주 오행 원소 천간지지 대조도</b>가 정밀한 오방색 칩으로 펼쳐지며, **100점 만점의 시너지 원형 게이지**가 채워집니다.<br><br>
               서로의 만세력 궁합을 꼼꼼하게 확인하신 후, 이 만남을 소중한 인연으로 맞이하고 싶다면 하단의 <b>[O]</b> 버튼과 <b>[확인]</b> 버튼을 탭하여 최종 찬성 투표를 완성해주세요!"
             </div>
           </div>
@@ -1154,6 +1154,36 @@ function guidePage() {
               <div class="mockup-image-wrapper" style="max-width:340px;">
                 <img class="real-screen-img" src="/assets/guide/media__1779847174612.png" alt="1위 운명의 커플 두 사람의 인연 사주 분석 및 찬성 선택 투표">
                 <div class="mockup-image-label">두 사람의 인연 상세 & 투표</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 8: Match Success & Vote Completed (Vote Complete Screen / Hayoon Miniature) -->
+      <section class="guide-block">
+        <div class="guide-section-header">
+          <span class="guide-section-num">8</span>
+          <h3 class="guide-section-title">최종 매칭 성사 및 커플 매칭 완료</h3>
+        </div>
+        
+        <div class="guide-step-row">
+          <!-- Left Column: Character Miniature Speech Bubble -->
+          <div class="guide-char-col">
+            <div class="mini-char-avatar emo-hayoon" data-name="하윤">🎀</div>
+            <div class="char-speech-bubble bubble-pink">
+              <b>하윤이의 매칭 성사 축하 🎀</b><br><br>
+              "남녀 대원이 모두 찬성 투표를 성공적으로 마치면, 이벤트 매칭 결과 화면의 커플 카드 하단에 초록색 <b>[투표 완료]</b> 배지가 자랑스럽게 활성화돼!<br><br>
+              우리 두 사람의 케미가 <b>100점 만점</b>으로 완벽하게 성립된 영광스러운 순간이란다! 우주가 이어준 기적 같은 매칭을 다 함께 축하하자! 💚🎉"
+            </div>
+          </div>
+          
+          <!-- Right Column: Screen Mockup -->
+          <div class="guide-screen-col">
+            <div class="mockup-images-row">
+              <div class="mockup-image-wrapper" style="max-width:340px;">
+                <img class="real-screen-img" src="/assets/guide/media__1779847447362.png" alt="남녀 모두 투표완료 배지가 켜진 최종 커플 매칭 성공 카드">
+                <div class="mockup-image-label">최종 커플 매칭 성공 (투표 완료)</div>
               </div>
             </div>
           </div>
