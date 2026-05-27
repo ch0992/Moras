@@ -992,10 +992,40 @@ function guidePage() {
         </div>
       </section>
       
-      <!-- STEP 3: Element Chart Result Display (Saju Section - Mila Miniature) -->
+      <!-- STEP 3: The Operator Calculation & Matching (Saju Section - Mila Miniature) -->
       <section class="guide-block">
         <div class="guide-section-header">
           <span class="guide-section-num">3</span>
+          <h3 class="guide-section-title">매칭 연산: MBTI와 사주 오행의 보완 연산 (알고리즘 진행 과정)</h3>
+        </div>
+        
+        <div class="guide-step-row">
+          <!-- Left Column: Character Miniature Speech Bubble -->
+          <div class="guide-char-col">
+            <div class="mini-char-avatar emo-mila" data-name="밀라">🔮</div>
+            <div class="char-speech-bubble bubble-purple">
+              <b>분석가 밀라의 궁합 연산 🔮</b><br><br>
+              "신청 완료 후 운영자가 연산을 실행하면, 본인과 파트너 간의 **MBTI 대화 리듬 점수**와 태어난 오행 간에 **서로가 부족한 기운을 시원하게 보완해 주는 사주 결합 점수**를 정밀하게 추출합니다.<br><br>
+              추출된 총체적 매트릭스를 기반으로 최적화 알고리즘인 **'2-opt 전역 매칭 최적화'**를 수행하여, 모든 대원이 최고의 궁합을 만날 수 있게 조율한답니다."
+            </div>
+          </div>
+          
+          <!-- Right Column: Screen Mockup -->
+          <div class="guide-screen-col">
+            <div class="mockup-images-row">
+              <div class="mockup-image-wrapper" style="max-width:320px;">
+                <img class="real-screen-img" src="/assets/guide/media__1779846024716.png" alt="사주 분석 및 매칭 리포트 생성 중">
+                <div class="mockup-image-label">분석 리포트 생성 중</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- STEP 4: Element Chart Result Display (Saju Section - Mila Miniature) -->
+      <section class="guide-block">
+        <div class="guide-section-header">
+          <span class="guide-section-num">4</span>
           <h3 class="guide-section-title">제출 즉시 나타나는 나의 사주 만세력 분석 결과</h3>
         </div>
         
@@ -1017,36 +1047,6 @@ function guidePage() {
               <div class="mockup-image-wrapper" style="max-width:340px;">
                 <img class="real-screen-img" src="/assets/guide/media__1779851078065.png" alt="나의 사주 만세력 분석 결과">
                 <div class="mockup-image-label">나의 사주 만세력 분석 결과</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      <!-- STEP 4: The Operator Calculation & Matching (Saju Section - Mila Miniature) -->
-      <section class="guide-block">
-        <div class="guide-section-header">
-          <span class="guide-section-num">4</span>
-          <h3 class="guide-section-title">매칭 연산: MBTI와 사주 오행의 보완 연산 (알고리즘 진행 과정)</h3>
-        </div>
-        
-        <div class="guide-step-row">
-          <!-- Left Column: Character Miniature Speech Bubble -->
-          <div class="guide-char-col">
-            <div class="mini-char-avatar emo-mila" data-name="밀라">🔮</div>
-            <div class="char-speech-bubble bubble-purple">
-              <b>분석가 밀라의 궁합 연산 🔮</b><br><br>
-              "신청 완료 후 운영자가 연산을 실행하면, 본인과 파트너 간의 **MBTI 대화 리듬 점수**와 태어난 오행 간에 **서로가 부족한 기운을 시원하게 보완해 주는 사주 결합 점수**를 정밀하게 추출합니다.<br><br>
-              추출된 총체적 매트릭스를 기반으로 최적화 알고리즘인 **'2-opt 전역 매칭 최적화'**를 수행하여, 모든 대원이 최고의 궁합을 만날 수 있게 조율한답니다."
-            </div>
-          </div>
-          
-          <!-- Right Column: Screen Mockup -->
-          <div class="guide-screen-col">
-            <div class="mockup-images-row">
-              <div class="mockup-image-wrapper" style="max-width:320px;">
-                <img class="real-screen-img" src="/assets/guide/media__1779846024716.png" alt="사주 분석 및 매칭 리포트 생성 중">
-                <div class="mockup-image-label">분석 리포트 생성 중</div>
               </div>
             </div>
           </div>
