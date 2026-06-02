@@ -242,6 +242,10 @@ function roulettePage() {
       </div>
     </section>
 
+    <div style="text-align:center;margin-top:10px;">
+      <div id="participant-mode-badge" style="display:inline-flex;align-items:center;gap:5px;padding:4px 14px;border-radius:999px;font-size:11px;font-weight:900;letter-spacing:.05em;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);">🔓 자유참가모드</div>
+    </div>
+
     <!-- Cloud zone: selected raffle items orbit here; flash text appears when item drawn -->
     <div class="cloud-zone" id="cloud-zone">
       <div class="cloud-flash-text" id="cloud-flash-text"></div>
@@ -400,16 +404,17 @@ function roulettePage() {
     });
 
     /* ── State ────────────────────────────────────── */
-    let seenResults   = new Set();
-    let firstLoad     = true;
-    let rotation      = 0;
-    let animating     = false;
-    let participants  = [];
-    let lastPCount    = -1;
-    let cloudRaf      = null;
-    let cloudItems    = [];
-    let liveTrackRaf  = null;
-    let latestResults = []; /* full DB result list, updated on every poll */
+    let seenResults      = new Set();
+    let firstLoad        = true;
+    let rotation         = 0;
+    let animating        = false;
+    let participants     = [];
+    let lastPCount       = -1;
+    let wonParticipantIds= new Set(); /* IDs removed from wheel after winning */
+    let cloudRaf         = null;
+    let cloudItems       = [];
+    let liveTrackRaf     = null;
+    let latestResults    = []; /* full DB result list, updated on every poll */
 
     /* ── Live pointer tracking ── reads CSS computed transform every rAF */
     function startLiveTracking(N, people) {
@@ -498,25 +503,60 @@ function roulettePage() {
       const selectedIds  = new Set(settings.selected_item_ids || settings.selectedItemIds || []);
       const selectedItems= items.filter(it => selectedIds.has(it.id));
 
-      eventTitle.textContent = settings.event_name || settings.eventName || "Moras 룰렛 이벤트";
+      const displayEventName = (settings.event_name || settings.eventName || "Moras 룰렛 이벤트").replace(/[|]event_only$/, "").trim();
+      eventTitle.textContent = displayEventName;
       targetCount.textContent = participants.length;
       viewerCount.textContent = String(data.activeViewerCount ?? 1);
 
-      /* Cloud: display selected items minus already-drawn ones */
-      const drawnItemIds = new Set(results.map(r => r.item?.id).filter(Boolean));
-      const allDisplay = selectedItems.length ? selectedItems : items;
-      const displayItems = allDisplay.filter(it => !drawnItemIds.has(it.id));
-      const newIds = displayItems.map(i => i.id).join(",");
-      const curIds = cloudItems.map(i => i.id).join(",");
-      if (newIds !== curIds && !animating) {
-        cloudItems = displayItems;
-        rebuildCloud(cloudItems);
+      /* Mode badge */
+      const isEventOnly = data.participantMode === "event_only";
+      const modeBadge = document.getElementById("participant-mode-badge");
+      if (modeBadge) {
+        if (isEventOnly) {
+          modeBadge.textContent = "🎟️ 이벤트 대상 참가모드";
+          modeBadge.style.background = "rgba(255,232,163,.12)";
+          modeBadge.style.borderColor = "rgba(255,232,163,.35)";
+          modeBadge.style.color = "#FFE8A3";
+        } else {
+          modeBadge.textContent = "🔓 자유참가모드";
+          modeBadge.style.background = "rgba(255,255,255,.06)";
+          modeBadge.style.borderColor = "rgba(255,255,255,.14)";
+          modeBadge.style.color = "rgba(255,255,255,.5)";
+        }
       }
 
-      /* Wheel: rebuild only when participant count changes */
-      if (participants.length !== lastPCount) {
-        lastPCount = participants.length;
-        buildWheel(participants);
+      /* Join panel: disable when event_only mode */
+      const joinPanel = document.getElementById("join-panel");
+      if (joinPanel) {
+        joinPanel.style.opacity = isEventOnly ? "0.35" : "";
+        joinPanel.style.pointerEvents = isEventOnly ? "none" : "";
+        let notice = joinPanel.querySelector(".event-only-notice");
+        if (isEventOnly && !notice) {
+          notice = document.createElement("p");
+          notice.className = "event-only-notice";
+          notice.style.cssText = "margin:0 0 12px;font-size:13px;font-weight:700;color:#FFE8A3;text-align:center;";
+          notice.textContent = "이벤트 신청자만 자동으로 추가됩니다.";
+          joinPanel.insertBefore(notice, joinPanel.firstChild);
+        } else if (!isEventOnly && notice) {
+          notice.remove();
+        }
+      }
+
+      /* Cloud: computed per-slot remaining (used only when NOT animating and no new results) */
+      const countByItem = {};
+      results.forEach(r => { const id = r.item?.id; if (id) countByItem[id] = (countByItem[id] || 0) + 1; });
+      const allDisplay = selectedItems;
+      const displayItems = [];
+      allDisplay.forEach(it => {
+        const remaining = Math.max(0, parseItemQty(it.label) - (countByItem[it.id] || 0));
+        for (let i = 0; i < remaining; i++) displayItems.push(it);
+      });
+
+      /* Wheel: rebuild only when visible participant count changes (exclude already-won) */
+      const wheelParticipants = participants.filter(p => !wonParticipantIds.has(p.id));
+      if (wheelParticipants.length !== lastPCount) {
+        lastPCount = wheelParticipants.length;
+        buildWheel(wheelParticipants);
       }
 
       latestResults = results; /* always keep latest for runQueue to reference */
@@ -530,16 +570,39 @@ function roulettePage() {
 
       const newResults = results.filter(r => !seenResults.has(r.id)).reverse();
       if (firstLoad) {
-        results.forEach(r => seenResults.add(r.id));
+        results.forEach(r => {
+          seenResults.add(r.id);
+          /* Pre-populate wonParticipantIds so existing winners are excluded from wheel */
+          const pid = r.roulette_participant_id || r.participant?.id;
+          if (pid) wonParticipantIds.add(pid);
+        });
         firstLoad = false;
+        /* On first load, build cloud from current remaining slots */
+        cloudItems = displayItems;
+        rebuildCloud(cloudItems);
+        /* Rebuild wheel excluding already-won participants */
+        const initWheelPts = participants.filter(p => !wonParticipantIds.has(p.id));
+        lastPCount = initWheelPts.length;
+        buildWheel(initWheelPts);
         renderParticipants(participants, results);
         renderResults(results);
         updateWaiting(settings, selectedItems, results);
         return;
       }
       if (newResults.length && !animating) {
-        runQueue(newResults, selectedItems.length, results.length);
+        /* New results to animate: let runQueue remove chips one by one.
+           Do NOT rebuild cloud from DB state here — it would remove all at once. */
+        const totalSlots2 = selectedItems.reduce((sum, it) => sum + parseItemQty(it.label), 0);
+        runQueue(newResults, totalSlots2, results.length);
       } else if (!animating) {
+        /* No animation in progress: safe to sync cloud to current DB state */
+        const newKey = displayItems.map(i => i.id).join(",") + "|" + results.length;
+        const curKey = cloudItems.map(i => i.id).join(",") + "|" + (cloudItems._resultsLen || 0);
+        if (newKey !== curKey) {
+          displayItems._resultsLen = results.length;
+          cloudItems = displayItems;
+          rebuildCloud(cloudItems);
+        }
         updateWaiting(settings, selectedItems, results);
       }
     }
@@ -554,7 +617,7 @@ function roulettePage() {
         return;
       }
       cloudZone.innerHTML = flashDiv
-        + items.map((it, i) => '<div class="cloud-chip" data-label="' + escapeHtml(it.label) + '" data-idx="' + i + '">' + escapeHtml(it.label) + '</div>').join("");
+        + items.map((it, i) => { var dl = parseItemDisplayLabel(it.label); return '<div class="cloud-chip" data-label="' + escapeHtml(dl) + '" data-idx="' + i + '">' + escapeHtml(dl) + '</div>'; }).join("");
       startOrbit();
     }
 
@@ -808,7 +871,7 @@ function roulettePage() {
         return '<div class="p-row">'
           + '<div class="nm">' + escapeHtml(p.display_name || p.displayName || "?") + '</div>'
           + '<div class="pr"><span class="pill' + (row ? " won" : "") + '">'
-          + escapeHtml(row?.item?.label || "대기") + '</span></div>'
+          + escapeHtml(parseItemDisplayLabel(row?.item?.label) || "대기") + '</span></div>'
           + '</div>';
       }).join("") || '<div class="muted" style="padding:12px 0;grid-column:1/-1;text-align:center">룰렛 참가자 대기 중</div>';
     }
@@ -827,7 +890,7 @@ function roulettePage() {
         const isNew = idx === revealed.length - 1 && animating; /* newest = last in list, only highlight during queue */
         return '<div class="res-row' + (isNew ? " res-row-new" : "") + '">'
           + '<strong>' + escapeHtml(p.display_name || p.displayName || "이름 없음") + '</strong>'
-          + '<span class="pill won">' + escapeHtml(row.item?.label || "당첨") + '</span>'
+          + '<span class="pill won">' + escapeHtml(parseItemDisplayLabel(row.item?.label) || "당첨") + '</span>'
           + '</div>';
       }).join("");
     }
@@ -836,7 +899,7 @@ function roulettePage() {
     async function runQueue(queue, totalItems, curCount) {
       animating = true;
       for (const result of queue) {
-        await showCountdown(result.item?.label || "추첨");
+        await showCountdown(parseItemDisplayLabel(result.item?.label) || "추첨");
         await animateWinner(result);
         /* ← Mark as seen AFTER animation so render only reveals after win */
         seenResults.add(result.id);
@@ -844,9 +907,16 @@ function roulettePage() {
         renderResults(latestResults);
         renderParticipants(participants, latestResults);
         /* Remove drawn item from orbiting cloud */
-        const drawnLabel = (result.item?.label || "").trim();
-        cloudItems = cloudItems.filter(it => it.label.trim() !== drawnLabel);
+        const drawnLabel = parseItemDisplayLabel(result.item?.label).trim();
+        const removeIdx = cloudItems.findIndex(it => parseItemDisplayLabel(it.label).trim() === drawnLabel);
+        if (removeIdx !== -1) cloudItems.splice(removeIdx, 1);
         rebuildCloud(cloudItems);
+        /* Remove winner from wheel so they can't appear to be re-drawn */
+        const winnerId = result.roulette_participant_id || result.participant?.id;
+        if (winnerId) wonParticipantIds.add(winnerId);
+        const wheelPts = participants.filter(p => !wonParticipantIds.has(p.id));
+        lastPCount = wheelPts.length;
+        buildWheel(wheelPts);
         await sleep(700);
       }
       animating = false;
@@ -914,7 +984,7 @@ function roulettePage() {
 
       /* ---- Highlight the matching cloud chip during spin (don't vanish yet) ---- */
       cloudZone.querySelectorAll(".cloud-chip").forEach(chip => {
-        if (chip.dataset.label === (item.label || "").trim()) {
+        if (chip.dataset.label === parseItemDisplayLabel(item.label).trim()) {
           chip.classList.add("lit");
           chip.classList.remove("vanish");
         } else {
@@ -976,20 +1046,20 @@ function roulettePage() {
 
           /* ---- Now vanish the chip and flash its label in the cloud zone ---- */
           cloudZone.querySelectorAll(".cloud-chip").forEach(chip => {
-            if (chip.dataset.label === (item.label || "").trim()) {
+            if (chip.dataset.label === parseItemDisplayLabel(item.label).trim()) {
               chip.classList.add("vanish");
             }
           });
           const cft = getCloudFlash();
           if (cft) {
-            cft.textContent = item.label || "추첨";
+            cft.textContent = parseItemDisplayLabel(item.label) || "추첨";
             cft.classList.remove("pop");
             cft.offsetHeight; /* reflow to restart animation */
             cft.classList.add("pop");
           }
 
           // Show the winner popup immediately!
-          wItem.textContent = item.label || "당첨";
+          wItem.textContent = parseItemDisplayLabel(item.label) || "당첨";
           wName.textContent = name;
           wPop.classList.add("show");
 
@@ -1008,7 +1078,8 @@ function roulettePage() {
       const startVal   = settings.starts_at || settings.startsAt;
       const drawMode   = settings.draw_mode  || settings.drawMode  || "instant";
       const completedAt= settings.sequence_completed_at || settings.auto_spin_executed_at || settings.autoSpinExecutedAt;
-      if (completedAt && selectedItems.length && results.length >= selectedItems.length) {
+      const totalSlots = selectedItems.reduce((sum, it) => sum + parseItemQty(it.label), 0);
+      if (completedAt && totalSlots && results.length >= totalSlots) {
         statusEl.textContent  = "모든 추첨 완료 🎊";
         statusBar.textContent = "모든 추첨 완료";
         return;
@@ -1287,6 +1358,20 @@ function roulettePage() {
     function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
     function escapeHtml(v) {
       return String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+    }
+
+    function parseItemDisplayLabel(raw) {
+      var s = String(raw || "");
+      var sep = s.lastIndexOf("|||");
+      return sep === -1 ? s : s.slice(0, sep);
+    }
+
+    function parseItemQty(raw) {
+      var s = String(raw || "");
+      var sep = s.lastIndexOf("|||");
+      if (sep === -1) return 1;
+      var q = parseInt(s.slice(sep + 3), 10);
+      return (Number.isFinite(q) && q >= 1) ? q : 1;
     }
 
     /* ── Self-registration ────────────────────────── */
