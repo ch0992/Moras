@@ -552,11 +552,10 @@ function roulettePage() {
         for (let i = 0; i < remaining; i++) displayItems.push(it);
       });
 
-      /* Wheel: rebuild only when visible participant count changes (exclude already-won) */
-      const wheelParticipants = participants.filter(p => !wonParticipantIds.has(p.id));
-      if (wheelParticipants.length !== lastPCount) {
-        lastPCount = wheelParticipants.length;
-        buildWheel(wheelParticipants);
+      /* Wheel: rebuild only when participant count changes */
+      if (participants.length !== lastPCount) {
+        lastPCount = participants.length;
+        buildWheel(participants);
       }
 
       latestResults = results; /* always keep latest for runQueue to reference */
@@ -580,10 +579,8 @@ function roulettePage() {
         /* On first load, build cloud from current remaining slots */
         cloudItems = displayItems;
         rebuildCloud(cloudItems);
-        /* Rebuild wheel excluding already-won participants */
-        const initWheelPts = participants.filter(p => !wonParticipantIds.has(p.id));
-        lastPCount = initWheelPts.length;
-        buildWheel(initWheelPts);
+        lastPCount = participants.length;
+        buildWheel(participants);
         renderParticipants(participants, results);
         renderResults(results);
         updateWaiting(settings, selectedItems, results);
@@ -824,9 +821,12 @@ function roulettePage() {
       const segDeg  = 360 / N;
       const COLORS  = ["#164E63","#B45309","#9F1239","#3730A3","#0F766E","#7C2D12","#1E3A5F","#713F12","#065F46","#92400E","#4C1D95","#1E3A5F"];
 
-      /* Conic gradient background */
+      /* Conic gradient background (won segments appear dimmed) */
       wheelEl.style.background = "conic-gradient(from -90deg," +
-        people.map((_, i) => COLORS[i % COLORS.length] + " " + (i * 100 / N).toFixed(2) + "% " + ((i+1) * 100 / N).toFixed(2) + "%").join(",") + ")";
+        people.map((p, i) => {
+          const color = wonParticipantIds.has(p.id) ? "#28282e" : COLORS[i % COLORS.length];
+          return color + " " + (i * 100 / N).toFixed(2) + "% " + ((i+1) * 100 / N).toFixed(2) + "%";
+        }).join(",") + ")";
 
       const ww    = document.getElementById("wheel-wrap").offsetWidth || 780;
       const R     = ww / 2;
@@ -840,11 +840,12 @@ function roulettePage() {
 
       /* ── Segment name pills (two-div: rotation wrapper + centered pill) ── */
       people.forEach((person, i) => {
-        const a = -90 + (i + 0.5) * segDeg;
+        const a    = -90 + (i + 0.5) * segDeg;
         const name = escapeHtml((person.display_name || person.displayName || "?").slice(0, 4));
-        /* .snw rotates to segment angle; .sni is centered at nameR distance from center */
+        const won  = wonParticipantIds.has(person.id);
+        const sniStyle = 'top:' + nameR + ';font-size:' + fs + (won ? ';opacity:0.35;color:rgba(255,255,255,.5)' : '');
         html += '<div class="snw" style="transform:rotate(' + a + 'deg)">'
-          + '<div class="sni" style="top:' + nameR + ';font-size:' + fs + '">' + name + '</div>'
+          + '<div class="sni" style="' + sniStyle + '">' + name + '</div>'
           + '</div>';
       });
 
@@ -911,12 +912,10 @@ function roulettePage() {
         const removeIdx = cloudItems.findIndex(it => parseItemDisplayLabel(it.label).trim() === drawnLabel);
         if (removeIdx !== -1) cloudItems.splice(removeIdx, 1);
         rebuildCloud(cloudItems);
-        /* Remove winner from wheel so they can't appear to be re-drawn */
+        /* Gray out winner's segment on the wheel */
         const winnerId = result.roulette_participant_id || result.participant?.id;
         if (winnerId) wonParticipantIds.add(winnerId);
-        const wheelPts = participants.filter(p => !wonParticipantIds.has(p.id));
-        lastPCount = wheelPts.length;
-        buildWheel(wheelPts);
+        buildWheel(participants);
         await sleep(700);
       }
       animating = false;
