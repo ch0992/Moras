@@ -285,6 +285,39 @@ function applicantsPage() {
       font-size: 13px;
       font-weight: 900;
     }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 32px 0 14px;
+    }
+    .section-header:first-child { margin-top: 0; }
+    .section-title {
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: .06em;
+    }
+    .section-badge {
+      padding: 3px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .section-badge.romance {
+      background: rgba(249,168,212,.15);
+      border: 1px solid rgba(249,168,212,.35);
+      color: #F9A8D4;
+    }
+    .section-badge.friendship {
+      background: rgba(147,197,253,.15);
+      border: 1px solid rgba(147,197,253,.35);
+      color: #93C5FD;
+    }
+    .section-divider {
+      border: none;
+      border-top: 1px solid var(--line);
+      margin: 28px 0 0;
+    }
     .empty, .error {
       padding: 36px 24px;
       border-radius: 18px;
@@ -374,7 +407,25 @@ function applicantsPage() {
         listEl.innerHTML = '<div class="empty">아직 신청자가 없습니다.</div>';
         return;
       }
-      listEl.innerHTML = applicants.map((item, index) => applicantCard(item, index)).join("");
+      const romance = applicants.filter((item) => (item.matchingIntent || "romance") !== "friendship");
+      const friendship = applicants.filter((item) => item.matchingIntent === "friendship");
+      let html = "";
+      if (romance.length) {
+        html += '<div class="section-header">' +
+          '<span class="section-title">썸 매칭</span>' +
+          '<span class="section-badge romance">ROMANCE · ' + romance.length + "명</span>" +
+          '</div>';
+        html += romance.map((item, i) => applicantCard(item, i)).join("");
+      }
+      if (friendship.length) {
+        if (romance.length) html += '<hr class="section-divider">';
+        html += '<div class="section-header">' +
+          '<span class="section-title">친목 매칭</span>' +
+          '<span class="section-badge friendship">FRIENDSHIP · ' + friendship.length + "명</span>" +
+          '</div>';
+        html += friendship.map((item, i) => applicantCard(item, i)).join("");
+      }
+      listEl.innerHTML = html;
     }
 
     function applicantCard(item, index) {

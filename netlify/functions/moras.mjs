@@ -32,10 +32,12 @@ const {
   handleManseApi,
   handleManseStartApi,
   handleManseAnalyzeApi,
+  handleSajuOnlyApi,
   handleAdminVoteDeadline,
   handleSecretSubmissions,
   isAdminAuthenticated,
   page,
+  sajuPage,
   matchPage,
   resultsPage,
   roulettePage,
@@ -44,10 +46,16 @@ const {
   secretPage,
   upcomingEventPage,
   promoPage,
+  mustKnowPage,
   guidePage,
+  infoPage,
+  matchingInfoPage,
+  mbtiMatrixPage,
   handleGetPrizeWins,
   handleMarkPrizeWinUsed,
   prizeResultsPage,
+  roulettePrizesPage,
+  autoAddSubmissionToRoulette,
 } = manseWeb;
 
 export default async (request) => {
@@ -56,6 +64,10 @@ export default async (request) => {
   try {
     if (request.method === "GET" && url.pathname === "/") {
       return html(page());
+    }
+
+    if (request.method === "GET" && url.pathname === "/saju") {
+      return html(sajuPage());
     }
 
     if (request.method === "GET" && url.pathname === "/upcoming") {
@@ -82,6 +94,22 @@ export default async (request) => {
       return html(promoPage());
     }
 
+    if (request.method === "GET" && url.pathname === "/must-know") {
+      return html(mustKnowPage());
+    }
+
+    if (request.method === "GET" && url.pathname === "/info") {
+      return html(infoPage());
+    }
+
+    if (request.method === "GET" && url.pathname === "/matching-info") {
+      return html(matchingInfoPage());
+    }
+
+    if (request.method === "GET" && url.pathname === "/mbti-matrix") {
+      return html(mbtiMatrixPage());
+    }
+
     if (request.method === "GET" && url.pathname === "/guide") {
       return html(guidePage());
     }
@@ -100,6 +128,10 @@ export default async (request) => {
 
     if (request.method === "GET" && url.pathname === "/prize-results") {
       return html(prizeResultsPage());
+    }
+
+    if (request.method === "GET" && url.pathname === "/roulette-prizes") {
+      return html(roulettePrizesPage());
     }
 
     if (request.method === "GET" && url.pathname === "/secret") {
@@ -182,7 +214,9 @@ export default async (request) => {
     }
 
     if (request.method === "POST" && url.pathname === "/api/manse") {
-      return json(await handleManseApi(await request.json()));
+      const result = await handleManseApi(await request.json());
+      await autoAddSubmissionToRoulette(result);
+      return json(result);
     }
 
     if (request.method === "POST" && url.pathname === "/api/manse/start") {
@@ -190,7 +224,13 @@ export default async (request) => {
     }
 
     if (request.method === "POST" && url.pathname === "/api/manse/analyze") {
-      return json(await handleManseAnalyzeApi(await request.json()));
+      const result = await handleManseAnalyzeApi(await request.json());
+      await autoAddSubmissionToRoulette(result);
+      return json(result);
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/saju/analyze") {
+      return json(await handleSajuOnlyApi(await request.json()));
     }
 
     if (request.method === "POST" && url.pathname === "/api/admin/login") {
@@ -273,7 +313,7 @@ export default async (request) => {
     }
 
     if (url.pathname === "/api/admin/vote-deadline") {
-      const body = request.method === "PATCH" ? await request.json() : {};
+      const body = (request.method === "PATCH" || request.method === "POST") ? await request.json() : {};
       const result = await handleAdminVoteDeadline(request.headers.get("cookie") || "", request.method, body);
       return json(result.payload, result.status);
     }
@@ -293,11 +333,16 @@ export const config = {
     "/match",
     "/results",
     "/promo",
+    "/must-know",
+    "/info",
+    "/matching-info",
+    "/mbti-matrix",
     "/guide",
     "/roulette",
     "/ladder",
     "/gachapon",
     "/prize-results",
+    "/roulette-prizes",
     "/health",
     "/api/applicants",
     "/api/applicants/*",

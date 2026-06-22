@@ -151,6 +151,15 @@ function guidePage() {
       background: rgba(0, 242, 254, 0.06);
       border-color: rgba(0, 242, 254, 0.15);
     }
+    .nav-dropdown { position: relative; }
+    .nav-dropdown-btn { color: var(--muted); background: none; border: 1px solid transparent; font-size: 14px; font-weight: 700; padding: 8px 14px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all .25s; font-family: inherit; white-space: nowrap; }
+    .nav-dropdown-btn:hover, .nav-dropdown-btn.open { color: var(--text); background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.08); }
+    .nav-dropdown-btn svg { transition: transform .2s; }
+    .nav-dropdown-btn.open svg { transform: rotate(180deg); }
+    .nav-dropdown-menu { position: absolute; top: calc(100% + 6px); left: 0; min-width: 160px; background: rgba(14,16,26,.96); border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 6px; box-shadow: 0 16px 48px rgba(0,0,0,.6); opacity: 0; pointer-events: none; transform: translateY(-8px); transition: opacity .18s, transform .18s; z-index: 200; }
+    .nav-dropdown-menu.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    .nav-dropdown-item { display: block; color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: 10px; transition: all .2s; white-space: nowrap; }
+    .nav-dropdown-item:hover { color: var(--gold, #FFE8A3); background: rgba(255,232,163,.08); }
     
     .cta-btn-header {
       background: linear-gradient(135deg, var(--cyan), var(--purple));
@@ -783,9 +792,15 @@ function guidePage() {
     
     /* Mobile layouts adjustments */
     @media (max-width: 820px) {
-      header { height: 68px; padding: 0 16px; }
-      .nav-links { display: none; }
-      main { margin: 94px auto 60px; gap: 32px; }
+      header { height: auto; flex-wrap: wrap; padding: 10px 16px 0; gap: 0; }
+      .nav-links {
+        display: flex; order: 3; width: 100%;
+        overflow-x: auto; flex-wrap: nowrap; gap: 4px;
+        padding: 8px 0 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+      }
+      .nav-links::-webkit-scrollbar { display: none; }
+      .nav-link { font-size: 11.5px; padding: 5px 11px; white-space: nowrap; flex-shrink: 0; }
+      main { margin: 118px auto 60px; gap: 32px; }
       .screenshot-container { padding: 15px; }
       
       .guide-step-row {
@@ -901,8 +916,18 @@ function guidePage() {
     </a>
     
     <nav class="nav-links">
+      <div class="nav-dropdown" id="dd-notice">
+        <button class="nav-dropdown-btn" id="dd-notice-btn" aria-haspopup="true" aria-expanded="false">공지사항 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="nav-dropdown-menu" id="dd-notice-menu" role="menu">
+          <a href="/roulette-prizes" class="nav-dropdown-item" role="menuitem">🎁 룰렛상품안내</a>
+        </div>
+      </div>
+      <a href="/must-know" class="nav-link" id="link-must-know">필독안내</a>
       <a href="/promo" class="nav-link" id="link-promo">소개웹툰</a>
       <a href="/guide" class="nav-link active" id="link-guide">진행방법</a>
+      <a href="/info" class="nav-link" id="link-info">안심가이드</a>
+      <a href="/matching-info" class="nav-link" id="link-matching-info">알고리즘</a>
+      <a href="/mbti-matrix" class="nav-link" id="link-mbti-matrix">MBTI궁합표</a>
     </nav>
     
     <a href="/" class="cta-btn-header locked" id="header-cta-btn">이벤트 참가하기</a>
@@ -1223,8 +1248,8 @@ function guidePage() {
   </div>
   
   <script>
-    // Countdown Target: 2026-06-01T03:00:00Z
-    const eventStartTime = new Date("2026-06-01T03:00:00Z").getTime();
+    // Countdown Target: 2026-05-31T16:00:00Z
+    const eventStartTime = new Date("2026-05-31T16:00:00Z").getTime();
     
     const elements = {
       days: document.getElementById("promo-days"),
@@ -1312,6 +1337,7 @@ function guidePage() {
         closeLightbox();
       }
     });
+    (function() { var btn=document.getElementById("dd-notice-btn"),menu=document.getElementById("dd-notice-menu"); if(!btn||!menu)return; btn.addEventListener("click",function(e){e.stopPropagation();var o=menu.classList.toggle("open");btn.classList.toggle("open",o);btn.setAttribute("aria-expanded",o);}); document.addEventListener("click",function(){menu.classList.remove("open");btn.classList.remove("open");btn.setAttribute("aria-expanded",false);}); })();
   </script>
 </body>
 </html>`;

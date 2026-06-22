@@ -9,7 +9,7 @@
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-const GEMINI_MAX_OUTPUT_TOKENS = Number.parseInt(process.env.GEMINI_MAX_OUTPUT_TOKENS || "12000", 10);
+const GEMINI_MAX_OUTPUT_TOKENS = Number.parseInt(process.env.GEMINI_MAX_OUTPUT_TOKENS || "6000", 10);
 const GEMINI_FULL_ATTEMPTS = Number.parseInt(process.env.GEMINI_FULL_ATTEMPTS || "3", 10);
 const GEMINI_LITE_ATTEMPTS = Number.parseInt(process.env.GEMINI_LITE_ATTEMPTS || "1", 10);
 
@@ -200,7 +200,7 @@ Rules:
 - Avoid scary, fatalistic, judgmental, or overly mystical wording.
 - Do not include birth date, birth time, or birth place in the written analysis.
 - Write in Korean.
-- Target 7000-9000 Korean characters total.
+- Target 4000-5000 Korean characters total.
 - Return ONLY JSON. No markdown. No explanation.
 
 Input JSON:

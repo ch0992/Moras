@@ -321,8 +321,16 @@ function buildResult(args) {
 function buildDerived(pillars) {
   const dayStem = pillars.day.stem.hangul;
   const yearBranch = pillars.year.branch.hangul;
-  const twelveGodsGroup = getTwelveGodsGroup(yearBranch);
-  const twelveGodsMap = TWELVE_GODS_BY_GROUP[twelveGodsGroup];
+  const dayBranch = pillars.day.branch.hangul;
+
+  // Year-basis Group (for Month, Day, Hour)
+  const twelveGodsGroupYear = getTwelveGodsGroup(yearBranch);
+  const twelveGodsMapYear = TWELVE_GODS_BY_GROUP[twelveGodsGroupYear];
+
+  // Day-basis Group (for Year)
+  const twelveGodsGroupDay = getTwelveGodsGroup(dayBranch);
+  const twelveGodsMapDay = TWELVE_GODS_BY_GROUP[twelveGodsGroupDay];
+
   const byPillar = {};
 
   for (const name of PILLAR_ORDER) {
@@ -338,22 +346,28 @@ function buildDerived(pillars) {
       continue;
     }
     const branch = pillars[name].branch.hangul;
+
+    // Year Pillar uses Day Branch (일지) basis.
+    // Month, Day, Hour Pillars use Year Branch (년지) basis.
+    const twelveGodsMap = name === "year" ? twelveGodsMapDay : twelveGodsMapYear;
+    const resolvedTwelveGod = twelveGodsMap[branch];
+
     byPillar[name] = {
       stemTenGod: getTenGod(dayStem, pillars[name].stem.hangul),
       branchTenGod: getTenGod(dayStem, BRANCH_MAIN_STEMS[branch]),
       hiddenStems: HIDDEN_STEMS[branch].join(""),
       twelveStage: TWELVE_STAGES[dayStem][branch],
-      twelveGod: twelveGodsMap[branch],
-      twelveGodDisplay: name === "year" ? "년살" : twelveGodsMap[branch],
+      twelveGod: resolvedTwelveGod,
+      twelveGodDisplay: resolvedTwelveGod,
     };
   }
 
   return {
     basis: {
       twelveStage: "일간 기준",
-      twelveGod: "년지 기준 삼합",
+      twelveGod: "연주:일지기준 / 월·일·시주:년지기준 삼합",
       twelveGodYearBranch: yearBranch,
-      twelveGodGroup: twelveGodsGroup,
+      twelveGodGroup: twelveGodsGroupYear,
     },
     byPillar,
   };

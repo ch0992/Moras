@@ -7,7 +7,7 @@
     "doc": "docs"
   },
   "scripts": {
-    "build:netlify": "mkdir -p public/assets/marketing/upcoming-event public/assets/marketing/promo public/assets/guide netlify-build/functions && printf 'Moras runs through Netlify Functions.\\n' > public/index.html && cp assets/marketing/upcoming-event/moras-upcoming-event-mbti-saju-v1.png public/assets/marketing/upcoming-event/moras-upcoming-event-mbti-saju-v1.png && cp assets/marketing/promo/*.png public/assets/marketing/promo/ && cp assets/guide/*.png public/assets/guide/ && esbuild netlify/functions/moras.mjs --bundle --platform=node --format=esm --outfile=netlify-build/functions/moras.mjs",
+    "build:netlify": "mkdir -p public/assets/marketing/upcoming-event public/assets/marketing/promo public/assets/guide public/assets/sound netlify-build/functions && printf 'Moras runs through Netlify Functions.\\n' > public/index.html && cp assets/marketing/upcoming-event/moras-upcoming-event-mbti-saju-v1.png public/assets/marketing/upcoming-event/moras-upcoming-event-mbti-saju-v1.png && cp assets/marketing/promo/*.png public/assets/marketing/promo/ && cp assets/guide/*.png public/assets/guide/ && cp assets/sound/*.mp3 public/assets/sound/ && esbuild netlify/functions/moras.mjs --bundle --platform=node --format=esm --outfile=netlify-build/functions/moras.mjs",
     "manse:web": "node --env-file=.env scripts/manse-web.js",
     "manse:validate": "node scripts/validate-manseryeok.js",
     "test": "echo \"Error: no test specified\" && exit 1"

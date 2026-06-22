@@ -302,7 +302,7 @@ function upcomingEventPage() {
       <section class="countdown" aria-label="이벤트 카운트다운">
         <div class="event-date">
           <div class="title">2026.05.31 EVENT OPEN</div>
-          <span>Auburn / Central 기준 오후 10시 오픈</span>
+          <span>뉴욕 (Eastern) 기준 오후 11시 오픈</span>
         </div>
         <div id="time-grid" class="time-grid">
           <div class="time-box">
@@ -323,7 +323,7 @@ function upcomingEventPage() {
           </div>
         </div>
         <div id="open-state" class="open-state">이벤트가 시작되었습니다</div>
-        <footer>Countdown to 2026-05-31 10:00 PM Central Time</footer>
+        <footer>Countdown to 2026-05-31 11:00 PM Eastern Time</footer>
       </section>
     </div>
   </main>

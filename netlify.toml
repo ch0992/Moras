@@ -6,6 +6,9 @@
   directory = "netlify-build/functions"
   node_bundler = "esbuild"
 
+[functions.moras]
+  timeout = 26
+
 [dev]
   command = "npm run manse:web"
   port = 8888

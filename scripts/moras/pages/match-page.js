@@ -928,7 +928,8 @@ function matchPage() {
         });
         const data = await res.json();
         if (!res.ok) {
-          authError.textContent = data.error || '조회에 실패했습니다.';
+          const baseMessage = data.error || '조회에 실패했습니다.';
+          authError.textContent = baseMessage + ' 오타일 수 있으니 결과창에 표시된 이름을 복사해서 붙여넣어주세요.';
           submitBtn.disabled = false;
           submitBtn.textContent = '조회';
           return;

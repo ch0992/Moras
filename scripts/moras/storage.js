@@ -176,9 +176,8 @@ async function deleteRosterParticipant(id) {
 
   if (hasSupabaseConfig()) {
     const response = await fetch(`${SUPABASE_URL}/rest/v1/${ROSTER_TABLE}?id=eq.${encodeURIComponent(participantId)}`, {
-      method: "PATCH",
+      method: "DELETE",
       headers: supabaseHeaders({ Prefer: "return=minimal" }),
-      body: JSON.stringify({ is_active: false, updated_at: new Date().toISOString() }),
     });
     if (!response.ok) {
       throw new Error(`Supabase 참가자 삭제 실패: ${await response.text()}`);
@@ -188,9 +187,7 @@ async function deleteRosterParticipant(id) {
 
   rosterWriteQueue = rosterWriteQueue.then(async () => {
     const participants = await readRosterFromLocal();
-    const next = participants.map((item) =>
-      item.id === participantId ? { ...item, isActive: false, updatedAt: new Date().toISOString() } : item,
-    );
+    const next = participants.filter((item) => item.id !== participantId);
     await writeRosterToLocal(next);
   });
   await rosterWriteQueue;
@@ -282,6 +279,7 @@ function toSupabaseRow(submission) {
     display_name: submission.displayName,
     gender: submission.gender,
     marital_status: submission.maritalStatus,
+    matching_intent: submission.matchingIntent || "romance",
     mbti: submission.mbti,
     birth_date: submission.birthDate,
     birth_time: submission.birthTime,
@@ -305,6 +303,7 @@ function fromSupabaseRow(row) {
     displayName: row.display_name,
     gender: row.gender,
     maritalStatus: row.marital_status || raw.maritalStatus || null,
+    matchingIntent: row.matching_intent || raw.matchingIntent || "romance",
     mbti: row.mbti,
     birthDate: row.birth_date,
     birthTime: row.birth_time ? row.birth_time.slice(0, 5) : null,

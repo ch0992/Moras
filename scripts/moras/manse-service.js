@@ -86,6 +86,7 @@ function buildViewModel(result, input) {
     name: input.name || "테스트 사용자",
     gender: normalizeGender(input.gender),
     maritalStatus: normalizeMaritalStatus(input.maritalStatus),
+    matchingIntent: normalizeMatchingIntent(input.matchingIntent),
     mbti: normalizeMbti(input.mbti),
     profileTitle: `${result.saju.dayPillar}(${stemColorName(result.pillars.day.stem.hangul)} ${result.pillars.day.branch.animal})`,
     cells,
@@ -99,14 +100,16 @@ function buildViewModel(result, input) {
 }
 
 function buildSubmission(input, birthPlace, result, geminiAnalysis) {
+  const matchingIntent = normalizeMatchingIntent(input.matchingIntent);
   return {
     id: crypto.randomUUID(),
     rosterParticipantId: nullableString(input.rosterParticipantId),
     submittedAt: new Date().toISOString(),
     displayName: nullableString(input.name),
     gender: normalizeGender(input.gender),
-    maritalStatus: normalizeMaritalStatus(input.maritalStatus),
-    matchingMaritalRange: Array.isArray(input.matchingMaritalRange)
+    maritalStatus: matchingIntent === "friendship" ? null : normalizeMaritalStatus(input.maritalStatus),
+    matchingIntent,
+    matchingMaritalRange: matchingIntent === "friendship" ? [] : Array.isArray(input.matchingMaritalRange)
       ? input.matchingMaritalRange.filter((s) => ["미혼", "기혼", "돌싱"].includes(s))
       : [],
     mbti: normalizeMbti(input.mbti),
@@ -148,6 +151,12 @@ function normalizeGender(value) {
 function normalizeMaritalStatus(value) {
   const maritalStatus = String(value || "").trim();
   return ["미혼", "기혼", "돌싱"].includes(maritalStatus) ? maritalStatus : null;
+}
+
+function normalizeMatchingIntent(value) {
+  const intent = String(value || "").trim();
+  if (intent === "friendship" || intent === "친목") return "friendship";
+  return "romance";
 }
 
 function nullableString(value) {
@@ -258,7 +267,9 @@ async function completeManseSubmission({ input, birthPlace, result }) {
     birthPlace: birthPlace.name,
     result,
   });
-  const submission = await saveSubmission(buildSubmission(input, birthPlace, result, geminiAnalysis));
+  const built = buildSubmission(input, birthPlace, result, geminiAnalysis);
+  const saved = await saveSubmission(built);
+  const submission = { ...built, ...saved };
 
   return {
     submission,
@@ -266,6 +277,46 @@ async function completeManseSubmission({ input, birthPlace, result }) {
     geminiAnalysis,
     view: buildViewModel(result, {
       ...input,
+      birthPlace: birthPlace.name,
+      submissionId: submission.id,
+      geminiAnalysis,
+    }),
+  };
+}
+
+async function handleSajuOnlyApi(body) {
+  const name = nullableString(body.name) || "테스트 사용자";
+  const birthPlace = resolveBirthPlace(body.birthPlace, body.customBirthPlace);
+  const result = buildResult({
+    date: body.date,
+    time: body.timeUnknown ? "unknown" : body.time,
+    calendar: body.calendar || "solar",
+    leapMonth: Boolean(body.leapMonth),
+    longitude: birthPlace.longitude,
+    timezone: birthPlace.timezone,
+    timeCorrection: true,
+  });
+
+  const mbti = normalizeMbti(body.mbti);
+  const geminiAnalysis = await analyzeManseWithGemini({
+    name,
+    mbti,
+    birthPlace: birthPlace.name,
+    result,
+  });
+
+  const built = buildSubmission({ ...body, name, mbti, rosterParticipantId: null }, birthPlace, result, geminiAnalysis);
+  const saved = await saveSubmission(built);
+  const submission = { ...built, ...saved };
+
+  return {
+    submission,
+    result,
+    geminiAnalysis,
+    view: buildViewModel(result, {
+      ...body,
+      name,
+      mbti,
       birthPlace: birthPlace.name,
       submissionId: submission.id,
       geminiAnalysis,
@@ -301,6 +352,7 @@ async function seedTestSubmissionsFromRoster() {
       name: participant.displayName,
       gender: participant.gender,
       maritalStatus: "미혼",
+      matchingIntent: index % 3 === 0 ? "friendship" : "romance",
       mbti: mbtis[index % mbtis.length],
       date: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
       time: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
@@ -327,4 +379,4 @@ async function seedTestSubmissionsFromRoster() {
   return { created, skipped, total: roster.length };
 }
 
-module.exports = { handleManseApi, handleManseStartApi, handleManseAnalyzeApi, seedTestSubmissionsFromRoster, CITIES };
+module.exports = { handleManseApi, handleManseStartApi, handleManseAnalyzeApi, handleSajuOnlyApi, seedTestSubmissionsFromRoster, CITIES };

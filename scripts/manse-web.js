@@ -19,7 +19,7 @@ const crypto = require("node:crypto");
 
 const { URL } = require("node:url");
 const { handleAdminLogin, handleAdminLogout, isAdminAuthenticated } = require("./moras/auth");
-const { handleManseApi, handleManseStartApi, handleManseAnalyzeApi } = require("./moras/manse-service");
+const { handleManseApi, handleManseStartApi, handleManseAnalyzeApi, handleSajuOnlyApi } = require("./moras/manse-service");
 const {
   deleteAllSubmissions,
   deleteRosterParticipant,
@@ -33,6 +33,7 @@ const { readJson, send, sendJson } = require("./moras/http");
 const { adminLoginPage, adminPage } = require("./moras/pages/admin-page");
 const { applicantsPage } = require("./moras/pages/applicants-page");
 const { page } = require("./moras/pages/participant-page");
+const { sajuPage } = require("./moras/pages/saju-page");
 const { upcomingEventPage, UPCOMING_IMAGE_ROUTE } = require("./moras/pages/upcoming-page");
 const { matchPage } = require("./moras/pages/match-page");
 const { resultsPage } = require("./moras/pages/results-page");
@@ -42,9 +43,18 @@ const { gachaponPage } = require("./moras/pages/gachapon-page");
 const { secretPage } = require("./moras/pages/secret-page");
 const { promoPage } = require("./moras/pages/promo-page");
 const { guidePage } = require("./moras/pages/guide-page");
+const { infoPage } = require("./moras/pages/info-page");
+const { matchingInfoPage } = require("./moras/pages/matching-info-page");
+const { mbtiMatrixPage } = require("./moras/pages/mbti-matrix-page");
+const { mustKnowPage } = require("./moras/pages/must-know-page");
 const { prizeResultsPage } = require("./moras/pages/prize-results-page");
+const { roulettePrizesPage } = require("./moras/pages/roulette-prizes-page");
 
 const PORT = Number(process.env.PORT || 4173);
+const MATCHING_INTENT_SECTIONS = [
+  { key: "romance", label: "썸 매칭", description: "서로의 선택까지 이어지는 설렘 매칭입니다." },
+  { key: "friendship", label: "친목 매칭", description: "투표 없이 재미로 보는 친목 케미 결과입니다." },
+];
 const UPCOMING_IMAGE_FILE = path.join(
   __dirname,
   "..",
@@ -64,6 +74,173 @@ function matchPerson(person) {
   };
 }
 
+function normalizeMatchingIntent(value) {
+  const intent = String(value || "").trim();
+  if (intent === "friendship" || intent === "친목") return "friendship";
+  return "romance";
+}
+
+function sectionedMatches(matches) {
+  return MATCHING_INTENT_SECTIONS.map((section) => ({
+    ...section,
+    matches: matches.filter((match) => normalizeMatchingIntent(match.matching_intent || match.matchingIntent) === section.key),
+  }));
+}
+
+function voteKey(matchResultId, participantId) {
+  return `${matchResultId}:${participantId}`;
+}
+
+function buildVoteMap(votes) {
+  const byMatch = {};
+  const byParticipant = {};
+  for (const vote of votes || []) {
+    if (!byMatch[vote.match_result_id]) byMatch[vote.match_result_id] = new Map();
+    byMatch[vote.match_result_id].set(vote.participant_id, vote);
+    byParticipant[voteKey(vote.match_result_id, vote.participant_id)] = vote;
+  }
+  return { byMatch, byParticipant };
+}
+
+async function finalizeVotesAfterDeadline({ requestSupabase, matches, votes, voteDeadline }) {
+  const deadlinePassed = voteDeadline ? new Date(voteDeadline).getTime() < Date.now() : false;
+  const voteMap = buildVoteMap(votes);
+  if (!deadlinePassed) {
+    return { deadlinePassed, votes: votes || [], voteMap, insertedAutoNoCount: 0 };
+  }
+
+  let insertedAutoNoCount = 0;
+  for (const match of matches || []) {
+    if (normalizeMatchingIntent(match.matching_intent) !== "romance") continue;
+    const participants = [match.male?.id, match.female?.id].filter(Boolean);
+    for (const participantId of participants) {
+      const key = voteKey(match.id, participantId);
+      if (voteMap.byParticipant[key]) continue;
+      const autoVote = {
+        match_result_id: match.id,
+        participant_id: participantId,
+        selection: "no",
+      };
+      try {
+        await requestSupabase("match_votes", {
+          method: "POST",
+          headers: { Prefer: "return=minimal" },
+          body: autoVote,
+        });
+        insertedAutoNoCount += 1;
+      } catch (_) {
+        // A concurrent request may have inserted the same auto-no vote first.
+      }
+      voteMap.byParticipant[key] = autoVote;
+      if (!voteMap.byMatch[match.id]) voteMap.byMatch[match.id] = new Map();
+      voteMap.byMatch[match.id].set(participantId, autoVote);
+    }
+  }
+
+  const normalizedVotes = Object.values(voteMap.byParticipant);
+  return {
+    deadlinePassed,
+    votes: normalizedVotes,
+    voteMap: buildVoteMap(normalizedVotes),
+    insertedAutoNoCount,
+  };
+}
+
+function publicMatchPayload(match, voteMap, deadlinePassed) {
+  const matchingIntent = normalizeMatchingIntent(match.matching_intent);
+  const male = matchPerson(match.male);
+  const female = matchPerson(match.female);
+  const maleVote = voteMap.byParticipant[voteKey(match.id, male?.id)];
+  const femaleVote = voteMap.byParticipant[voteKey(match.id, female?.id)];
+  const votingMatch = matchingIntent === "romance";
+  const maleSelection = deadlinePassed && votingMatch ? (maleVote?.selection || "no") : null;
+  const femaleSelection = deadlinePassed && votingMatch ? (femaleVote?.selection || "no") : null;
+  const isMutual = votingMatch && deadlinePassed && maleSelection === "yes" && femaleSelection === "yes";
+  return {
+    id: match.id,
+    rank: match.rank,
+    is_top_match: match.is_top_match,
+    matching_intent: matchingIntent,
+    average_score: match.average_score,
+    score_detail: match.score_detail,
+    male,
+    female,
+    maleVoted: votingMatch && !!maleVote,
+    femaleVoted: votingMatch && !!femaleVote,
+    maleSelection,
+    femaleSelection,
+    isMutual,
+    finalStatus: deadlinePassed && votingMatch ? (isMutual ? "mutual" : "not_mutual") : null,
+  };
+}
+
+function finalMatchSummary(matches, deadlinePassed, voteDeadline) {
+  const romanceMatches = (matches || []).filter((match) => normalizeMatchingIntent(match.matching_intent) === "romance");
+  const mutualMatches = romanceMatches.filter((match) => match.isMutual);
+  return {
+    finalized: !!deadlinePassed,
+    voteDeadline: voteDeadline || null,
+    totalRomanceMatches: romanceMatches.length,
+    mutualCount: mutualMatches.length,
+    matches: mutualMatches.map((match) => ({
+      id: match.id,
+      rank: match.rank,
+      average_score: match.average_score,
+      male: match.male,
+      female: match.female,
+    })),
+  };
+}
+
+function publicFriendshipRecommendationPayload(row) {
+  return {
+    id: row.id,
+    rank: row.rank,
+    score: Number(row.score || 0),
+    score_detail: row.score_detail || null,
+    participant: matchPerson(row.participant),
+    recommended: matchPerson(row.recommended),
+  };
+}
+
+function buildFriendshipRecommendationCards(participants, recommendations) {
+  return (participants || []).map((participant) => {
+    const participantPayload = matchPerson(participant);
+    const items = (recommendations || [])
+      .filter((recommendation) => recommendation.participant?.id === participantPayload.id)
+      .sort((a, b) => Number(a.rank || 0) - Number(b.rank || 0));
+    return {
+      participant: participantPayload,
+      recommendations: items,
+    };
+  }).sort((a, b) => String(a.participant.displayName || "").localeCompare(String(b.participant.displayName || ""), "ko"));
+}
+
+function fallbackFriendshipRecommendationsFromMatches(matches) {
+  const recommendationsByParticipant = new Map();
+  for (const match of matches || []) {
+    if (normalizeMatchingIntent(match.matching_intent) !== "friendship") continue;
+    const pair = [
+      { participant: match.male, recommended: match.female },
+      { participant: match.female, recommended: match.male },
+    ];
+    for (const item of pair) {
+      if (!item.participant?.id || !item.recommended?.id) continue;
+      const list = recommendationsByParticipant.get(item.participant.id) || [];
+      list.push({
+        id: `${match.id}-${item.participant.id}`,
+        rank: list.length + 1,
+        score: Number(match.average_score || 0),
+        score_detail: match.score_detail || null,
+        participant: item.participant,
+        recommended: item.recommended,
+      });
+      recommendationsByParticipant.set(item.participant.id, list);
+    }
+  }
+  return [...recommendationsByParticipant.values()].flat().filter((item) => item.rank <= 3);
+}
+
 // Modular Handlers for Netlify & Local server reuse
 async function handleAdminSubmissions(cookieHeader) {
   if (!isAdminAuthenticated({ headers: { cookie: cookieHeader || "" } })) {
@@ -73,9 +250,10 @@ async function handleAdminSubmissions(cookieHeader) {
     };
   }
   try {
+    const submissions = await readSubmissions();
     return {
       status: 200,
-      payload: { submissions: await readSubmissions() },
+      payload: { submissions: submissions.filter((item) => Boolean(item.rosterParticipantId)) },
     };
   } catch (error) {
     return {
@@ -93,8 +271,27 @@ async function handleAdminSubmissionDelete(cookieHeader, id) {
     };
   }
   try {
-    if (id === "__all__") await deleteAllSubmissions();
-    else await deleteSubmission(id);
+    const { requestSupabase, hasSupabaseConfig } = require("./moras/match-service");
+    if (id === "__all__") {
+      await deleteAllSubmissions();
+    } else {
+      // 이벤트 모드일 때 삭제된 신청자를 룰렛 명단에서도 제거
+      if (hasSupabaseConfig()) {
+        const settings = await getRouletteSettingsSupabase(requestSupabase);
+        if (getRouletteParticipantMode(settings) === "event_only") {
+          const rows = await requestSupabase(`participant_submissions?id=eq.${encodeURIComponent(id)}&select=roster_participant_id`);
+          const rosterId = rows[0]?.roster_participant_id;
+          if (rosterId) {
+            await requestSupabase(`roulette_participants?roster_participant_id=eq.${encodeURIComponent(rosterId)}`, {
+              method: "PATCH",
+              headers: { Prefer: "return=minimal" },
+              body: { is_active: false, updated_at: new Date().toISOString() },
+            });
+          }
+        }
+      }
+      await deleteSubmission(id);
+    }
     return {
       status: 200,
       payload: { ok: true },
@@ -132,6 +329,7 @@ async function handleApplicants() {
   try {
     const submissions = await readSubmissions();
     const applicants = submissions
+      .filter((item) => Boolean(item.rosterParticipantId))
       .map(toApplicantListItem)
       .sort((a, b) => new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime());
     return {
@@ -149,7 +347,7 @@ async function handleApplicants() {
 async function handleApplicantDetail(id) {
   try {
     const submissions = await readSubmissions();
-    const submission = submissions.find((item) => item.id === id);
+    const submission = submissions.find((item) => item.id === id && item.rosterParticipantId);
     if (!submission) return { status: 404, payload: { error: "신청 정보를 찾을 수 없습니다." } };
     return {
       status: 200,
@@ -264,6 +462,7 @@ function toApplicantListItem(item) {
     mbti: item.mbti || null,
     dayPillar: item.manse?.saju?.dayPillar || null,
     submittedAt: item.submittedAt || null,
+    matchingIntent: item.matchingIntent || "romance",
   };
 }
 
@@ -317,10 +516,17 @@ async function handleAdminMatches(cookieHeader) {
           runId,
           matches: matches.map((match) => ({
             ...match,
+            matching_intent: normalizeMatchingIntent(match.matching_intent),
             male: matchPerson(match.male),
             female: matchPerson(match.female),
           })),
           unmatched: unmatched.map((u) => matchPerson(u.participant)),
+          sections: sectionedMatches(matches.map((match) => ({
+            ...match,
+            matching_intent: normalizeMatchingIntent(match.matching_intent),
+            male: matchPerson(match.male),
+            female: matchPerson(match.female),
+          }))),
         }
       };
     } else {
@@ -334,11 +540,19 @@ async function handleAdminMatches(cookieHeader) {
             runId: parsed.matchRunId,
             matches: (parsed.matches || []).map((match) => ({
               ...match,
+              matching_intent: normalizeMatchingIntent(match.matching_intent || match.matchingIntent),
               average_score: match.average_score ?? match.score,
               score_detail: match.score_detail || null,
               is_top_match: match.is_top_match ?? match.isTop,
             })),
             unmatched: parsed.unmatched,
+            sections: sectionedMatches((parsed.matches || []).map((match) => ({
+              ...match,
+              matching_intent: normalizeMatchingIntent(match.matching_intent || match.matchingIntent),
+              average_score: match.average_score ?? match.score,
+              score_detail: match.score_detail || null,
+              is_top_match: match.is_top_match ?? match.isTop,
+            }))),
           }
         };
       } catch (e) {
@@ -362,6 +576,7 @@ async function handleAdminMatchesReset(cookieHeader) {
     const { requestSupabase, hasSupabaseConfig } = require("./moras/match-service");
     if (hasSupabaseConfig()) {
       await requestSupabase("match_votes?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
+      await requestSupabase("friendship_recommendations?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
       await requestSupabase("match_results?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
       await requestSupabase("unmatched_participants?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
       await requestSupabase("compatibility_evaluations?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
@@ -393,39 +608,58 @@ async function handlePublicResults() {
       const runId = runs[0].id;
       const voteDeadline = runs[0].vote_deadline_at || null;
       const matches = await requestSupabase(
-        `match_results?match_run_id=eq.${runId}&select=id,rank,is_top_match,average_score,score_detail,male:male_participant_id(id,display_name,gender,mbti,manse_result),female:female_participant_id(id,display_name,gender,mbti,manse_result)&order=rank.asc`
+        `match_results?match_run_id=eq.${runId}&select=id,rank,is_top_match,matching_intent,average_score,score_detail,male:male_participant_id(id,display_name,gender,mbti,manse_result),female:female_participant_id(id,display_name,gender,mbti,manse_result)&order=matching_intent.asc,rank.asc`
       );
+      const [friendshipParticipants, friendshipRows] = await Promise.all([
+        requestSupabase("participant_submissions?matching_intent=eq.friendship&select=id,display_name,gender,mbti,manse_result&order=display_name.asc"),
+        requestSupabase(
+          `friendship_recommendations?match_run_id=eq.${runId}&select=id,rank,score,score_detail,participant:participant_id(id,display_name,gender,mbti,manse_result),recommended:recommended_participant_id(id,display_name,gender,mbti,manse_result)&order=participant_id.asc,rank.asc`
+        ),
+      ]);
 
-      // Fetch vote status for all matches in this run
+      // Fetch vote status for all matches in this run. After deadline, missing romance votes are finalized as "no".
       const matchIds = matches.map((m) => m.id);
       let allVotes = [];
       if (matchIds.length > 0) {
         allVotes = await requestSupabase(
-          `match_votes?match_result_id=in.(${matchIds.join(",")})&select=match_result_id,participant_id`
+          `match_votes?match_result_id=in.(${matchIds.join(",")})&select=match_result_id,participant_id,selection`
         );
       }
-      const voteMap = {};
-      allVotes.forEach((v) => {
-        if (!voteMap[v.match_result_id]) voteMap[v.match_result_id] = new Set();
-        voteMap[v.match_result_id].add(v.participant_id);
+      const finalization = await finalizeVotesAfterDeadline({
+        requestSupabase,
+        matches,
+        votes: allVotes,
+        voteDeadline,
       });
+      const publicMatches = matches.map((match) => publicMatchPayload(match, finalization.voteMap, finalization.deadlinePassed));
+      let friendshipRecommendations = (friendshipRows || []).map(publicFriendshipRecommendationPayload);
+      if (!friendshipRecommendations.length) {
+        friendshipRecommendations = fallbackFriendshipRecommendationsFromMatches(publicMatches);
+      }
+      const sections = [
+        {
+          ...MATCHING_INTENT_SECTIONS[0],
+          matches: publicMatches.filter((match) => normalizeMatchingIntent(match.matching_intent) === "romance"),
+        },
+        {
+          key: "friendship",
+          label: "재미로 보는 나와 잘 맞는 이성친구",
+          description: "친목 참가자별로 궁합 점수가 가장 높은 이성친구를 보여드립니다.",
+          matches: [],
+          recommendations: buildFriendshipRecommendationCards(friendshipParticipants || [], friendshipRecommendations),
+        },
+      ];
 
       return {
         status: 200,
         payload: {
           runId,
           voteDeadline,
-          matches: matches.map((match) => ({
-            id: match.id,
-            rank: match.rank,
-            is_top_match: match.is_top_match,
-            average_score: match.average_score,
-            score_detail: match.score_detail,
-            male: matchPerson(match.male),
-            female: matchPerson(match.female),
-            maleVoted: !!(voteMap[match.id]?.has(match.male?.id)),
-            femaleVoted: !!(voteMap[match.id]?.has(match.female?.id)),
-          })),
+          deadlinePassed: finalization.deadlinePassed,
+          finalSummary: finalMatchSummary(publicMatches, finalization.deadlinePassed, voteDeadline),
+          matches: publicMatches,
+          friendshipRecommendations,
+          sections,
         },
       };
     }
@@ -441,11 +675,22 @@ async function handlePublicResults() {
           matches: (parsed.matches || []).map((match) => ({
             rank: match.rank,
             is_top_match: match.is_top_match ?? match.isTop,
+            matching_intent: normalizeMatchingIntent(match.matching_intent || match.matchingIntent),
             average_score: match.average_score ?? match.score,
             score_detail: match.score_detail || null,
             male: matchPerson(match.male),
             female: matchPerson(match.female),
           })),
+          sections: sectionedMatches((parsed.matches || []).map((match) => ({
+            rank: match.rank,
+            is_top_match: match.is_top_match ?? match.isTop,
+            matching_intent: normalizeMatchingIntent(match.matching_intent || match.matchingIntent),
+            average_score: match.average_score ?? match.score,
+            score_detail: match.score_detail || null,
+            male: matchPerson(match.male),
+            female: matchPerson(match.female),
+          }))),
+          friendshipRecommendations: parsed.friendshipRecommendations || [],
         },
       };
     } catch {
@@ -479,6 +724,22 @@ async function handleAdminRoulette(cookieHeader, method, body = {}, id = "") {
           body: { label },
         });
         return { status: 200, payload: { item: item[0] } };
+      }
+
+      if (method === "POST" && body.action === "updateItemQuantity") {
+        const itemId = String(body.itemId || "").trim();
+        const quantity = Math.max(1, Math.round(Number(body.quantity) || 1));
+        if (!itemId) return { status: 400, payload: { error: "항목 ID가 필요합니다." } };
+        const rows = await requestSupabase("roulette_items?id=eq." + encodeURIComponent(itemId) + "&select=label");
+        if (!rows.length) return { status: 404, payload: { error: "항목을 찾을 수 없습니다." } };
+        const { displayLabel } = parseItemLabel(rows[0].label);
+        const newLabel = buildItemLabel(displayLabel, quantity);
+        await requestSupabase("roulette_items?id=eq." + encodeURIComponent(itemId), {
+          method: "PATCH",
+          headers: { Prefer: "return=minimal" },
+          body: { label: newLabel },
+        });
+        return { status: 200, payload: { ok: true, itemId, quantity, displayLabel } };
       }
 
       if (method === "POST" && body.action === "saveSettings") {
@@ -527,35 +788,41 @@ async function handleAdminRoulette(cookieHeader, method, body = {}, id = "") {
         const settings = normalizeRouletteSettings(settingsRows[0] || null);
         const selectedItemIds = normalizeIdList(body.selectedItemIds || settings.selected_item_ids);
         if (!selectedItemIds.length) return { status: 400, payload: { error: "추첨할 항목을 선택해주세요." } };
-        const completed = await requestSupabase("roulette_results?select=item_id");
-        const completedIds = new Set(completed.map((result) => result.item_id));
-        const remaining = selectedItemIds.filter((id) => !completedIds.has(id));
-        if (!remaining.length) return { status: 200, payload: { ok: true, count: 0, message: "모든 항목이 이미 추첨되었습니다." } };
-        const winners = [];
-        for (const itemId of remaining) {
+        /* single-item spin: client tells us which itemId to spin next */
+        const targetItemId = body.itemId || null;
+        if (targetItemId) {
+          if (!selectedItemIds.includes(targetItemId)) return { status: 400, payload: { error: "선택되지 않은 항목입니다." } };
           try {
-            const result = await spinRouletteSupabase(requestSupabase, itemId);
-            winners.push(result.winner);
+            const result = await spinRouletteSupabase(requestSupabase, targetItemId);
+            /* check if all slots complete (quantity-aware) */
+            const allResults = await requestSupabase("roulette_results?select=item_id");
+            const countByItem = {};
+            allResults.forEach(function(r) { countByItem[r.item_id] = (countByItem[r.item_id] || 0) + 1; });
+            const allItems = await requestSupabase("roulette_items?is_active=eq.true&select=id,label");
+            const allDone = selectedItemIds.every(function(id) {
+              const item = allItems.find(function(it) { return it.id === id; });
+              const qty = item ? parseItemLabel(item.label).quantity : 1;
+              return (countByItem[id] || 0) >= qty;
+            });
+            if (allDone) {
+              await requestSupabase("roulette_settings?id=eq.default", {
+                method: "PATCH",
+                headers: { Prefer: "return=minimal" },
+                body: { sequence_completed_at: new Date().toISOString(), auto_spin_executed_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+              });
+            }
+            return { status: 200, payload: { ok: true, count: 1, winners: [result.winner], allDone } };
           } catch (err) {
-            if (err.status !== 409) throw err;
+            if (err.status === 409) return { status: 200, payload: { ok: true, count: 0, message: err.message } };
+            throw err;
           }
         }
-        const afterResults = await requestSupabase("roulette_results?select=item_id");
-        const afterSet = new Set(afterResults.map((r) => r.item_id));
-        if (selectedItemIds.every((id) => afterSet.has(id))) {
-          await requestSupabase("roulette_settings?id=eq.default", {
-            method: "PATCH",
-            headers: { Prefer: "return=minimal" },
-            body: { sequence_completed_at: new Date().toISOString(), auto_spin_executed_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-          });
-        }
-        return { status: 200, payload: { ok: true, count: winners.length, winners } };
+        return { status: 400, payload: { error: "itemId가 필요합니다." } };
       }
 
       if (method === "POST" && body.action === "resetResults") {
-        /* 참가자는 유지, 추첨 결과와 진행 상태만 초기화 */
+        /* 참가자는 유지, 추첨 결과와 진행 상태만 초기화. prize_wins는 영구 기록이므로 삭제 안 함 */
         await requestSupabase("roulette_results?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
-        await requestSupabase("prize_wins?game_type=eq.roulette", { method: "DELETE", headers: { Prefer: "return=minimal" } });
         await requestSupabase("roulette_settings?id=eq.default", {
           method: "PATCH",
           headers: { Prefer: "return=minimal" },
@@ -565,10 +832,9 @@ async function handleAdminRoulette(cookieHeader, method, body = {}, id = "") {
       }
 
       if (method === "POST" && body.action === "resetRoulette") {
-        /* 참가자 + 결과 + 세팅 전체 초기화 */
+        /* 참가자 + 결과 + 세팅 전체 초기화. prize_wins는 영구 기록이므로 삭제 안 함 */
         await requestSupabase("roulette_results?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
         await requestSupabase("roulette_participants?id=not.is.null", { method: "DELETE", headers: { Prefer: "return=minimal" } });
-        await requestSupabase("prize_wins?game_type=eq.roulette", { method: "DELETE", headers: { Prefer: "return=minimal" } });
         await requestSupabase("roulette_settings?id=eq.default", {
           method: "PATCH",
           headers: { Prefer: "return=minimal" },
@@ -589,6 +855,39 @@ async function handleAdminRoulette(cookieHeader, method, body = {}, id = "") {
           added++;
         }
         return { status: 200, payload: { ok: true, added } };
+      }
+
+      if (method === "POST" && body.action === "setParticipantMode") {
+        const mode = body.mode === "event_only" ? "event_only" : "open";
+        const currentSettings = await getRouletteSettingsSupabase(requestSupabase);
+        const baseName = getDisplayEventName(currentSettings) || "Moras 룰렛 이벤트";
+        const newEventName = mode === "event_only" ? `${baseName}|event_only` : baseName;
+        // 룰렛 참가자 명단 전체 비활성화 (초기화)
+        await requestSupabase("roulette_participants?is_active=eq.true", {
+          method: "PATCH",
+          headers: { Prefer: "return=minimal" },
+          body: { is_active: false, updated_at: new Date().toISOString() },
+        });
+        // 이벤트 모드로 전환 시 현재 신청자로 재구성
+        let synced = 0;
+        if (mode === "event_only") {
+          const subs = await requestSupabase("participant_submissions?select=roster_participant_id,display_name,gender");
+          for (const sub of subs) {
+            if (!sub.roster_participant_id) continue;
+            await requestSupabase("roulette_participants?on_conflict=roster_participant_id", {
+              method: "POST",
+              headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+              body: { roster_participant_id: sub.roster_participant_id, display_name: sub.display_name, gender: sub.gender, is_active: true, updated_at: new Date().toISOString() },
+            });
+            synced++;
+          }
+        }
+        await requestSupabase("roulette_settings?on_conflict=id", {
+          method: "POST",
+          headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+          body: { id: "default", event_name: newEventName, updated_at: new Date().toISOString() },
+        });
+        return { status: 200, payload: { ok: true, mode, synced } };
       }
 
       if (method === "DELETE" && id) {
@@ -1785,7 +2084,8 @@ async function loadRouletteSupabase(requestSupabase, includeRoster = false) {
   ];
   if (includeRoster) requests.push(readRosterParticipants({ includeInactive: false }));
   const [items, results, participants, settingsRows, activeViewerCount, roster = []] = await Promise.all(requests);
-  return { items, results: normalizeRouletteResults(results), participants, roster, settings: normalizeRouletteSettings(settingsRows[0] || null), activeViewerCount };
+  const settings = normalizeRouletteSettings(settingsRows[0] || null);
+  return { items, results: normalizeRouletteResults(results), participants, roster, settings, activeViewerCount, participantMode: getRouletteParticipantMode(settings) };
 }
 
 async function readRouletteActiveViewerCount(requestSupabase) {
@@ -1808,6 +2108,38 @@ function normalizeRouletteSettings(settings) {
 
 function defaultRouletteSettings() {
   return { id: "default", event_name: "Moras 룰렛 이벤트", starts_at: null, draw_mode: "instant", scheduled_item_id: null, selected_item_ids: [], auto_spin_executed_at: null, sequence_started_at: null, sequence_completed_at: null };
+}
+
+async function autoAddSubmissionToRoulette(manseResult) {
+  if (!manseResult || !manseResult.submission) return;
+  const { requestSupabase, hasSupabaseConfig } = require("./moras/match-service");
+  if (!hasSupabaseConfig()) return;
+  try {
+    const settings = await getRouletteSettingsSupabase(requestSupabase);
+    if (getRouletteParticipantMode(settings) !== "event_only") return;
+    const sub = manseResult.submission;
+    const rosterId = sub.rosterParticipantId;
+    if (!rosterId) return;
+    await requestSupabase("roulette_participants?on_conflict=roster_participant_id", {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: { roster_participant_id: rosterId, display_name: sub.displayName, gender: sub.gender, is_active: true, updated_at: new Date().toISOString() },
+    });
+  } catch (_) { /* non-blocking: 룰렛 추가 실패가 신청 자체를 막으면 안됨 */ }
+}
+
+function getRouletteParticipantMode(settings) {
+  return String(settings?.event_name || "").includes("|event_only") ? "event_only" : "open";
+}
+
+function getDisplayEventName(settings) {
+  const name = String(settings?.event_name || "");
+  return name.replace(/[|]event_only/g, "").trim();
+}
+
+async function getRouletteSettingsSupabase(requestSupabase) {
+  const rows = await requestSupabase("roulette_settings?id=eq.default&select=*");
+  return normalizeRouletteSettings(rows[0] || null);
 }
 
 function normalizeIdList(value) {
@@ -1845,14 +2177,34 @@ async function saveRouletteSettingsSupabase(requestSupabase, input) {
   });
 }
 
+function parseItemLabel(rawLabel) {
+  const raw = String(rawLabel || "");
+  const sep = raw.lastIndexOf("|||");
+  if (sep === -1) return { displayLabel: raw, quantity: 1 };
+  const qty = parseInt(raw.slice(sep + 3), 10);
+  return { displayLabel: raw.slice(0, sep), quantity: Number.isFinite(qty) && qty >= 1 ? qty : 1 };
+}
+
+function buildItemLabel(displayLabel, quantity) {
+  const q = Math.max(1, Math.round(Number(quantity) || 1));
+  return q === 1 ? String(displayLabel) : String(displayLabel) + "|||" + q;
+}
+
 async function spinRouletteSupabase(requestSupabase, itemId) {
-  const [participants, existing, itemRow] = await Promise.all([
+  const [participants, allResults, itemRow] = await Promise.all([
     requestSupabase("roulette_participants?is_active=eq.true&select=id,roster_participant_id,display_name,gender&order=created_at.asc"),
-    requestSupabase(`roulette_results?item_id=eq.${encodeURIComponent(itemId)}&select=roulette_participant_id`),
+    requestSupabase("roulette_results?select=roulette_participant_id,item_id"),
     requestSupabase(`roulette_items?id=eq.${encodeURIComponent(itemId)}&select=label`),
   ]);
-  const used = new Set(existing.map((result) => result.roulette_participant_id).filter(Boolean));
-  const eligible = participants.filter((participant) => !used.has(participant.id));
+  const { displayLabel, quantity } = parseItemLabel(itemRow[0]?.label || "");
+  const itemDrawCount = allResults.filter((r) => r.item_id === itemId).length;
+  if (itemDrawCount >= quantity) {
+    const error = new Error("이 항목의 추첨이 이미 완료되었습니다.");
+    error.status = 409;
+    throw error;
+  }
+  const usedParticipantIds = new Set(allResults.map((r) => r.roulette_participant_id).filter(Boolean));
+  const eligible = participants.filter((participant) => !usedParticipantIds.has(participant.id));
   if (eligible.length === 0) {
     const error = new Error("이 항목으로 추첨 가능한 룰렛 참가자가 더 이상 없습니다.");
     error.status = 409;
@@ -1866,7 +2218,7 @@ async function spinRouletteSupabase(requestSupabase, itemId) {
   });
 
   // Record to unified prize wins
-  const prizeName = itemRow[0] ? itemRow[0].label : "룰렛 상품";
+  const prizeName = displayLabel || (itemRow[0] ? itemRow[0].label : "룰렛 상품");
   await requestSupabase("prize_wins", {
     method: "POST",
     body: {
@@ -1984,6 +2336,10 @@ async function handleRoulettePublicAction(body) {
       const rosterId = String(body.rosterId || "").trim();
       if (!rosterId) return { error: "참가자를 선택해주세요." };
       if (hasSupabaseConfig()) {
+        const currentSettings = await getRouletteSettingsSupabase(requestSupabase);
+        if (getRouletteParticipantMode(currentSettings) === "event_only") {
+          return { error: "이벤트 신청자만 룰렛에 참가할 수 있습니다." };
+        }
         const roster = await requestSupabase(`event_participants?id=eq.${encodeURIComponent(rosterId)}&is_active=eq.true&select=id,display_name,gender`);
         if (!roster.length) return { error: "참가자 명단에서 찾을 수 없습니다." };
         const person = roster[0];
@@ -2291,7 +2647,7 @@ async function handleMatchDetail(body) {
       const me = participants[0];
 
       const matches = await requestSupabase(
-        `match_results?or=(male_participant_id.eq.${me.id},female_participant_id.eq.${me.id})&order=created_at.desc&limit=1`
+        `match_results?matching_intent=eq.romance&or=(male_participant_id.eq.${me.id},female_participant_id.eq.${me.id})&order=created_at.desc&limit=1`
       );
       if (matches.length === 0) {
         return { status: 404, payload: { error: "귀하의 연분 매칭 결과가 존재하지 않습니다." } };
@@ -2381,9 +2737,12 @@ async function handleMatchDetail(body) {
       try {
         const data = await fs.readFile(localResultPath, "utf8");
         const parsed = JSON.parse(data);
-        const localMatch = (parsed.matches || []).find(m =>
-          (m.male?.displayName || "").toLowerCase() === trimmedName.toLowerCase() ||
-          (m.female?.displayName || "").toLowerCase() === trimmedName.toLowerCase()
+        const localMatch = (parsed.matches || []).find((m) =>
+          normalizeMatchingIntent(m.matching_intent || m.matchingIntent) === "romance" &&
+          (
+            (m.male?.displayName || "").toLowerCase() === trimmedName.toLowerCase() ||
+            (m.female?.displayName || "").toLowerCase() === trimmedName.toLowerCase()
+          )
         );
         if (!localMatch) {
           return { status: 404, payload: { error: "매칭 결과를 찾을 수 없습니다." } };
@@ -2436,12 +2795,15 @@ async function handleMatchVote(body) {
     if (hasSupabaseConfig()) {
       // Verify the match exists and participantId belongs to it
       const matches = await requestSupabase(
-        `match_results?id=eq.${encodeURIComponent(matchResultId)}&select=id,match_run_id,male_participant_id,female_participant_id`
+        `match_results?id=eq.${encodeURIComponent(matchResultId)}&select=id,match_run_id,matching_intent,male_participant_id,female_participant_id`
       );
       if (matches.length === 0) {
         return { status: 404, payload: { error: "매칭 결과를 찾을 수 없습니다." } };
       }
       const match = matches[0];
+      if (normalizeMatchingIntent(match.matching_intent) !== "romance") {
+        return { status: 403, payload: { error: "친목 매칭은 투표 없이 재미로 보는 결과입니다." } };
+      }
       if (match.male_participant_id !== participantId && match.female_participant_id !== participantId) {
         return { status: 403, payload: { error: "해당 매칭의 참가자가 아닙니다." } };
       }
@@ -2505,6 +2867,29 @@ async function handleAdminVoteDeadline(cookieHeader, method, body) {
       });
       return { status: 200, payload: { ok: true, runId, voteDeadline: new Date(newDeadline).toISOString() } };
     }
+    if (method === "POST" && body.action === "forceFinalize") {
+      try {
+        const runs = await requestSupabase("match_runs?status=eq.completed&order=created_at.desc&limit=1&select=id");
+        if (!runs || !runs.length) return { status: 404, payload: { error: "완료된 매칭 실행이 없습니다." } };
+        const runId = runs[0].id;
+        const pastDeadline = new Date(Date.now() - 60 * 1000).toISOString();
+        await requestSupabase(`match_runs?id=eq.${encodeURIComponent(runId)}`, {
+          method: "PATCH",
+          headers: { Prefer: "return=minimal" },
+          body: { vote_deadline_at: pastDeadline },
+        });
+        const matches = await requestSupabase(`match_results?match_run_id=eq.${encodeURIComponent(runId)}&matching_intent=eq.romance&select=id,matching_intent,male:male_participant_id(id),female:female_participant_id(id)`);
+        const matchIds = (matches || []).map((m) => m.id);
+        let allVotes = [];
+        if (matchIds.length > 0) {
+          allVotes = await requestSupabase(`match_votes?match_result_id=in.(${matchIds.join(",")})&select=match_result_id,participant_id,selection`);
+        }
+        await finalizeVotesAfterDeadline({ requestSupabase, matches: matches || [], votes: allVotes || [], voteDeadline: pastDeadline });
+        return { status: 200, payload: { ok: true, runId, forcedDeadline: pastDeadline } };
+      } catch (forceErr) {
+        return { status: 500, payload: { error: "즉시 집계 실패: " + forceErr.message } };
+      }
+    }
     return { status: 405, payload: { error: "Method not allowed" } };
   } catch (error) {
     return { status: 500, payload: { error: error.message } };
@@ -2516,6 +2901,11 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "GET" && url.pathname === "/") {
     send(res, 200, "text/html; charset=utf-8", page());
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/saju") {
+    send(res, 200, "text/html; charset=utf-8", sajuPage());
     return;
   }
 
@@ -2571,6 +2961,26 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (req.method === "GET" && url.pathname === "/must-know") {
+    send(res, 200, "text/html; charset=utf-8", mustKnowPage());
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/info") {
+    send(res, 200, "text/html; charset=utf-8", infoPage());
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/matching-info") {
+    send(res, 200, "text/html; charset=utf-8", matchingInfoPage());
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/mbti-matrix") {
+    send(res, 200, "text/html; charset=utf-8", mbtiMatrixPage());
+    return;
+  }
+
   if (req.method === "GET" && url.pathname === "/guide") {
     send(res, 200, "text/html; charset=utf-8", guidePage());
     return;
@@ -2593,6 +3003,11 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "GET" && url.pathname === "/prize-results") {
     send(res, 200, "text/html; charset=utf-8", prizeResultsPage());
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/roulette-prizes") {
+    send(res, 200, "text/html; charset=utf-8", roulettePrizesPage());
     return;
   }
 
@@ -2696,7 +3111,9 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "POST" && url.pathname === "/api/manse") {
     try {
-      sendJson(res, 200, await handleManseApi(await readJson(req)));
+      const result = await handleManseApi(await readJson(req));
+      await autoAddSubmissionToRoulette(result);
+      sendJson(res, 200, result);
     } catch (error) {
       sendJson(res, 400, { error: error.message });
     }
@@ -2714,7 +3131,19 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "POST" && url.pathname === "/api/manse/analyze") {
     try {
-      sendJson(res, 200, await handleManseAnalyzeApi(await readJson(req)));
+      const body = await readJson(req);
+      const result = await handleManseAnalyzeApi(body);
+      await autoAddSubmissionToRoulette(result);
+      sendJson(res, 200, result);
+    } catch (error) {
+      sendJson(res, 400, { error: error.message });
+    }
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/saju/analyze") {
+    try {
+      sendJson(res, 200, await handleSajuOnlyApi(await readJson(req)));
     } catch (error) {
       sendJson(res, 400, { error: error.message });
     }
@@ -2874,10 +3303,12 @@ module.exports = {
   handleManseApi,
   handleManseStartApi,
   handleManseAnalyzeApi,
+  handleSajuOnlyApi,
   handleAdminVoteDeadline,
   handleSecretSubmissions,
   isAdminAuthenticated,
   page,
+  sajuPage,
   matchPage,
   resultsPage,
   roulettePage,
@@ -2886,8 +3317,14 @@ module.exports = {
   secretPage,
   upcomingEventPage,
   promoPage,
+  mustKnowPage,
   guidePage,
+  infoPage,
+  matchingInfoPage,
+  mbtiMatrixPage,
   handleGetPrizeWins,
   handleMarkPrizeWinUsed,
   prizeResultsPage,
+  roulettePrizesPage,
+  autoAddSubmissionToRoulette,
 };

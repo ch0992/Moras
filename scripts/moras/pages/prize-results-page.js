@@ -402,6 +402,83 @@ function prizeResultsPage() {
       background: rgba(255, 255, 255, 0.08);
       border-color: rgba(255, 255, 255, 0.2);
     }
+    .prize-info-banner {
+      margin-top: 28px;
+      padding: 22px 28px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 232, 163, 0.35);
+      background: rgba(255, 232, 163, 0.07);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      text-align: center;
+    }
+    .prize-info-banner .notice-label {
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      color: var(--gold-soft);
+      text-transform: uppercase;
+    }
+    .prize-info-banner .deadline-countdown {
+      font-size: clamp(36px, 7vw, 64px);
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: .06em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .prize-info-banner .deadline-countdown.expired { color: var(--muted); font-size: clamp(22px,4vw,36px); }
+    .prize-info-banner .tz-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .prize-info-banner .tz-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      min-width: 110px;
+    }
+    .prize-info-banner .tz-city {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .prize-info-banner .tz-time {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--gold-soft);
+    }
+    .prize-info-banner .tz-date {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .btn-prize-guide {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 32px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 232, 163, 0.4);
+      background: rgba(255, 232, 163, 0.1);
+      color: var(--gold-soft);
+      font-size: 16px;
+      font-weight: 900;
+      text-decoration: none;
+      transition: all 0.2s;
+      letter-spacing: .04em;
+    }
+    .btn-prize-guide:hover {
+      background: rgba(255, 232, 163, 0.18);
+      border-color: rgba(255, 232, 163, 0.6);
+      transform: translateY(-2px);
+    }
 
     @media (max-width: 820px) {
       main { width: min(100vw - 24px, 540px); padding-top: 104px; }
@@ -436,6 +513,16 @@ function prizeResultsPage() {
       <p class="summary">🌌 룰렛, 사다리, 가차폰 게임을 통해 우주의 조화를 만끽한 당첨자 명단입니다.<br><strong>본인의 이름을 검색</strong>하여 당첨 물품을 조회하고 상품을 사용 처리해 보세요.</p>
       
       <a class="btn-back-home" href="https://moras-event-matching.netlify.app/">🪐 MORAS 대문으로 가기</a>
+
+      <div class="prize-info-banner">
+        <div class="notice-label">⏰ 상품 사용 마감까지</div>
+        <div class="deadline-countdown" id="prize-deadline-countdown">--:--:--</div>
+        <div class="tz-row" id="prize-tz-row"></div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6;">
+          모든 상품은 <strong style="color:var(--gold-soft);">24시간 이내</strong> 사용 완료해야 합니다.<br>기간 내 미사용 시 자동 소멸됩니다.
+        </div>
+        <a class="btn-prize-guide" href="/roulette-prizes" target="_blank">🎁 룰렛 상품 안내 바로가기</a>
+      </div>
     </section>
 
     <!-- Roster Search Panel -->
@@ -689,6 +776,48 @@ function prizeResultsPage() {
         "'": "&#39;",
       }[char]));
     }
+
+    // Prize deadline countdown: 2026-06-04 23:30 EDT = 2026-06-05T03:30:00Z
+    (function() {
+      var deadlineUTC = new Date("2026-06-04T03:30:00Z").getTime();
+      var tzList = [
+        { label: "미 동부 (EDT)", tz: "America/New_York" },
+        { label: "서울 (KST)", tz: "Asia/Seoul" },
+        { label: "호주 시드니", tz: "Australia/Sydney" },
+      ];
+      var tzRow = document.getElementById("prize-tz-row");
+      var countEl = document.getElementById("prize-deadline-countdown");
+
+      // Render timezone blocks
+      var d = new Date(deadlineUTC);
+      tzList.forEach(function(t) {
+        var opts = { timeZone: t.tz, month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false, year: "numeric" };
+        var parts = new Intl.DateTimeFormat("en-US", opts).formatToParts(d);
+        var get = function(type) { return (parts.find(function(p) { return p.type === type; }) || {}).value || ""; };
+        var block = document.createElement("div");
+        block.className = "tz-block";
+        block.innerHTML = '<div class="tz-city">' + t.label + '</div>'
+          + '<div class="tz-time">' + get("month") + "/" + get("day") + " " + get("hour") + ":" + get("minute") + '</div>';
+        tzRow.appendChild(block);
+      });
+
+      function pad(v) { return String(v).padStart(2, "0"); }
+      function tick() {
+        var diff = deadlineUTC - Date.now();
+        if (diff <= 0) {
+          countEl.textContent = "마감됨";
+          countEl.classList.add("expired");
+          clearInterval(timer);
+          return;
+        }
+        var h = Math.floor(diff / 3600000);
+        var m = Math.floor((diff % 3600000) / 60000);
+        var s = Math.floor((diff % 60000) / 1000);
+        countEl.textContent = (h >= 24 ? Math.floor(h/24) + "일 " + pad(h%24) : pad(h)) + ":" + pad(m) + ":" + pad(s);
+      }
+      tick();
+      var timer = setInterval(tick, 1000);
+    })();
   </script>
 </body>
 </html>`;

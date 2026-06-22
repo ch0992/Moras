@@ -13,3 +13,7 @@ data/*.json
 netlify-build/
 .claude/
 .mcp.json
+.env
+.env.bak
+node-compile-cache/
+scratch/

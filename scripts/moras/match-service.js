@@ -17,6 +17,10 @@ const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const MATCH_PROMPT_VERSION = "v2-simple-score";
+const MATCHING_INTENT_SECTIONS = [
+  { key: "romance", label: "썸" },
+  { key: "friendship", label: "친목" },
+];
 
 const ELEMENTS = ["목", "화", "토", "금", "수"];
 const ELEMENT_GENERATES = {
@@ -184,32 +188,47 @@ function clampScore(value, max = 100, min = 0) {
   return Math.max(min, Math.min(max, Number(value.toFixed(2))));
 }
 
-function getMbtiLetters(type) {
-  const normalized = String(type || "").toUpperCase();
-  return normalized.length === 4 ? normalized.split("") : ["", "", "", ""];
+function normalizeMatchingIntent(value) {
+  const intent = String(value || "").trim();
+  if (intent === "friendship" || intent === "친목") return "friendship";
+  return "romance";
 }
 
+const MBTI_COMPATIBILITY_MATRIX = {
+  ISTJ: { ISTJ: 3, ISFJ: 4, INFJ: 2, INTJ: 3, ISTP: 3, ISFP: 3, INFP: 1, INTP: 3, ESTP: 3, ESFP: 3, ENFP: 1, ENTP: 3, ESTJ: 5, ESFJ: 4, ENFJ: 2, ENTJ: 4 },
+  ISFJ: { ISTJ: 4, ISFJ: 3, INFJ: 3, INTJ: 2, ISTP: 3, ISFP: 3, INFP: 3, INTP: 1, ESTP: 3, ESFP: 3, ENFP: 3, ENTP: 1, ESTJ: 4, ESFJ: 5, ENFJ: 4, ENTJ: 2 },
+  INFJ: { ISTJ: 2, ISFJ: 3, INFJ: 3, INTJ: 4, ISTP: 1, ISFP: 3, INFP: 3, INTP: 3, ESTP: 1, ESFP: 3, ENFP: 4, ENTP: 5, ESTJ: 2, ESFJ: 4, ENFJ: 5, ENTJ: 4 },
+  INTJ: { ISTJ: 3, ISFJ: 2, INFJ: 4, INTJ: 3, ISTP: 3, ISFP: 1, INFP: 3, INTP: 3, ESTP: 3, ESFP: 1, ENFP: 5, ENTP: 4, ESTJ: 4, ESFJ: 2, ENFJ: 4, ENTJ: 5 },
+  ISTP: { ISTJ: 3, ISFJ: 3, INFJ: 1, INTJ: 3, ISTP: 3, ISFP: 4, INFP: 2, INTP: 3, ESTP: 5, ESFP: 4, ENFP: 2, ENTP: 4, ESTJ: 3, ESFJ: 3, ENFJ: 1, ENTJ: 3 },
+  ISFP: { ISTJ: 3, ISFJ: 3, INFJ: 3, INTJ: 1, ISTP: 4, ISFP: 3, INFP: 3, INTP: 2, ESTP: 4, ESFP: 5, ENFP: 4, ENTP: 2, ESTJ: 3, ESFJ: 3, ENFJ: 3, ENTJ: 1 },
+  INFP: { ISTJ: 1, ISFJ: 3, INFJ: 3, INTJ: 3, ISTP: 2, ISFP: 3, INFP: 3, INTP: 4, ESTP: 2, ESFP: 4, ENFP: 5, ENTP: 4, ESTJ: 1, ESFJ: 3, ENFJ: 4, ENTJ: 4 },
+  INTP: { ISTJ: 3, ISFJ: 1, INFJ: 3, INTJ: 3, ISTP: 3, ISFP: 2, INFP: 4, INTP: 3, ESTP: 4, ESFP: 2, ENFP: 4, ENTP: 5, ESTJ: 3, ESFJ: 1, ENFJ: 3, ENTJ: 4 },
+  ESTP: { ISTJ: 3, ISFJ: 3, INFJ: 1, INTJ: 3, ISTP: 5, ISFP: 4, INFP: 2, INTP: 4, ESTP: 3, ESFP: 4, ENFP: 2, ENTP: 3, ESTJ: 3, ESFJ: 3, ENFJ: 1, ENTJ: 3 },
+  ESFP: { ISTJ: 3, ISFJ: 3, INFJ: 3, INTJ: 1, ISTP: 4, ISFP: 5, INFP: 4, INTP: 2, ESTP: 4, ESFP: 3, ENFP: 3, ENTP: 2, ESTJ: 3, ESFJ: 3, ENFJ: 3, ENTJ: 1 },
+  ENFP: { ISTJ: 1, ISFJ: 3, INFJ: 4, INTJ: 5, ISTP: 2, ISFP: 4, INFP: 5, INTP: 4, ESTP: 2, ESFP: 3, ENFP: 3, ENTP: 4, ESTJ: 1, ESFJ: 3, ENFJ: 4, ENTJ: 4 },
+  ENTP: { ISTJ: 3, ISFJ: 1, INFJ: 5, INTJ: 4, ISTP: 4, ISFP: 2, INFP: 4, INTP: 5, ESTP: 3, ESFP: 2, ENFP: 4, ENTP: 3, ESTJ: 3, ESFJ: 1, ENFJ: 3, ENTJ: 4 },
+  ESTJ: { ISTJ: 5, ISFJ: 4, INFJ: 2, INTJ: 4, ISTP: 3, ISFP: 3, INFP: 1, INTP: 3, ESTP: 3, ESFP: 3, ENFP: 1, ENTP: 3, ESTJ: 3, ESFJ: 4, ENFJ: 2, ENTJ: 3 },
+  ESFJ: { ISTJ: 4, ISFJ: 5, INFJ: 4, INTJ: 2, ISTP: 3, ISFP: 3, INFP: 3, INTP: 1, ESTP: 3, ESFP: 3, ENFP: 3, ENTP: 1, ESTJ: 4, ESFJ: 3, ENFJ: 3, ENTJ: 2 },
+  ENFJ: { ISTJ: 2, ISFJ: 4, INFJ: 5, INTJ: 4, ISTP: 1, ISFP: 3, INFP: 4, INTP: 3, ESTP: 1, ESFP: 3, ENFP: 4, ENTP: 3, ESTJ: 2, ESFJ: 3, ENFJ: 3, ENTJ: 4 },
+  ENTJ: { ISTJ: 4, ISFJ: 2, INFJ: 4, INTJ: 5, ISTP: 3, ISFP: 1, INFP: 4, INTP: 4, ESTP: 3, ESFP: 1, ENFP: 4, ENTP: 4, ESTJ: 3, ESFJ: 2, ENFJ: 4, ENTJ: 3 }
+};
+
 function scoreMbtiCompatibility(typeA, typeB) {
-  const [a1, a2, a3, a4] = getMbtiLetters(typeA);
-  const [b1, b2, b3, b4] = getMbtiLetters(typeB);
-  if (!a1 || !b1) return 70;
-
-  let score = 58;
-  const sameCount = [a1 === b1, a2 === b2, a3 === b3, a4 === b4].filter(Boolean).length;
-
-  score += a2 === b2 ? 8 : 3; // 대화 주제와 세계관
-  score += a3 === b3 ? 4 : 6; // 판단 방식은 같아도 좋고 보완되어도 좋음
-  score += a4 === b4 ? 7 : 2; // 생활 리듬
-  score += a1 === b1 ? 3 : 5; // 에너지 방향은 보완형도 긍정
-
-  if (sameCount === 2) score += 5;
-  if (sameCount === 3) score += 2;
-  if (sameCount === 4) score -= 4;
-  if (a2 === "N" && b2 === "N") score += 3;
-  if (a3 !== b3 && a4 === b4) score += 3;
-  if (a2 !== b2 && a4 !== b4) score -= 7;
-
-  return clampScore(score, 94, 45);
+  const normA = String(typeA || "").toUpperCase().trim();
+  const normB = String(typeB || "").toUpperCase().trim();
+  
+  const level = MBTI_COMPATIBILITY_MATRIX[normA]?.[normB];
+  if (!level) return 70;
+  
+  const scoreMap = {
+    5: 100,
+    4: 80,
+    3: 70,
+    2: 60,
+    1: 50
+  };
+  
+  return scoreMap[level] || 70;
 }
 
 function getElementCounts(manse) {
@@ -289,17 +308,17 @@ function scoreSajuCompatibility(personA, personB) {
   const stemScore = scoreDayStemRelation(personA, personB);
   const branchScore = scoreDayBranchRelation(personA, personB);
   const score =
-    46 +
-    elementScore * 0.9 +
-    stemScore * 1.1 +
-    branchScore;
-  return clampScore(score, 96, 42);
+    50 +
+    elementScore * 0.8 +
+    stemScore * 1.25 +
+    branchScore * 1.0;
+  return clampScore(score, 100, 50);
 }
 
 function relationTypeFor(scoreDetail) {
-  if (scoreDetail.consistencyScore >= 84 && scoreDetail.baseScore >= 78) return "안정적 장기형";
-  if (scoreDetail.mbtiScore >= 82 && scoreDetail.sajuScore >= 74) return "대화 몰입형";
-  if (scoreDetail.sajuScore >= 84 && scoreDetail.mbtiScore < 72) return "상호 보완형";
+  if (scoreDetail.consistencyScore >= 80 && scoreDetail.baseScore >= 75) return "안정적 장기형";
+  if (scoreDetail.mbtiScore >= 80 && scoreDetail.sajuScore >= 70) return "대화 몰입형";
+  if (scoreDetail.sajuScore >= 80 && scoreDetail.mbtiScore <= 70) return "상호 보완형";
   if (scoreDetail.rawDeviation >= 22) return "강한 끌림 조율형";
   return "균형 탐색형";
 }
@@ -318,12 +337,12 @@ function isMaritalCompatible(a, b) {
   return true;
 }
 
-function buildScoreDetails(males, females) {
+function buildScoreDetails(males, females, { useMaritalFilter = true } = {}) {
   const pairDetails = [];
 
   for (const male of males) {
     for (const female of females) {
-      if (!isMaritalCompatible(male, female)) continue;
+      if (useMaritalFilter && !isMaritalCompatible(male, female)) continue;
       const mbtiScore = scoreMbtiCompatibility(male.mbti, female.mbti);
       const sajuScore = scoreSajuCompatibility(male, female);
       pairDetails.push({
@@ -343,7 +362,7 @@ function buildScoreDetails(males, females) {
   for (const detail of pairDetails) {
     const deviationRatio = maxDeviation > 0 ? (detail.rawDeviation / maxDeviation) * 100 : 0;
     const consistencyScore = 100 - deviationRatio;
-    const baseScore = (detail.mbtiScore + detail.sajuScore) / 2;
+    const baseScore = detail.mbtiScore * 0.3 + detail.sajuScore * 0.7;
     const finalScore = baseScore * 0.88 + consistencyScore * 0.12;
     const scoreDetail = {
       mbtiScore: clampScore(detail.mbtiScore),
@@ -353,7 +372,7 @@ function buildScoreDetails(males, females) {
       deviationRatio: clampScore(deviationRatio),
       consistencyScore: clampScore(consistencyScore),
       baseScore: clampScore(baseScore),
-      finalScore: clampScore(finalScore, 97, 40),
+      finalScore: clampScore(finalScore, 100, 50),
     };
     scoreDetail.relationshipType = relationTypeFor(scoreDetail);
     scoreDetail.narrative = buildScoreNarrative(detail.male, detail.female, scoreDetail);
@@ -436,6 +455,40 @@ function solveBipartiteMatching(males, females, scoreMatrix) {
   return { matches, unmatched };
 }
 
+function buildFriendshipRecommendations(males, females, scoreMatrix, detailMatrix, limit = 3) {
+  const recommendations = [];
+
+  for (const male of males) {
+    const ranked = females
+      .map((female) => ({
+        participantId: male.id,
+        recommendedParticipantId: female.id,
+        score: scoreMatrix[male.id]?.[female.id],
+        scoreDetail: detailMatrix[male.id]?.[female.id] || null,
+      }))
+      .filter((item) => item.score !== undefined)
+      .sort((a, b) => b.score - a.score || String(a.recommendedParticipantId).localeCompare(String(b.recommendedParticipantId)))
+      .slice(0, limit);
+    recommendations.push(...ranked.map((item, index) => ({ ...item, rank: index + 1 })));
+  }
+
+  for (const female of females) {
+    const ranked = males
+      .map((male) => ({
+        participantId: female.id,
+        recommendedParticipantId: male.id,
+        score: scoreMatrix[male.id]?.[female.id],
+        scoreDetail: detailMatrix[male.id]?.[female.id] || null,
+      }))
+      .filter((item) => item.score !== undefined)
+      .sort((a, b) => b.score - a.score || String(a.recommendedParticipantId).localeCompare(String(b.recommendedParticipantId)))
+      .slice(0, limit);
+    recommendations.push(...ranked.map((item, index) => ({ ...item, rank: index + 1 })));
+  }
+
+  return recommendations;
+}
+
 // 4. Batch Orchestrator
 async function runMatchingBatch(runId = null) {
   const currentRunId = runId || crypto.randomUUID();
@@ -471,6 +524,7 @@ async function runMatchingBatch(runId = null) {
         manse: row.manse_result,
         maritalStatus: row.marital_status || row.raw_submission?.maritalStatus || null,
         matchingMaritalRange: row.raw_submission?.matchingMaritalRange || [],
+        matchingIntent: normalizeMatchingIntent(row.matching_intent || row.raw_submission?.matchingIntent),
       }));
     } else {
       const localPath = path.join(__dirname, "../../data/dev-submissions.json");
@@ -483,39 +537,79 @@ async function runMatchingBatch(runId = null) {
       }
     }
 
-    // Filter active valid participants with gender
-    const activeParticipants = participants.filter((p) => p.gender === "남" || p.gender === "여");
-    const males = activeParticipants.filter((p) => p.gender === "남");
-    const females = activeParticipants.filter((p) => p.gender === "여");
-    console.log(`Marital filter: males=${males.map(m => m.maritalStatus).join(",")}, females=${females.map(f => f.maritalStatus).join(",")}`);
+    // Filter active valid participants with gender, then run matching per intent section.
+    const activeParticipants = participants
+      .filter((p) => p.gender === "남" || p.gender === "여")
+      .map((p) => ({ ...p, matchingIntent: normalizeMatchingIntent(p.matchingIntent) }));
+    const allMatches = [];
+    const allUnmatched = [];
+    const allFriendshipRecommendations = [];
+    const detailMatrices = {};
 
-    console.log(`Active participants: ${activeParticipants.length} (Males: ${males.length}, Females: ${females.length})`);
+    console.log(`Active participants: ${activeParticipants.length}`);
 
-    if (males.length === 0 || females.length === 0) {
-      throw new Error("매칭을 진행하기 위해선 최소 남성 1명, 여성 1명이 필요합니다.");
+    for (const section of MATCHING_INTENT_SECTIONS) {
+      const sectionParticipants = activeParticipants.filter((p) => p.matchingIntent === section.key);
+      const males = sectionParticipants.filter((p) => p.gender === "남");
+      const females = sectionParticipants.filter((p) => p.gender === "여");
+
+      console.log(`${section.label} participants: ${sectionParticipants.length} (Males: ${males.length}, Females: ${females.length})`);
+
+      if (!sectionParticipants.length) continue;
+
+      if (males.length === 0 || females.length === 0) {
+        if (section.key === "friendship") continue;
+        allUnmatched.push(...sectionParticipants.map((p) => ({
+          id: p.id,
+          matchingIntent: section.key,
+          reason: `${section.label} 그룹 성비 불균형으로 인한 미매칭`,
+        })));
+        continue;
+      }
+
+      const { scoreMatrix, detailMatrix } = buildScoreDetails(males, females, {
+        useMaritalFilter: section.key === "romance",
+      });
+      detailMatrices[section.key] = detailMatrix;
+
+      if (section.key === "friendship") {
+        allFriendshipRecommendations.push(...buildFriendshipRecommendations(males, females, scoreMatrix, detailMatrix, 3));
+        continue;
+      }
+
+      const { matches, unmatched } = solveBipartiteMatching(males, females, scoreMatrix);
+      matches.sort((a, b) => b.score - a.score);
+
+      allMatches.push(...matches.map((match, index) => ({
+        ...match,
+        matchingIntent: section.key,
+        rank: index + 1,
+        isTopMatch: index === 0,
+      })));
+      allUnmatched.push(...unmatched.map((id) => ({
+        id,
+        matchingIntent: section.key,
+        reason: `${section.label} 그룹 성비 불균형으로 인한 미매칭`,
+      })));
     }
 
-    // 2. Compute all candidate scores with the simple deterministic formula.
-    const { scoreMatrix, detailMatrix } = buildScoreDetails(males, females);
+    if (allMatches.length === 0 && allFriendshipRecommendations.length === 0) {
+      throw new Error("매칭 가능한 썸/친목 그룹이 없습니다. 각 그룹에 최소 남성 1명, 여성 1명이 필요합니다.");
+    }
 
-    // 3. Solve optimal bipartite match.
-    const { matches, unmatched } = solveBipartiteMatching(males, females, scoreMatrix);
-
-    console.log(`Match solving completed: ${matches.length} matches, ${unmatched.length} unmatched.`);
-
-    // Sort matches by final score to assign rank and set top match.
-    matches.sort((a, b) => b.score - a.score);
+    console.log(`Match solving completed: ${allMatches.length} romance matches, ${allFriendshipRecommendations.length} friendship recommendations, ${allUnmatched.length} unmatched.`);
 
     // 4. Save results to DB / Local JSON.
     if (hasSupabaseConfig()) {
-      const resultsToInsert = matches.map((m, index) => ({
+      const resultsToInsert = allMatches.map((m) => ({
         match_run_id: currentRunId,
         male_participant_id: m.maleId,
         female_participant_id: m.femaleId,
+        matching_intent: m.matchingIntent,
         average_score: m.score,
-        score_detail: detailMatrix[m.maleId][m.femaleId],
-        rank: index + 1,
-        is_top_match: index === 0, // 1st rank is top match
+        score_detail: detailMatrices[m.matchingIntent][m.maleId][m.femaleId],
+        rank: m.rank,
+        is_top_match: m.isTopMatch,
         confirmed_by_operator: false,
       }));
 
@@ -528,10 +622,10 @@ async function runMatchingBatch(runId = null) {
       }
 
       const evaluationsToInsert = [];
-      for (const m of matches) {
-        const male = males.find((p) => p.id === m.maleId);
-        const female = females.find((p) => p.id === m.femaleId);
-        const detail = detailMatrix[m.maleId][m.femaleId];
+      for (const m of allMatches) {
+        const male = activeParticipants.find((p) => p.id === m.maleId);
+        const female = activeParticipants.find((p) => p.id === m.femaleId);
+        const detail = detailMatrices[m.matchingIntent][m.maleId][m.femaleId];
         const reason = detail.narrative;
         const keywords = [detail.relationshipType, "MBTI궁합", "사주궁합", "편차보정"];
         evaluationsToInsert.push({
@@ -566,10 +660,11 @@ async function runMatchingBatch(runId = null) {
         });
       }
 
-      const unmatchedToInsert = unmatched.map((id) => ({
+      const unmatchedToInsert = allUnmatched.map((item) => ({
         match_run_id: currentRunId,
-        participant_id: id,
-        reason: "성비 불균형으로 인한 미매칭",
+        participant_id: item.id,
+        matching_intent: item.matchingIntent,
+        reason: item.reason,
       }));
 
       if (unmatchedToInsert.length > 0) {
@@ -577,6 +672,23 @@ async function runMatchingBatch(runId = null) {
           method: "POST",
           headers: { Prefer: "return=minimal" },
           body: unmatchedToInsert,
+        });
+      }
+
+      const friendshipToInsert = allFriendshipRecommendations.map((item) => ({
+        match_run_id: currentRunId,
+        participant_id: item.participantId,
+        recommended_participant_id: item.recommendedParticipantId,
+        rank: item.rank,
+        score: item.score,
+        score_detail: item.scoreDetail,
+      }));
+
+      if (friendshipToInsert.length > 0) {
+        await requestSupabase("friendship_recommendations", {
+          method: "POST",
+          headers: { Prefer: "return=minimal" },
+          body: friendshipToInsert,
         });
       }
 
@@ -596,8 +708,9 @@ async function runMatchingBatch(runId = null) {
       return {
         success: true,
         matchRunId: currentRunId,
-        matchesCount: matches.length,
-        unmatchedCount: unmatched.length,
+        matchesCount: allMatches.length,
+        friendshipRecommendationsCount: allFriendshipRecommendations.length,
+        unmatchedCount: allUnmatched.length,
       };
     } else {
       // Local JSON fallback - write results to local file
@@ -605,15 +718,29 @@ async function runMatchingBatch(runId = null) {
       const localData = {
         matchRunId: currentRunId,
         completedAt: new Date().toISOString(),
-        matches: matches.map((m, idx) => ({
-          rank: idx + 1,
-          isTop: idx === 0,
-          male: males.find((p) => p.id === m.maleId),
-          female: females.find((p) => p.id === m.femaleId),
+        matches: allMatches.map((m) => ({
+          rank: m.rank,
+          isTop: m.isTopMatch,
+          matchingIntent: m.matchingIntent,
+          matching_intent: m.matchingIntent,
+          male: activeParticipants.find((p) => p.id === m.maleId),
+          female: activeParticipants.find((p) => p.id === m.femaleId),
           score: m.score,
-          score_detail: detailMatrix[m.maleId][m.femaleId],
+          score_detail: detailMatrices[m.matchingIntent][m.maleId][m.femaleId],
         })),
-        unmatched: unmatched.map((id) => participants.find((p) => p.id === id)),
+        unmatched: allUnmatched.map((item) => ({
+          ...participants.find((p) => p.id === item.id),
+          matchingIntent: item.matchingIntent,
+          matching_intent: item.matchingIntent,
+          unmatchedReason: item.reason,
+        })),
+        friendshipRecommendations: allFriendshipRecommendations.map((item) => ({
+          participant: activeParticipants.find((p) => p.id === item.participantId),
+          recommended: activeParticipants.find((p) => p.id === item.recommendedParticipantId),
+          rank: item.rank,
+          score: item.score,
+          score_detail: item.scoreDetail,
+        })),
       };
       await fs.writeFile(localResultPath, JSON.stringify(localData, null, 2), "utf8");
       console.log(`Local match result saved to: ${localResultPath}`);
@@ -621,8 +748,9 @@ async function runMatchingBatch(runId = null) {
       return {
         success: true,
         matchRunId: currentRunId,
-        matchesCount: matches.length,
-        unmatchedCount: unmatched.length,
+        matchesCount: allMatches.length,
+        friendshipRecommendationsCount: allFriendshipRecommendations.length,
+        unmatchedCount: allUnmatched.length,
       };
     }
   } catch (error) {
@@ -652,4 +780,5 @@ module.exports = {
   solveBipartiteMatching,
   requestSupabase,
   hasSupabaseConfig,
+  normalizeMatchingIntent,
 };

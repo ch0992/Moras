@@ -117,6 +117,83 @@ function resultsPage() {
       display: grid;
       gap: 14px;
     }
+    .result-section {
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 20px;
+      border: 1px solid rgba(255, 232, 163, 0.14);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.035);
+    }
+    .section-head h2 {
+      margin: 0;
+      color: var(--gold-soft);
+      font-size: clamp(26px, 4vw, 36px);
+      font-weight: 900;
+      letter-spacing: -0.01em;
+    }
+    .section-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .section-count {
+      color: #FFE8A3;
+      font-size: clamp(20px, 3vw, 28px);
+      font-weight: 900;
+      white-space: nowrap;
+      opacity: 0.85;
+    }
+    .global-search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .section-search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 20px 14px;
+    }
+    .section-search-input {
+      flex: 1;
+      max-width: 320px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.35);
+      color: #fff;
+      font-size: 13.5px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 180ms ease;
+    }
+    .section-search-input::placeholder { color: rgba(255,255,255,0.3); }
+    .section-search-input:focus { border-color: rgba(255,232,163,0.5); }
+    .section-search-clear {
+      padding: 7px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      font-size: 12px;
+      cursor: pointer;
+      display: none;
+    }
+    .section-search-count {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
     .couple {
       display: grid;
       grid-template-columns: 62px minmax(150px, 1fr) minmax(150px, 1fr) minmax(210px, 0.9fr) 94px;
@@ -337,31 +414,146 @@ function resultsPage() {
       font-weight: 800;
     }
     .error { color: #FCA5A5; }
+    /* ── Deadline Banner ── */
+    .deadline-banner {
+      background: linear-gradient(135deg, rgba(255,232,163,0.10), rgba(10,15,30,0.85));
+      border: 1px solid rgba(255,232,163,0.28);
+      border-radius: 20px;
+      padding: 24px 28px 20px;
+      margin-bottom: 28px;
+      text-align: center;
+    }
+    .deadline-banner.expired {
+      background: linear-gradient(135deg, rgba(239,68,68,0.10), rgba(10,15,30,0.85));
+      border-color: rgba(239,68,68,0.28);
+    }
+    .deadline-banner-label {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold-soft);
+      margin-bottom: 10px;
+    }
+    .deadline-banner.expired .deadline-banner-label { color: #f87171; }
+    .deadline-countdown {
+      font-size: clamp(36px, 8vw, 72px);
+      font-weight: 900;
+      font-family: 'Cinzel', serif;
+      color: #FFE8A3;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      margin-bottom: 16px;
+      text-shadow: 0 0 40px rgba(255,232,163,0.4);
+    }
+    .deadline-countdown.expired-text {
+      color: #f87171;
+      text-shadow: 0 0 40px rgba(239,68,68,0.4);
+    }
+    .deadline-tzrow {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .deadline-tz {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+      min-width: 120px;
+    }
+    .deadline-tz-city {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+    }
+    .deadline-tz-time {
+      font-size: 15px;
+      font-weight: 800;
+      color: #F8FAFC;
+    }
+    .deadline-tz-date {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+    }
+    /* old deadline-bar kept minimal for vote CTA */
     .deadline-bar {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 14px;
       flex-wrap: wrap;
-      padding: 12px 18px;
-      background: rgba(255,232,163,0.06);
-      border: 1px solid rgba(255,232,163,0.18);
-      border-radius: 12px;
-      margin-bottom: 20px;
+      margin-top: 4px;
     }
-    .deadline-label {
-      font-size: 12px;
-      font-weight: 800;
+    .deadline-label { display: none; }
+    .deadline-time { display: none; }
+    .final-summary {
+      margin: 18px 0;
+      padding: 22px;
+      border: 1px solid rgba(74,222,128,0.28);
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(74,222,128,0.10), rgba(10,15,30,0.76));
+      box-shadow: 0 22px 52px rgba(0,0,0,0.26);
+    }
+    .final-summary h2 {
+      margin: 0;
+      color: #bbf7d0;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+    .final-summary p {
+      margin: 8px 0 0;
+      color: #CBD5E1;
+      line-height: 1.6;
+      word-break: keep-all;
+    }
+    .final-count {
+      display: inline-flex;
+      margin-top: 14px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(74,222,128,0.13);
+      border: 1px solid rgba(74,222,128,0.22);
+      color: #86efac;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .final-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .final-match {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .final-pair {
+      color: #fff;
+      font-weight: 900;
+      line-height: 1.45;
+      word-break: keep-all;
+    }
+    .final-score {
       color: var(--gold-soft);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+      font-size: 13px;
+      font-weight: 900;
       white-space: nowrap;
     }
-    .deadline-time {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text);
-    }
-    .deadline-time.expired { color: #f87171; }
     .match-cta-btn {
       margin-left: auto;
       background: var(--gold-soft);
@@ -389,12 +581,97 @@ function resultsPage() {
     .vote-badge.voted { background: rgba(74,222,128,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
     .vote-badge.pending { background: rgba(255,255,255,0.06); color: var(--muted); }
     .vote-badge.no-vote { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+    .vote-badge.mutual { background: rgba(74,222,128,0.15); color: #86efac; border: 1px solid rgba(74,222,128,0.3); }
+    .vote-badge.not-mutual { background: rgba(148,163,184,0.12); color: #CBD5E1; border: 1px solid rgba(148,163,184,0.18); }
+    .friend-card {
+      display: grid;
+      gap: 12px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(10, 15, 30, 0.72);
+      box-shadow: 0 22px 50px rgba(0,0,0,0.24);
+    }
+    .friend-card h3 {
+      margin: 0;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+    .friend-sub {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+    .friend-detail-sections {
+      display: grid;
+      gap: 12px;
+    }
+    .friend-detail-section {
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .friend-detail-section-label {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      color: var(--gold-soft);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .friend-detail-section-title {
+      font-size: 15px;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .friend-detail-section p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+      word-break: keep-all;
+    }
+    .friend-talk-list {
+      margin: 8px 0 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .friend-summary {
+      margin-top: 4px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: rgba(255,232,163,0.07);
+      border: 1px solid rgba(255,232,163,0.15);
+    }
+    .friend-summary-label {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      color: var(--gold-soft);
+      margin-bottom: 6px;
+    }
+    .friend-summary p {
+      margin: 0;
+      color: rgba(255,255,255,0.82);
+      font-size: 13.5px;
+      line-height: 1.7;
+      word-break: keep-all;
+    }
+    .friend-summary strong { color: #fff; }
 
         @media (max-width: 820px) {
       main { width: min(100vw - 24px, 560px); padding-top: 104px; }
       .hero { padding: 24px 20px; }
       .couple { grid-template-columns: 1fr; }
       .rank { width: 100%; height: 38px; }
+      .final-match { align-items: flex-start; flex-direction: column; }
       button { width: 100%; }
       .detail-grid { grid-template-columns: 1fr; }
     }
@@ -422,38 +699,76 @@ function resultsPage() {
         const response = await fetch("/api/results", { cache: "no-store" });
         const body = await response.json();
         if (!response.ok) throw new Error(body.error || "매칭 결과를 불러오지 못했습니다.");
-        renderResults(body.matches || [], body.voteDeadline || null);
+        renderResults(body.sections || null, body.matches || [], body.voteDeadline || null, body.finalSummary || null);
       } catch (error) {
         statusEl.textContent = "매칭 결과 조회 실패";
         listEl.innerHTML = '<div class="error">' + escapeHtml(error.message) + '</div>';
       }
     }
 
-    function renderResults(matches, voteDeadline) {
+    function renderResults(sections, matches, voteDeadline, finalSummary) {
+      const resultSections = normalizeSections(sections, matches);
+      const totalMatches = resultSections.reduce((sum, section) => sum + section.matches.length, 0);
       const deadlinePassed = voteDeadline ? new Date(voteDeadline).getTime() < Date.now() : false;
 
-      // Deadline + vote CTA bar
+      // Deadline banner with multi-timezone + countdown
       let deadlineHtml = "";
       if (voteDeadline) {
         const d = new Date(voteDeadline);
-        const fmt = d.getFullYear() + "." + String(d.getMonth()+1).padStart(2,"0") + "." + String(d.getDate()).padStart(2,"0") + " " + String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
-        deadlineHtml = '<div class="deadline-bar">' +
-          '<span class="deadline-label">' + (deadlinePassed ? "매칭 선택 종료" : "매칭 선택 마감") + '</span>' +
-          '<span class="deadline-time' + (deadlinePassed ? " expired" : "") + '">' + fmt + '</span>' +
-          '<a href="/match" class="match-cta-btn">매칭 투표하러 가기 →</a>' +
+        function tzBlock(city, tz) {
+          var opts = { timeZone: tz, month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false };
+          var parts = new Intl.DateTimeFormat("en-US", { ...opts, year: "numeric" }).formatToParts(d);
+          var get = function(t) { return (parts.find(function(p) { return p.type === t; }) || {}).value || ""; };
+          var dateStr = get("year") + "." + get("month") + "." + get("day");
+          var timeStr = get("hour") + ":" + get("minute");
+          var tzAbbr = { "America/New_York": "뉴욕", "Asia/Seoul": "한국", "Australia/Sydney": "호주 시드니" }[tz] || city;
+          return '<div class="deadline-tz"><span class="deadline-tz-city">' + tzAbbr + '</span><span class="deadline-tz-time">' + timeStr + '</span><span class="deadline-tz-date">' + dateStr + '</span></div>';
+        }
+        var tzRowHtml = tzBlock("뉴욕", "America/New_York") + tzBlock("한국", "Asia/Seoul") + tzBlock("시드니", "Australia/Sydney");
+        var ctaHtml = deadlinePassed ? "" : '<a href="/match" class="match-cta-btn" style="margin-top:4px;">매칭 투표하러 가기 →</a>';
+        deadlineHtml = '<div class="deadline-banner' + (deadlinePassed ? " expired" : "") + '" id="deadline-banner">' +
+          '<div class="deadline-banner-label">' + (deadlinePassed ? "매칭 선택 종료" : "매칭 선택 마감") + '</div>' +
+          '<div class="deadline-countdown' + (deadlinePassed ? " expired-text" : "") + '" id="deadline-countdown">' + (deadlinePassed ? "종료됨" : "--:--:--") + '</div>' +
+          '<div class="deadline-tzrow">' + tzRowHtml + '</div>' +
+          '<div class="deadline-bar">' + ctaHtml + '</div>' +
           '</div>';
+        /* Start countdown ticker */
+        if (!deadlinePassed) {
+          if (window._countdownTimer) clearInterval(window._countdownTimer);
+          window._deadlineTs = d.getTime();
+          window._countdownTimer = setInterval(function() {
+            var el = document.getElementById("deadline-countdown");
+            if (!el) { clearInterval(window._countdownTimer); return; }
+            var diff = window._deadlineTs - Date.now();
+            if (diff <= 0) {
+              el.textContent = "종료됨";
+              el.classList.add("expired-text");
+              var banner = document.getElementById("deadline-banner");
+              if (banner) banner.classList.add("expired");
+              clearInterval(window._countdownTimer);
+              return;
+            }
+            var h = Math.floor(diff / 3600000);
+            var m = Math.floor((diff % 3600000) / 60000);
+            var s = Math.floor((diff % 60000) / 1000);
+            var hh = h >= 24 ? Math.floor(h / 24) + "일 " + String(h % 24).padStart(2, "0") : String(h).padStart(2, "0");
+            el.textContent = hh + ":" + String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+          }, 1000);
+        }
       } else {
         deadlineHtml = '<div class="deadline-bar"><a href="/match" class="match-cta-btn">매칭 투표하러 가기 →</a></div>';
       }
 
-      statusEl.textContent = matches.length
-        ? "총 " + matches.length + "커플 매칭 완료"
+      statusEl.textContent = totalMatches
+        ? "총 " + totalMatches + "커플 매칭 완료"
         : "아직 공개할 매칭 결과가 없습니다.";
-      if (!matches.length) {
-        listEl.innerHTML = deadlineHtml + '<div class="empty">관리자가 일괄 매칭을 실행하면 이곳에 결과가 표시됩니다.</div>';
+      if (!totalMatches) {
+        listEl.innerHTML = '<div class="empty">관리자가 일괄 매칭을 실행하면 이곳에 결과가 표시됩니다.</div>';
         return;
       }
-      listEl.innerHTML = deadlineHtml + matches.map((match, index) => coupleRow(match, index, deadlinePassed)).join("");
+      const firstVotingIdx = resultSections.findIndex((s) => s.key !== "friendship");
+      listEl.innerHTML = finalSummaryBlock(finalSummary, deadlinePassed) +
+        resultSections.map((section, idx) => sectionBlock(section, deadlineHtml, deadlinePassed, idx === firstVotingIdx)).join("");
       document.querySelectorAll("[data-detail]").forEach((button) => {
         button.addEventListener("click", () => {
           const detail = document.getElementById("detail-" + button.dataset.detail);
@@ -461,31 +776,304 @@ function resultsPage() {
           button.textContent = detail.classList.contains("open") ? "닫기" : "상세";
         });
       });
+      setupGlobalSearch();
+      setupSectionSearch();
     }
 
-    function coupleRow(match, index, deadlinePassed) {
-      const detail = match.score_detail || {};
-      const score = Math.round(Number(match.average_score || detail.finalScore || 0));
-      const male = match.male || {};
-      const female = match.female || {};
-      const rankClass = rankTierClass(match.rank || index + 1);
+    function setupGlobalSearch() {
+      const input = document.getElementById("global-search-input");
+      const countEl = document.getElementById("global-search-count");
+      if (!input) return;
+      input.addEventListener("input", function() {
+        const kw = input.value.trim().toLocaleLowerCase("ko");
+        const rows = document.querySelectorAll("article.couple, .friendship-card-wrap");
+        let visible = 0;
+        rows.forEach(function(row) {
+          const text = (row.textContent || "").toLocaleLowerCase("ko");
+          const show = !kw || text.includes(kw);
+          row.style.display = show ? "" : "none";
+          if (show) visible++;
+        });
+        countEl.textContent = kw ? visible + "명 검색됨" : "";
+      });
+    }
+
+    function setupSectionSearch() {
+      document.querySelectorAll(".section-search-input").forEach((input) => {
+        const sectionKey = input.dataset.searchTarget;
+        const sectionEl = document.querySelector('[data-section="' + sectionKey + '"]');
+        if (!sectionEl) return;
+        const clearBtn = sectionEl.querySelector('[data-search-clear]');
+        const countEl = sectionEl.querySelector('[data-search-count]');
+
+        function getCards() {
+          return Array.from(sectionEl.querySelectorAll("article.couple"));
+        }
+        function getCardText(card) {
+          return Array.from(card.querySelectorAll(".name")).map((el) => el.textContent).join(" ").toLowerCase();
+        }
+        function applyFilter(query) {
+          const q = query.trim().toLowerCase();
+          const cards = getCards();
+          let visible = 0;
+          cards.forEach((card) => {
+            const detail = card.nextElementSibling?.classList.contains("detail") ? card.nextElementSibling : null;
+            if (!q || getCardText(card).includes(q)) {
+              card.style.display = "";
+              if (detail) detail.style.display = "";
+              visible++;
+            } else {
+              card.style.display = "none";
+              if (detail) { detail.style.display = "none"; detail.classList.remove("open"); }
+            }
+          });
+          if (clearBtn) clearBtn.style.display = q ? "inline-block" : "none";
+          if (countEl) countEl.textContent = q ? visible + " / " + cards.length + "명 표시" : "";
+        }
+
+        input.addEventListener("input", () => applyFilter(input.value));
+        if (clearBtn) {
+          clearBtn.addEventListener("click", () => {
+            input.value = "";
+            applyFilter("");
+            input.focus();
+          });
+        }
+      });
+    }
+
+    function finalSummaryBlock(summary, deadlinePassed) {
+      if (!deadlinePassed || !summary || !summary.finalized) return "";
+      const matches = Array.isArray(summary.matches) ? summary.matches : [];
+      const countText = (summary.mutualCount || matches.length || 0) + "커플 성사 / 썸 " + (summary.totalRomanceMatches || 0) + "커플";
+      const body = matches.length
+        ? '<div class="final-list">' + matches.map((match) => {
+            const male = match.male || {};
+            const female = match.female || {};
+            const maleName = male.displayName || male.display_name || "남자 참가자";
+            const femaleName = female.displayName || female.display_name || "여자 참가자";
+            const score = Math.round(Number(match.average_score || 0));
+            return '<div class="final-match"><div class="final-pair">' + escapeHtml(maleName) + ' ↔ ' + escapeHtml(femaleName) + '</div><div class="final-score">' + score + '점 · ' + escapeHtml(match.rank || "-") + '위</div></div>';
+          }).join("") + '</div>'
+        : '<div class="empty" style="margin-top:16px;">상호 O로 성사된 매칭은 없습니다.</div>';
+      return '<section class="final-summary">' +
+        '<h2>상호 매칭 결과</h2>' +
+        '<p>투표 마감 후 서로 O를 선택한 썸 매칭만 최종 성사로 표시됩니다. 미투표는 자동으로 X 처리됩니다.</p>' +
+        '<div class="final-count">' + escapeHtml(countText) + '</div>' +
+        body +
+        '</section>';
+    }
+
+    function normalizeSections(sections, matches) {
+      if (Array.isArray(sections) && sections.length) {
+        return sections.map((section) => ({
+          key: section.key || "romance",
+          label: section.label || (section.key === "friendship" ? "재미로 보는 나와 잘 맞는 이성친구" : "썸 매칭"),
+          description: section.description || (section.key === "friendship" ? "친목 참가자별로 궁합 점수가 가장 높은 이성친구를 보여드립니다." : "서로의 선택까지 이어지는 설렘 매칭입니다."),
+          matches: Array.isArray(section.matches) ? section.matches : [],
+          recommendations: Array.isArray(section.recommendations) ? section.recommendations : [],
+        }));
+      }
+      return [
+        { key: "romance", label: "썸 매칭", description: "서로의 선택까지 이어지는 설렘 매칭입니다.", matches: matches || [] },
+        { key: "friendship", label: "재미로 보는 나와 잘 맞는 이성친구", description: "친목 참가자별로 궁합 점수가 가장 높은 이성친구를 보여드립니다.", matches: [], recommendations: [] },
+      ];
+    }
+
+    function sectionBlock(section, deadlineHtml, deadlinePassed, showSearch) {
+      if (section.key === "friendship") return friendshipSectionBlock(section);
+      const votingEnabled = section.key !== "friendship";
+      const unitLabel = section.key === "friendship" ? "그룹" : "커플";
+      const empty = '<div class="empty">' + escapeHtml(section.label) + ' 결과가 아직 없습니다.</div>';
+      const searchHtml = showSearch
+        ? \`<div class="global-search-wrap"><input class="section-search-input" id="global-search-input" type="search" placeholder="이름으로 검색..." autocomplete="off" style="width:100%;max-width:480px;"><span class="section-search-count" id="global-search-count"></span></div>\`
+        : "";
+      return \`
+        <section class="result-section" data-section="\${escapeHtml(section.key)}">
+          <div class="section-head">
+            <div>
+              <h2>\${escapeHtml(section.label)}</h2>
+              <p>\${escapeHtml(section.description || "")}</p>
+            </div>
+            <div class="section-count">\${section.matches.length}\${unitLabel}</div>
+          </div>
+          \${votingEnabled ? deadlineHtml : ""}
+          \${searchHtml}
+          \${section.matches.length ? section.matches.map((match, index) => coupleRow(match, section.key + "-" + index, deadlinePassed, votingEnabled)).join("") : empty}
+        </section>
+      \`;
+    }
+
+    function friendshipSectionBlock(section) {
+      const cards = Array.isArray(section.recommendations) ? section.recommendations : [];
+      const sorted = cards.slice().sort((a, b) => {
+        const aScore = Number((a.recommendations || [])[0]?.score || 0);
+        const bScore = Number((b.recommendations || [])[0]?.score || 0);
+        return bScore - aScore;
+      });
+      const rendered = sorted.map((card, index) => friendshipCard(card, index)).filter(Boolean);
+      const empty = '<div class="empty">친목 추천 결과가 아직 없습니다.</div>';
+      return \`
+        <section class="result-section" data-section="friendship">
+          <div class="section-head">
+            <div>
+              <h2>\${escapeHtml(section.label || "재미로 보는 나와 잘 맞는 이성친구")}</h2>
+              <p>\${escapeHtml(section.description || "친목 참가자별로 궁합 점수가 가장 높은 이성친구를 보여드립니다.")}</p>
+            </div>
+            <div class="section-count">\${rendered.length}명</div>
+          </div>
+          \${rendered.length ? rendered.join("") : empty}
+        </section>
+      \`;
+    }
+
+    function friendshipCard(card, cardIndex) {
+      const participant = card.participant || {};
+      const recommendations = Array.isArray(card.recommendations) ? card.recommendations : [];
+      const top = recommendations[0];
+      if (!top) return "";
+      const recommended = top.recommended || {};
+      const detail = top.score_detail || {};
+      const score = Math.round(Number(top.score || detail.finalScore || 0));
+      const participantDay = getManse(participant)?.saju?.dayPillar || "일주 미확인";
+      const recommendedDay = getManse(recommended)?.saju?.dayPillar || "일주 미확인";
+      const detailKey = "friend-" + cardIndex;
+      const rankClass = cardIndex === 0 ? "rank-1" : cardIndex === 1 ? "rank-2" : cardIndex === 2 ? "rank-3" : "";
+      const pGender = (participant.gender || "").toLowerCase();
+      const rGender = (recommended.gender || "").toLowerCase();
+      const pIsMale = pGender === "male" || pGender === "남";
+      const pClass = pIsMale ? "male" : "female";
+      const pLabel = pIsMale ? "MAN" : "WOMAN";
+      const rClass = pIsMale ? "female" : "male";
+      const rLabel = pIsMale ? "WOMAN" : "MAN";
       return \`
         <article class="couple \${rankClass}">
-          <div class="rank">\${escapeHtml(match.rank || index + 1)}위</div>
-          \${personBox("male", "MAN", male, match.maleVoted, deadlinePassed)}
-          \${personBox("female", "WOMAN", female, match.femaleVoted, deadlinePassed)}
+          <div class="rank">\${cardIndex + 1}</div>
+          <div class="person \${pClass}">
+            <span class="label">\${pLabel}</span>
+            <div class="name">\${escapeHtml(participant.displayName || participant.display_name || "참가자")}</div>
+            <div class="sub">\${escapeHtml(participant.mbti || "MBTI 미확인")} · \${escapeHtml(participantDay)}</div>
+          </div>
+          <div class="person \${rClass}">
+            <span class="label">\${rLabel}</span>
+            <div class="name">\${escapeHtml(recommended.displayName || recommended.display_name || "추천 친구")}</div>
+            <div class="sub">\${escapeHtml(recommended.mbti || "MBTI 미확인")} · \${escapeHtml(recommendedDay)}</div>
+          </div>
           <div class="score">
             <div class="score-main">\${score}<span>점</span></div>
             <div class="type">\${escapeHtml(detail.relationshipType || "균형 탐색형")}</div>
             <div class="chips">
               <span class="chip">MBTI \${scoreNumber(detail.mbtiScore)}</span>
               <span class="chip">사주 \${scoreNumber(detail.sajuScore)}</span>
+            </div>
+          </div>
+          <button type="button" data-detail="\${detailKey}">상세</button>
+        </article>
+        <section class="detail" id="detail-\${detailKey}">
+          \${friendshipDetailContent(top)}
+        </section>
+      \`;
+    }
+
+    function friendshipDetailContent(recommendation) {
+      const participant = recommendation.participant || {};
+      const recommended = recommendation.recommended || {};
+      const detail = recommendation.score_detail || {};
+      const ownerName = participant.displayName || participant.display_name || "참가자";
+      const friendName = recommended.displayName || recommended.display_name || "추천 친구";
+      const ownerMbti = participant.mbti || "MBTI";
+      const friendMbti = recommended.mbti || "MBTI";
+      const ownerDay = getManse(participant)?.saju?.dayPillar || "일주 정보";
+      const friendDay = getManse(recommended)?.saju?.dayPillar || "일주 정보";
+      const type = detail.relationshipType || "균형 탐색형";
+      const mbtiScore = Math.round(Number(detail.mbtiScore || 0));
+      const sajuScore = Math.round(Number(detail.sajuScore || 0));
+      const consistencyScore = Math.round(Number(detail.consistencyScore || 0));
+      const finalScore = Math.round(Number(detail.finalScore || recommendation.score || 0));
+      const narrative = detail.narrative || "서로의 에너지가 자연스럽게 어우러지는 조합입니다.";
+      const reason = detail.reason || "";
+      const ownerMbtiType = (ownerMbti || "").slice(0,1);
+      const friendMbtiType = (friendMbti || "").slice(0,1);
+      const isOpposite = ownerMbtiType !== friendMbtiType;
+      const mbtiChemDesc = isOpposite
+        ? ownerMbti + "와 " + friendMbti + "는 에너지 방향이 달라 서로에게 신선한 자극이 될 수 있는 조합입니다. 처음에는 속도가 다를 수 있지만, 그 차이가 오히려 대화의 폭을 넓혀줍니다."
+        : ownerMbti + "와 " + friendMbti + "는 에너지 방향이 비슷해 대화 리듬이 자연스럽게 맞아 떨어지는 조합입니다. 공통 관심사를 찾으면 빠르게 가까워질 수 있습니다.";
+      const talkTopics = friendshipTalkTopics(ownerMbti, friendMbti);
+      return \`
+        <div class="friend-detail-sections">
+          <div class="friend-detail-section">
+            <div class="friend-detail-section-label">MBTI 케미 · \${mbtiScore}점</div>
+            <div class="friend-detail-section-title">\${escapeHtml(ownerMbti)} × \${escapeHtml(friendMbti)}</div>
+            <p>\${escapeHtml(mbtiChemDesc)}</p>
+          </div>
+          <div class="friend-detail-section">
+            <div class="friend-detail-section-label">사주 오행 · \${sajuScore}점</div>
+            <div class="friend-detail-section-title">\${escapeHtml(ownerDay)} × \${escapeHtml(friendDay)}</div>
+            <p>\${escapeHtml(narrative)}</p>
+            \${reason ? '<p style="margin-top:8px">' + escapeHtml(reason) + '</p>' : ''}
+          </div>
+          <div class="friend-detail-section">
+            <div class="friend-detail-section-label">추천 대화 포인트</div>
+            <ul class="friend-talk-list">
+              \${talkTopics.map((t) => '<li>' + escapeHtml(t) + '</li>').join("")}
+            </ul>
+          </div>
+          <div class="friend-detail-section">
+            <div class="friend-detail-section-label">점수 산출 기준</div>
+            <div class="chips" style="margin-top:4px">
+              <span class="chip">MBTI \${mbtiScore}점</span>
+              <span class="chip">사주 \${sajuScore}점</span>
+              \${consistencyScore ? '<span class="chip">편차보정 ' + consistencyScore + '점</span>' : ''}
+              <span class="chip">최종 \${finalScore}점</span>
+            </div>
+            <p style="margin-top:10px">MBTI 궁합과 사주 오행의 상생·상극 흐름을 함께 반영하여 점수를 산출했습니다.</p>
+          </div>
+          <div class="friend-summary">
+            <div class="friend-summary-label">종합 평가</div>
+            <p>\${escapeHtml(ownerName)}님과 \${escapeHtml(friendName)}님은 <strong>\${escapeHtml(type)}</strong> 케미로 읽힙니다. \${escapeHtml(narrative)}</p>
+          </div>
+        </div>
+      \`;
+    }
+
+    function friendshipTalkTopics(mbti1, mbti2) {
+      const hasSensor = (m) => m && (m[1] === "S");
+      const hasFeeling = (m) => m && (m[2] === "F");
+      const hasJudging = (m) => m && (m[3] === "J");
+      const topics = ["최근 웃겼던 일 · 짧은 에피소드 교환", "좋아하는 음식 · 최애 맛집 루틴"];
+      if (hasSensor(mbti1) || hasSensor(mbti2)) topics.push("요즘 실제로 해본 것 · 가본 곳 이야기");
+      else topics.push("요즘 빠진 콘텐츠 · 관심 주제");
+      if (hasFeeling(mbti1) || hasFeeling(mbti2)) topics.push("좋아하는 공간 · 분위기 이야기");
+      else topics.push("효율 꿀팁 · 각자의 루틴");
+      if (hasJudging(mbti1) && hasJudging(mbti2)) topics.push("계획 짜는 스타일 · 여행 준비 방식");
+      else topics.push("즉흥 vs 계획 · 서로의 스타일 비교");
+      return topics.slice(0, 4);
+    }
+
+    function coupleRow(match, detailKey, deadlinePassed, votingEnabled) {
+      const detail = match.score_detail || {};
+      const score = Math.round(Number(match.average_score || detail.finalScore || 0));
+      const male = match.male || {};
+      const female = match.female || {};
+      const rankClass = rankTierClass(match.rank || 1);
+      return \`
+        <article class="couple \${rankClass}">
+          <div class="rank">\${escapeHtml(match.rank || 1)}위</div>
+          \${personBox("male", "MAN", male, match.maleVoted, match.maleSelection, deadlinePassed, votingEnabled)}
+          \${personBox("female", "WOMAN", female, match.femaleVoted, match.femaleSelection, deadlinePassed, votingEnabled)}
+          <div class="score">
+            <div class="score-main">\${score}<span>점</span></div>
+            <div class="type">\${escapeHtml(detail.relationshipType || "균형 탐색형")}</div>
+            \${finalStatusBadge(match, deadlinePassed, votingEnabled)}
+            <div class="chips">
+              <span class="chip">MBTI \${scoreNumber(detail.mbtiScore)}</span>
+              <span class="chip">사주 \${scoreNumber(detail.sajuScore)}</span>
               <span class="chip">편차보정 \${scoreNumber(detail.consistencyScore)}</span>
             </div>
           </div>
-          <button type="button" data-detail="\${index}">상세</button>
+          <button type="button" data-detail="\${detailKey}">상세</button>
         </article>
-        <section class="detail" id="detail-\${index}">
+        <section class="detail" id="detail-\${detailKey}">
           \${detailContent(match)}
           <div class="formula">
             MBTI \${scoreNumber(detail.mbtiScore)}점과 사주 \${scoreNumber(detail.sajuScore)}점의 평균에,
@@ -495,18 +1083,27 @@ function resultsPage() {
       \`;
     }
 
-    function personBox(className, label, person, hasVoted, deadlinePassed) {
+    function finalStatusBadge(match, deadlinePassed, votingEnabled) {
+      if (!deadlinePassed || !votingEnabled) return "";
+      return match.isMutual
+        ? '<div class="vote-badge mutual">상호 매칭 성사</div>'
+        : '<div class="vote-badge not-mutual">상호 매칭 미성사</div>';
+    }
+
+    function personBox(className, label, person, hasVoted, selection, deadlinePassed, votingEnabled) {
       const manse = getManse(person);
       const dayPillar = manse?.saju?.dayPillar || "일주 미확인";
       let voteStatus = "";
-      if (deadlinePassed) {
-        voteStatus = hasVoted
-          ? '<div class="vote-badge voted">투표 완료</div>'
-          : '<div class="vote-badge no-vote">미투표 (자동 X)</div>';
-      } else {
-        voteStatus = hasVoted
-          ? '<div class="vote-badge voted">투표 완료</div>'
-          : '<div class="vote-badge pending">투표 대기중</div>';
+      if (votingEnabled) {
+        if (deadlinePassed) {
+          voteStatus = selection === "yes"
+            ? '<div class="vote-badge voted">O 선택</div>'
+            : '<div class="vote-badge no-vote">X 선택</div>';
+        } else {
+          voteStatus = hasVoted
+            ? '<div class="vote-badge voted">투표 완료</div>'
+            : '<div class="vote-badge pending">투표 대기중</div>';
+        }
       }
       return \`
         <div class="person \${className}">

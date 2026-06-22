@@ -1095,11 +1095,11 @@ function adminPage() {
       background: rgba(255,255,255,0.04);
     }
     .roulette-check-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
       margin: 10px 0 16px;
-      max-height: 180px;
+      max-height: 320px;
       overflow: auto;
     }
     .roulette-check {
@@ -1113,6 +1113,8 @@ function adminPage() {
       color: var(--text);
       font-size: 13px;
       font-weight: 800;
+      cursor: default;
+      user-select: none;
     }
     .roulette-check input {
       width: auto;
@@ -1122,6 +1124,13 @@ function adminPage() {
     .roulette-check .check-label { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .roulette-check .btn-del-item { flex-shrink:0; width:20px; height:20px; border:0; border-radius:50%; background:rgba(239,68,68,.22); color:#fca5a5; font-size:13px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; transition:background .15s; }
     .roulette-check .btn-del-item:hover { background:rgba(239,68,68,.5); }
+    .drag-handle { cursor: grab; color: var(--muted); font-size: 16px; padding: 0 4px; flex-shrink: 0; }
+    .drag-handle:active { cursor: grabbing; }
+    .qty-controls { display: flex; align-items: center; gap: 4px; flex-shrink: 0; margin-left: auto; }
+    .qty-btn { width: 22px; height: 22px; border: 1px solid rgba(255,255,255,.15); border-radius: 6px; background: rgba(255,255,255,.06); color: #fff; font-size: 14px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: background .15s; }
+    .qty-btn:hover { background: rgba(255,255,255,.14); }
+    .qty-display { min-width: 24px; text-align: center; font-size: 13px; font-weight: 900; color: #FFE8A3; }
+    .roulette-check.drag-over { opacity: 0.5; border-color: rgba(255,232,163,.5); }
     .roulette-participant-tools {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -1154,10 +1163,83 @@ function adminPage() {
     }
     .roulette-mini-pool {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      max-height: 124px;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .roulette-preview-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.07);
+      font-size: 13px;
+      transition: opacity .3s;
+    }
+    .roulette-preview-row.done {
+      opacity: 0.4;
+      background: rgba(255,255,255,.02);
+    }
+    .roulette-preview-row .preview-order {
+      min-width: 22px;
+      font-size: 12px;
+      font-weight: 900;
+      color: rgba(255,232,163,.6);
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .roulette-preview-row .preview-label {
+      flex: 1;
+      font-weight: 800;
+      color: #F8FAFC;
       overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .roulette-preview-row .preview-qty {
+      font-size: 11px;
+      color: rgba(255,232,163,.7);
+      background: rgba(255,232,163,.1);
+      border-radius: 6px;
+      padding: 2px 7px;
+      flex-shrink: 0;
+      font-weight: 700;
+    }
+    .roulette-preview-row .preview-winners {
+      font-size: 12px;
+      color: #4ade80;
+      font-weight: 700;
+      flex-shrink: 0;
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .roulette-preview-row .preview-pending {
+      font-size: 11px;
+      color: rgba(255,255,255,.3);
+      flex-shrink: 0;
+    }
+    .preview-qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .preview-qty-spacer {
+      visibility: hidden;
+      pointer-events: none;
+      width: 74px;
+    }
+    .preview-drag-handle {
+      cursor: grab;
+      flex-shrink: 0;
+    }
+    .preview-drag-handle:active { cursor: grabbing; }
+    .preview-drag-handle-spacer {
+      display: inline-block;
+      width: 20px;
+      flex-shrink: 0;
     }
     @media (max-width: 760px) {
       .roulette-settings-grid {
@@ -1480,6 +1562,7 @@ function adminPage() {
             <input type="datetime-local" id="vote-deadline-input"
               style="height:34px;background:rgba(5,8,17,.72);border:1px solid rgba(255,232,163,0.3);border-radius:8px;color:#fff;padding:0 10px;font-size:12px;font-family:inherit;">
             <button type="button" id="vote-deadline-save" style="height:34px;padding:0 14px;font-size:12px;white-space:nowrap;border-radius:8px;">저장</button>
+            <button type="button" id="vote-force-finalize" style="height:34px;padding:0 14px;font-size:12px;white-space:nowrap;border-radius:8px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:0;cursor:pointer;font-weight:900;">즉시 집계</button>
           </div>
         </div>
       </div>
@@ -1512,6 +1595,7 @@ function adminPage() {
             <div>
               <label style="display:block;margin-bottom:7px;color:var(--muted);font-size:12px;font-weight:900;" for="roulette-event-name">룰렛이벤트 이름</label>
               <input id="roulette-event-name" placeholder="예: 제 1회 룰렛이벤트" style="width:100%;min-height:42px;border-radius:10px;border:1px solid var(--line);background:rgba(5,8,17,.72);color:#fff;padding:0 14px;font-family:inherit;font-size:14px;font-weight:700;">
+              <div id="roulette-mode-badge" style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:900;letter-spacing:.04em;"></div>
             </div>
             <button id="roulette-name-save" type="button" style="height:42px;padding:0 20px;white-space:nowrap;">저장</button>
           </div>
@@ -1552,13 +1636,24 @@ function adminPage() {
         </div>
         <div class="roulette-card">
           <h3>룰렛 참가자 및 추첨 결과 <span id="roulette-participant-count" style="font-size:13px;font-weight:500;color:var(--muted);"></span></h3>
-          <div class="roulette-participant-tools">
-            <input id="roulette-roster-search" placeholder="전체명단에서 이름 검색">
-            <select id="roulette-roster-select"></select>
+          <!-- 참가자 모드 토글 -->
+          <div id="roulette-mode-selector" style="display:flex;gap:8px;margin-bottom:14px;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);">
+            <button id="roulette-mode-open" type="button" class="roulette-mode-btn active" data-mode="open" style="flex:1;padding:8px 0;border-radius:8px;font-size:13px;font-weight:900;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;transition:all .15s;">자유 신청</button>
+            <button id="roulette-mode-event" type="button" class="roulette-mode-btn" data-mode="event_only" style="flex:1;padding:8px 0;border-radius:8px;font-size:13px;font-weight:900;border:1px solid rgba(255,255,255,.08);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;">이벤트 신청자만</button>
           </div>
-          <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:14px;">
-            <button id="roulette-add-participant" type="button" style="width:100%;margin:0;">룰렛 참가자 추가</button>
-            <button id="roulette-add-all" type="button" style="margin:0;white-space:nowrap;">전체추가</button>
+          <div id="roulette-event-only-notice" style="display:none;margin-bottom:12px;padding:10px 14px;border-radius:10px;background:rgba(255,232,163,.07);border:1px solid rgba(255,232,163,.2);font-size:12.5px;color:rgba(255,232,163,.9);">
+            이벤트 신청자가 자동으로 룰렛 참가자로 등록됩니다. 수동 추가/제외는 비활성화됩니다.
+          </div>
+          <!-- 수동 참가자 입력 (event_only 시 비활성화) -->
+          <div id="roulette-manual-input">
+            <div class="roulette-participant-tools">
+              <input id="roulette-roster-search" placeholder="전체명단에서 이름 검색">
+              <select id="roulette-roster-select"></select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:14px;">
+              <button id="roulette-add-participant" type="button" style="width:100%;margin:0;">룰렛 참가자 추가</button>
+              <button id="roulette-add-all" type="button" style="margin:0;white-space:nowrap;">전체추가</button>
+            </div>
           </div>
           <div class="roulette-result-list" id="roulette-results"></div>
         </div>
@@ -2398,10 +2493,16 @@ function adminPage() {
         }
  
         const matches = data.matches.map(normalizeMatch);
+        const sections = Array.isArray(data.sections) && data.sections.length
+          ? data.sections.map((section) => ({
+              ...section,
+              matches: (section.matches || []).map(normalizeMatch),
+            }))
+          : [{ key: "romance", label: "썸 매칭", matches }];
         const unmatched = (data.unmatched || []).map(normalizePerson);
         window.__morasMatches = matches;
         status.textContent = \`매칭 완료 \${matches.length}커플\`;
-        container.innerHTML = matches.map((match, index) => coupleCard(match, index)).join("");
+        container.innerHTML = sections.map((section) => adminMatchSection(section)).join("");
         bindMatchDetailButtons();
  
         // Render Unmatched
@@ -2472,6 +2573,25 @@ function adminPage() {
     });
 
 
+    document.getElementById("vote-force-finalize").addEventListener("click", async () => {
+      if (!confirm("투표 마감을 강제로 적용하고 즉시 집계합니다. 계속하시겠습니까?")) return;
+      const btn = document.getElementById("vote-force-finalize");
+      btn.disabled = true;
+      btn.textContent = "집계 중...";
+      try {
+        const res = await fetch("/api/admin/vote-deadline", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "forceFinalize" }),
+        });
+        const data = await res.json();
+        if (!res.ok) { alert(data.error || "집계 실패"); return; }
+        await loadVoteDeadline();
+        alert("즉시 집계가 완료되었습니다. 결과를 확인하세요.");
+      } catch(e) { alert("서버 오류"); }
+      finally { btn.disabled = false; btn.textContent = "즉시 집계"; }
+    });
+
     function normalizeMatch(match) {
       return {
         ...match,
@@ -2488,6 +2608,28 @@ function adminPage() {
         mbti: person?.mbti || "",
         manse: person?.manse || person?.manse_result || null,
       };
+    }
+
+    function adminMatchSection(section) {
+      const description = section.key === "friendship"
+        ? "투표 없이 재미로 보는 친목 케미 결과"
+        : "매칭 투표 대상 썸 결과";
+      const unitLabel = section.key === "friendship" ? "그룹" : "커플";
+      const body = section.matches.length
+        ? section.matches.map((match, index) => coupleCard(match, section.key + "-" + index)).join("")
+        : '<div class="muted" style="text-align:center;padding:24px 0;">' + escapeHtml(section.label || "매칭") + ' 결과 없음</div>';
+      return \`
+        <section style="display:grid;gap:14px;margin-bottom:22px;">
+          <div style="display:flex;justify-content:space-between;gap:16px;align-items:end;padding:16px 18px;border:1px solid rgba(255,232,163,0.16);border-radius:16px;background:rgba(255,255,255,0.035);">
+            <div>
+              <h3 style="margin:0;color:#FFE8A3;font-size:19px;">\${escapeHtml(section.label || "매칭")}</h3>
+              <div class="muted" style="font-size:12px;margin-top:4px;">\${escapeHtml(description)}</div>
+            </div>
+            <strong style="color:#CBD5E1;font-size:12px;">\${section.matches.length}\${unitLabel}</strong>
+          </div>
+          \${body}
+        </section>
+      \`;
     }
  
     function coupleCard(c, index) {
@@ -2788,9 +2930,29 @@ function adminPage() {
       await loadRoulette();
     });
 
+    function getNextSpinItemId() {
+      var selected = new Set(selectedRouletteItemIds());
+      var slots = getSlotSequence(rouletteState.items).filter(function(id) { return selected.has(id); });
+      var drawnByItem = {};
+      (rouletteState.results || []).forEach(function(r) {
+        var iid = r.item_id || (r.item && r.item.id);
+        if (iid) drawnByItem[iid] = (drawnByItem[iid] || 0) + 1;
+      });
+      var consumedByItem = {};
+      for (var i = 0; i < slots.length; i++) {
+        var itemId = slots[i];
+        var drawn = drawnByItem[itemId] || 0;
+        var consumed = consumedByItem[itemId] || 0;
+        if (consumed < drawn) { consumedByItem[itemId] = consumed + 1; continue; }
+        return itemId;
+      }
+      return null;
+    }
+
     document.getElementById("roulette-spin").addEventListener("click", async () => {
       const wheel = document.getElementById("roulette-wheel");
       const status = document.getElementById("roulette-status");
+      const btn = document.getElementById("roulette-spin");
       const selectedItemIds = selectedRouletteItemIds();
       if (!selectedItemIds.length) {
         status.textContent = "먼저 추첨 항목을 하나 이상 선택해주세요.";
@@ -2800,25 +2962,43 @@ function adminPage() {
         status.textContent = "룰렛 참가자를 먼저 추가해주세요.";
         return;
       }
-      wheel.textContent = "SPIN";
-      status.textContent = "다음 추첨 항목을 돌리는 중...";
-      const response = await fetch("/api/admin/roulette", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "spin", selectedItemIds }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        status.textContent = data.error || "추첨에 실패했습니다.";
-        wheel.textContent = "READY";
+      const totalSlots = getSlotSequence(rouletteState.items).filter(function(id) {
+        return selectedItemIds.includes(id);
+      }).length;
+      if (!totalSlots) {
+        status.textContent = "모든 추첨이 완료되었습니다.";
+        wheel.textContent = "DONE";
         return;
       }
-      const count = data.count ?? 0;
-      const winners = data.winners || [];
-      const winnerNames = winners.map(function(w) { return w.display_name || w.displayName || "당첨자"; }).join(", ");
-      wheel.textContent = count > 0 ? (count === 1 ? (winners[0]?.display_name || winners[0]?.displayName || "당첨") : count + "개 완료") : "DONE";
-      status.textContent = count > 0 ? (winnerNames + " 당첨!") : "이미 모든 추첨이 완료되었습니다.";
-      await loadRoulette();
+      btn.disabled = true;
+      var spinCount = 0;
+      while (true) {
+        const nextItemId = getNextSpinItemId();
+        if (!nextItemId) break;
+        spinCount++;
+        wheel.textContent = "SPIN";
+        status.textContent = spinCount + " / " + totalSlots + " 추첨 중...";
+        const response = await fetch("/api/admin/roulette", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "spin", selectedItemIds, itemId: nextItemId }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          status.textContent = data.error || "추첨에 실패했습니다.";
+          wheel.textContent = "READY";
+          btn.disabled = false;
+          return;
+        }
+        const winners = data.winners || [];
+        const winnerName = winners[0]?.display_name || winners[0]?.displayName || "당첨자";
+        wheel.textContent = winnerName;
+        await loadRoulette();
+        await new Promise(function(r) { setTimeout(r, 800); });
+      }
+      wheel.textContent = "DONE";
+      status.textContent = "전체 " + spinCount + "개 추첨 완료!";
+      btn.disabled = false;
     });
 
     async function loadRoulette() {
@@ -2839,7 +3019,8 @@ function adminPage() {
           settings: data.settings || {},
         };
         const settings = rouletteState.settings;
-        document.getElementById("roulette-event-name").value = settings.event_name || settings.eventName || "";
+        const rawEventName = settings.event_name || settings.eventName || "";
+        document.getElementById("roulette-event-name").value = rawEventName.replace(/[|]event_only$/, "").trim();
         document.getElementById("roulette-start-time").value = toDateTimeLocalValue(settings.starts_at || settings.startsAt);
         document.getElementById("roulette-draw-mode").value = settings.draw_mode || settings.drawMode || "instant";
         updateTimerDisplay();
@@ -2847,45 +3028,184 @@ function adminPage() {
         renderRouletteRosterSelect();
         renderRouletteParticipantsAndResults();
         updateRouletteTimerStatus(settings, rouletteState.items);
+        applyRouletteParticipantMode(data.participantMode || "open");
         status.textContent = "선택 항목 " + selectedRouletteItemIds().length + "개 · 룰렛 참가자 " + rouletteState.participants.length + "명";
       } catch (error) {
         status.textContent = "네트워크 연결 실패";
       }
     }
 
+    function applyRouletteParticipantMode(mode) {
+      const isEventOnly = mode === "event_only";
+      const manualInput = document.getElementById("roulette-manual-input");
+      const notice = document.getElementById("roulette-event-only-notice");
+      const btnOpen = document.getElementById("roulette-mode-open");
+      const btnEvent = document.getElementById("roulette-mode-event");
+      const badge = document.getElementById("roulette-mode-badge");
+      if (manualInput) {
+        manualInput.style.opacity = isEventOnly ? "0.35" : "1";
+        manualInput.style.pointerEvents = isEventOnly ? "none" : "";
+      }
+      if (notice) notice.style.display = isEventOnly ? "block" : "none";
+      if (btnOpen) {
+        btnOpen.style.background = isEventOnly ? "transparent" : "rgba(255,255,255,.08)";
+        btnOpen.style.color = isEventOnly ? "var(--muted)" : "#fff";
+        btnOpen.style.borderColor = isEventOnly ? "rgba(255,255,255,.08)" : "rgba(255,255,255,.14)";
+      }
+      if (btnEvent) {
+        btnEvent.style.background = isEventOnly ? "rgba(255,232,163,.12)" : "transparent";
+        btnEvent.style.color = isEventOnly ? "#FFE8A3" : "var(--muted)";
+        btnEvent.style.borderColor = isEventOnly ? "rgba(255,232,163,.4)" : "rgba(255,255,255,.08)";
+      }
+      if (badge) {
+        if (isEventOnly) {
+          badge.textContent = "🎟️ 이벤트 대상 참가모드";
+          badge.style.background = "rgba(255,232,163,.15)";
+          badge.style.border = "1px solid rgba(255,232,163,.4)";
+          badge.style.color = "#FFE8A3";
+        } else {
+          badge.textContent = "🔓 자유참가모드";
+          badge.style.background = "rgba(255,255,255,.06)";
+          badge.style.border = "1px solid rgba(255,255,255,.14)";
+          badge.style.color = "rgba(255,255,255,.6)";
+        }
+      }
+    }
+
+    document.querySelectorAll(".roulette-mode-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const mode = btn.dataset.mode;
+        const status = document.getElementById("roulette-status");
+        const modeLabel = mode === "event_only" ? "이벤트 대상 참가모드" : "자유참가모드";
+
+        const confirmed = confirm("모드를 [" + modeLabel + "]으로 변경하면 모든 룰렛 참가자 명단이 초기화됩니다. 계속하시겠습니까?");
+        if (!confirmed) return;
+
+        const pw = prompt("암호를 입력하세요");
+        if (pw === null) return;
+        if (pw !== "4321") {
+          alert("암호가 올바르지 않습니다");
+          return;
+        }
+
+        applyRouletteParticipantMode(mode);
+        status.textContent = "모드 변경 및 명단 초기화 중...";
+        const response = await fetch("/api/admin/roulette", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "setParticipantMode", mode }),
+        });
+        const data = await response.json();
+        if (!response.ok) { status.textContent = data.error || "변경 실패"; return; }
+        const syncMsg = mode === "event_only" ? " (" + (data.synced || 0) + "명 자동 등록)" : " (명단 초기화 완료)";
+        status.textContent = "[" + modeLabel + "]으로 변경됨" + syncMsg;
+        await loadRoulette();
+      });
+    });
+
     function selectedRouletteItemIds() {
       return Array.from(document.querySelectorAll(".roulette-item-check:checked")).map((input) => input.value);
     }
 
+    function parseItemLabel(rawLabel) {
+      var raw = String(rawLabel || "");
+      var sep = raw.lastIndexOf("|||");
+      if (sep === -1) return { displayLabel: raw, quantity: 1 };
+      var qty = parseInt(raw.slice(sep + 3), 10);
+      return { displayLabel: raw.slice(0, sep), quantity: Number.isFinite(qty) && qty >= 1 ? qty : 1 };
+    }
+
+    function getSlotSequence(items) {
+      var qtyMap = {};
+      items.forEach(function(item) {
+        qtyMap[item.id] = parseItemLabel(item.label).quantity;
+      });
+      var stored;
+      try { stored = JSON.parse(localStorage.getItem("roulette_slot_sequence") || "[]"); } catch(e) { stored = []; }
+      /* validate: remove unknown/excess slots */
+      var countMap = {};
+      var validated = stored.filter(function(id) {
+        if (!qtyMap[id]) return false;
+        countMap[id] = (countMap[id] || 0) + 1;
+        return countMap[id] <= qtyMap[id];
+      });
+      /* append missing slots at end */
+      items.forEach(function(item) {
+        var have = countMap[item.id] || 0;
+        var need = qtyMap[item.id] || 0;
+        for (var i = have; i < need; i++) validated.push(item.id);
+      });
+      return validated;
+    }
+
+    function saveSlotSequence(seq) {
+      localStorage.setItem("roulette_slot_sequence", JSON.stringify(seq));
+    }
+
+    /* kept for item list rendering order (uses DB order) */
+    function getSortedItems(items) { return items.slice(); }
+
     function renderRouletteItemChecks() {
-      const selected = new Set(rouletteState.settings.selected_item_ids || rouletteState.settings.selectedItemIds || []);
-      const checks = document.getElementById("roulette-item-checks");
-      checks.innerHTML = rouletteState.items.length
-        ? rouletteState.items.map((item) =>
-            '<label class="roulette-check">'
-            + '<input class="roulette-item-check" type="checkbox" value="' + escapeHtml(item.id) + '" ' + (selected.has(item.id) ? "checked" : "") + '>'
-            + '<span class="check-label">' + escapeHtml(item.label) + '</span>'
-            + '<button type="button" class="btn-del-item" data-item-id="' + escapeHtml(item.id) + '" title="삭제">×</button>'
-            + '</label>').join("")
+      var selected = new Set(rouletteState.settings.selected_item_ids || rouletteState.settings.selectedItemIds || []);
+      var checks = document.getElementById("roulette-item-checks");
+      var sortedItems = getSortedItems(rouletteState.items);
+      var participantCount = rouletteState.participants.length;
+      checks.innerHTML = sortedItems.length
+        ? sortedItems.map(function(item) {
+            var parsed = parseItemLabel(item.label);
+            var displayLabel = parsed.displayLabel;
+            var quantity = parsed.quantity;
+            var maxQty = participantCount > 0 ? participantCount : 99;
+            return '<label class="roulette-check" data-item-id="' + escapeHtml(item.id) + '">'
+              + '<input class="roulette-item-check" type="checkbox" value="' + escapeHtml(item.id) + '" ' + (selected.has(item.id) ? "checked" : "") + '>'
+              + '<span class="check-label">' + escapeHtml(displayLabel) + '</span>'
+              + '<div class="qty-controls">'
+              + '<button type="button" class="qty-btn btn-qty-minus" data-item-id="' + escapeHtml(item.id) + '" data-qty="' + (quantity - 1) + '" ' + (quantity <= 1 ? "disabled" : "") + '>-</button>'
+              + '<span class="qty-display">' + quantity + '</span>'
+              + '<button type="button" class="qty-btn btn-qty-plus" data-item-id="' + escapeHtml(item.id) + '" data-qty="' + (quantity + 1) + '" ' + (quantity >= maxQty ? "disabled" : "") + '>+</button>'
+              + '</div>'
+              + '<button type="button" class="btn-del-item" data-item-id="' + escapeHtml(item.id) + '" title="delete">x</button>'
+              + '</label>';
+          }).join("")
         : '<div class="muted">등록된 추첨 항목이 없습니다.</div>';
       /* Auto-save selected items on every checkbox change */
-      document.querySelectorAll(".roulette-item-check").forEach((input) => {
-        input.addEventListener("change", async () => {
+      document.querySelectorAll(".roulette-item-check").forEach(function(input) {
+        input.addEventListener("change", async function() {
           renderRouletteBoardPreview();
           await autoSaveSelectedItems();
         });
       });
       /* Delete buttons */
-      document.querySelectorAll(".btn-del-item").forEach((btn) => {
-        btn.addEventListener("click", async (e) => {
+      document.querySelectorAll(".btn-del-item").forEach(function(btn) {
+        btn.addEventListener("click", async function(e) {
           e.preventDefault();
-          const itemId = btn.dataset.itemId;
+          var itemId = btn.dataset.itemId;
           if (!itemId) return;
-          const status = document.getElementById("roulette-status");
+          var status = document.getElementById("roulette-status");
           status.textContent = "항목 삭제 중...";
-          const res = await fetch("/api/admin/roulette/" + encodeURIComponent(itemId), { method: "DELETE" });
-          const data = await res.json();
+          var res = await fetch("/api/admin/roulette/" + encodeURIComponent(itemId), { method: "DELETE" });
+          var data = await res.json();
           if (!res.ok) { status.textContent = data.error || "삭제 실패"; return; }
+          await loadRoulette();
+        });
+      });
+      /* Quantity buttons */
+      document.querySelectorAll(".btn-qty-minus, .btn-qty-plus").forEach(function(btn) {
+        btn.addEventListener("click", async function(e) {
+          e.preventDefault();
+          var itemId = btn.dataset.itemId;
+          var newQty = Math.max(1, parseInt(btn.dataset.qty, 10) || 1);
+          var participantCount2 = rouletteState.participants.length;
+          if (participantCount2 > 0 && newQty > participantCount2) { alert("참여자 수(" + participantCount2 + "명)를 초과할 수 없습니다."); return; }
+          var status = document.getElementById("roulette-status");
+          status.textContent = "수량 변경 중...";
+          var res = await fetch("/api/admin/roulette", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "updateItemQuantity", itemId: itemId, quantity: newQty }),
+          });
+          var data = await res.json();
+          if (!res.ok) { status.textContent = data.error || "수량 변경 실패"; return; }
           await loadRoulette();
         });
       });
@@ -2896,12 +3216,16 @@ function adminPage() {
       const selectedItemIds = selectedRouletteItemIds();
       const status = document.getElementById("roulette-status");
       try {
+        const rawEventName = rouletteState.settings.event_name || rouletteState.settings.eventName || "";
+        const isEventOnly = rawEventName.includes("|event_only");
+        const baseName = document.getElementById("roulette-event-name").value.trim();
+        const eventName = isEventOnly ? baseName + "|event_only" : baseName;
         const res = await fetch("/api/admin/roulette", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "saveSettings",
-            eventName: document.getElementById("roulette-event-name").value.trim(),
+            eventName,
             startsAt: document.getElementById("roulette-start-time").value
               ? new Date(document.getElementById("roulette-start-time").value).toISOString() : null,
             drawMode: document.getElementById("roulette-draw-mode").value,
@@ -2917,12 +3241,83 @@ function adminPage() {
     }
 
     function renderRouletteBoardPreview() {
-      const selected = new Set(selectedRouletteItemIds());
-      const pool = document.getElementById("roulette-mini-pool");
-      const selectedItems = rouletteState.items.filter((item) => selected.has(item.id));
-      pool.innerHTML = selectedItems.length
-        ? selectedItems.map((item) => '<span class="pill">' + escapeHtml(item.label) + '</span>').join("")
-        : '<span class="muted">체크한 추첨 항목이 공개 룰렛 상단에서 회전합니다.</span>';
+      var selected = new Set(selectedRouletteItemIds());
+      var pool = document.getElementById("roulette-mini-pool");
+      var selectedItems = rouletteState.items.filter(function(item) { return selected.has(item.id); });
+      if (!selectedItems.length) {
+        pool.innerHTML = '<span class="muted" style="font-size:13px;">체크한 추첨 항목이 공개 룰렛 상단에서 회전합니다.</span>';
+        return;
+      }
+      /* build itemMap for label lookup */
+      var itemMap = {};
+      selectedItems.forEach(function(item) {
+        itemMap[item.id] = item;
+      });
+      /* get slot sequence (only selected items) */
+      var allSlots = getSlotSequence(rouletteState.items);
+      var slots = allSlots.filter(function(id) { return itemMap[id]; });
+      /* group results by item_id in chronological order */
+      var winnersByItem = {};
+      (rouletteState.results || []).slice().reverse().forEach(function(row) {
+        var iid = row.item_id || (row.item && row.item.id);
+        if (!iid) return;
+        if (!winnersByItem[iid]) winnersByItem[iid] = [];
+        var p = row.participant || {};
+        winnersByItem[iid].push(p.display_name || p.displayName || "?");
+      });
+      /* track how many wins per item we've consumed while rendering */
+      var winIndexByItem = {};
+      var rows = slots.map(function(itemId, slotIdx) {
+        var item = itemMap[itemId];
+        var label = parseItemLabel(item.label).displayLabel;
+        var winners = winnersByItem[itemId] || [];
+        var wi = winIndexByItem[itemId] || 0;
+        winIndexByItem[itemId] = wi + 1;
+        var winner = winners[wi];
+        var done = !!winner;
+        return '<div class="roulette-preview-row' + (done ? ' done' : '') + '" draggable="true" data-drag-slot="' + slotIdx + '" data-drag-item-id="' + escapeHtml(itemId) + '">'
+          + '<span class="drag-handle preview-drag-handle" title="drag">&#8942;</span>'
+          + '<span class="preview-order">' + (slotIdx + 1) + '</span>'
+          + '<span class="preview-label">' + escapeHtml(label) + '</span>'
+          + '<span class="preview-winners">' + (winner
+              ? '<span>' + escapeHtml(winner) + '</span>'
+              : '<span class="preview-pending">대기중</span>')
+            + '</span>'
+          + '</div>';
+      });
+      pool.innerHTML = rows.join("");
+      /* drag-to-reorder individual slots */
+      var dragSrcSlot = null;
+      pool.querySelectorAll(".roulette-preview-row").forEach(function(el) {
+        el.addEventListener("dragstart", function(e) {
+          dragSrcSlot = parseInt(el.dataset.dragSlot, 10);
+          e.dataTransfer.effectAllowed = "move";
+          setTimeout(function() { el.style.opacity = "0.4"; }, 0);
+        });
+        el.addEventListener("dragend", function() {
+          el.style.opacity = "";
+          pool.querySelectorAll(".roulette-preview-row").forEach(function(x) { x.classList.remove("drag-over"); });
+        });
+        el.addEventListener("dragover", function(e) {
+          e.preventDefault();
+          var targetSlot = parseInt(el.dataset.dragSlot, 10);
+          if (targetSlot !== dragSrcSlot) el.classList.add("drag-over");
+        });
+        el.addEventListener("dragleave", function() { el.classList.remove("drag-over"); });
+        el.addEventListener("drop", function(e) {
+          e.preventDefault();
+          el.classList.remove("drag-over");
+          var toSlot = parseInt(el.dataset.dragSlot, 10);
+          if (dragSrcSlot === null || dragSrcSlot === toSlot) return;
+          var newSeq = slots.slice();
+          var moved = newSeq.splice(dragSrcSlot, 1)[0];
+          newSeq.splice(toSlot, 0, moved);
+          /* merge with non-selected slots to preserve full sequence */
+          var nonSelectedSlots = allSlots.filter(function(id) { return !itemMap[id]; });
+          saveSlotSequence(newSeq.concat(nonSelectedSlots));
+          renderRouletteBoardPreview();
+        });
+      });
     }
 
     function renderRouletteRosterSelect() {
@@ -2953,7 +3348,7 @@ function adminPage() {
       results.innerHTML = rouletteState.participants.length
         ? rouletteState.participants.map((participant) => {
             const row = byParticipant.get(participant.id);
-            const itemLabel = row?.item?.label || "대기";
+            const itemLabel = row?.item?.label ? parseItemLabel(row.item.label).displayLabel : "대기";
             const wonAt = row ? formatDateTime(row.created_at || row.createdAt) : "";
             return '<div class="roulette-roster-row"><div><strong>' + escapeHtml(participant.display_name || participant.displayName || "이름 없음") + '</strong><span class="muted"> · ' + escapeHtml(participant.gender || "") + '</span><div class="muted" style="font-size:12px;">' + escapeHtml(itemLabel) + (wonAt ? " · " + escapeHtml(wonAt) : "") + '</div></div><span class="pill">' + (row ? "당첨" : "대기") + '</span><button class="btn-secondary roulette-remove-participant" type="button" data-id="' + escapeHtml(participant.id) + '">제외</button></div>';
           }).join("")

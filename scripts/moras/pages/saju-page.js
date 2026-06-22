@@ -1,21 +1,22 @@
 /**
- * Participant input page for Moras.
+ * Saju-only input page for Moras.
  *
  * Responsibilities:
- * - Render the public submission form and result view.
+ * - Render the MBTI + birth info form and saju/manse result view, without any
+ *   event participation (roster) registration.
  * - Keep calculation, storage, auth, and API logic out of this file.
  */
 
 const { CITIES } = require("../manse-service");
 
-function page() {
+function sajuPage() {
   const useDevDefaults = shouldUseDevDefaults();
   return `<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Moras - MBTI & 사주 운명 매칭</title>
+  <title>Moras - 사주 보기</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Outfit:wght@300;400;500;700;900&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
@@ -1810,124 +1811,14 @@ function page() {
   <div class="space-dust"></div>
   <a class="global-home-logo" href="https://moras-event-matching.netlify.app/" aria-label="Moras 홈으로 이동">MORAS</a>
   
-  <!-- STAGE 1: Welcome Intro Gate -->
-  <div id="stage-welcome" class="welcome-stage active">
-    <a class="welcome-logo" href="https://moras-event-matching.netlify.app/" aria-label="Moras 홈으로 이동">MORAS</a>
-    <div class="welcome-desc">
-      🌌 당신의 호흡과 온 우주가 맞물린 위대한 순간.<br>
-      본인의 <strong>MBTI</strong>와 <strong>우주적 만세력(Saju)</strong>이 직조해내는 신비로운 조화와<br>
-      오행의 어우러짐을 Celestial 밤하늘 아래에서 탐독해보세요.
-    </div>
-    <!-- Special Webtoon & Guide Navigation Cards -->
-    <div class="welcome-guide-cards">
-      <a href="/promo" class="guide-card card-promo" title="Moras를 쉽게 소개해 드리는 웹툰 감상">
-        <div class="card-glow"></div>
-        <div class="card-inner">
-          <div class="card-icon">🎨</div>
-          <div class="card-content">
-            <span class="card-title">소개웹툰</span>
-            <span class="card-desc">벤지 & 밀라의 MBTI 사주 꿀케미 툰</span>
-          </div>
-          <div class="card-arrow">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </div>
-        </div>
-      </a>
-      
-      <a href="/guide" class="guide-card card-guide" title="신청부터 투표까지 실전 진행방법 안내">
-        <div class="card-glow"></div>
-        <div class="card-inner">
-          <div class="card-icon">🪜</div>
-          <div class="card-content">
-            <span class="card-title">이벤트 신청방법</span>
-            <span class="card-desc">신청서 작성부터 실시간 매칭까지</span>
-          </div>
-          <div class="card-arrow">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </div>
-        </div>
-      </a>
-    </div>
-
-    <div id="open-countdown-banner" class="open-countdown-banner" style="display:none;">
-      <div class="open-countdown-label">이벤트 오픈까지</div>
-      <div class="open-countdown-timer" id="open-countdown-timer">--:--:--</div>
-      <div class="open-countdown-sub">뉴욕 (Eastern) 기준 5월 31일 오후 11시 오픈</div>
-    </div>
-    <button id="btn-start" class="welcome-btn" disabled>이벤트 신청이 마감되었습니다.</button>
-    <a href="/saju" class="welcome-btn" style="display:block;text-align:center;text-decoration:none;margin-top:10px;background:rgba(255,232,163,0.08);border:1px solid rgba(255,232,163,0.32);color:#FFE8A3;">🔮 사주 보기</a>
-    <div id="signup-deadline-banner" class="open-countdown-banner" style="display:none;">
-      <div class="open-countdown-label">신청 마감까지</div>
-      <div class="open-countdown-timer" id="signup-deadline-timer">--:--:--</div>
-      <div class="open-countdown-sub">뉴욕 (Eastern) 기준 6월 1일 오후 11시 마감</div>
-    </div>
-    <div class="welcome-links">
-      <a class="welcome-link-btn" href="/applicants">신청자 목록 확인하기</a>
-      <a class="welcome-link-btn" href="/results">매칭결과 확인하기</a>
-      <a class="welcome-link-btn" href="/prize-results" style="grid-column: span 2; border-color: rgba(255, 232, 163, 0.4); color: #FFE8A3; background: rgba(197, 155, 63, 0.08); font-weight: 900;">🏆 추첨게임 당첨결과 확인하기</a>
-    </div>
-
-    <div class="welcome-divider"></div>
-
-    <div class="welcome-games-section">
-      <div class="welcome-games-title">🪐 Moras 추첨게임</div>
-      <div class="welcome-games-row">
-        <a class="welcome-game-btn game-btn-roulette" href="/roulette">🔮 운명의 룰렛</a>
-        <a class="welcome-game-btn game-btn-ladder disabled" title="사다리 준비 중">🪜 은하수 사다리 (대기)</a>
-        <a class="welcome-game-btn game-btn-gachapon disabled" title="기적의 캡슐 준비 중">💫 기적의 캡슐 (대기)</a>
-      </div>
-    </div>
-  </div>
-
   <!-- STAGE 2: Cosmic Input Stage -->
-  <div id="stage-input" class="input-stage stage-hidden">
+  <div id="stage-input" class="input-stage active">
     <section class="control">
       <form id="manse-form">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 6px;">
-          <label for="roster-combobox" style="margin:0">신청자 선택</label>
-          <button type="button" id="btn-roster-request" title="목록에 신규 사용자 추가 요청" style="width:auto;height:30px;margin-top:0;padding:0 12px;font-size:11px;font-weight:900;letter-spacing:0.06em;border-radius:8px;background:rgba(255,232,163,0.1);border:1px solid rgba(255,232,163,0.28);color:#FFE8A3;cursor:pointer;box-shadow:none;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,232,163,0.18)'" onmouseout="this.style.background='rgba(255,232,163,0.1)'">추가요청</button>
-        </div>
-        <div class="combo">
-          <input id="roster-combobox" role="combobox" aria-expanded="false" aria-controls="roster-options" autocomplete="off" placeholder="이름을 검색하거나 선택하세요">
-          <input id="roster-participant-id" name="rosterParticipantId" type="hidden" required>
-          <div id="roster-options" class="combo-list hidden" role="listbox"></div>
-        </div>
-        <p id="roster-note" class="roster-note"></p>
-        <p style="margin:6px 0 0;color:#64748B;font-size:11.5px;line-height:1.55;">* 목록에서 검색이 되지 않는 경우 우측 상단의 추가요청 버튼을 눌러 정보를 입력하여 운영자에게 요청해주세요.</p>
-        <div class="row">
-          <div>
-            <label for="name">이름</label>
-            <input id="name" name="name" readonly required placeholder="명단에서 선택">
-          </div>
-          <div>
-            <label for="gender-display">성별</label>
-            <input id="gender-display" readonly placeholder="자동 입력">
-            <input id="gender" name="gender" type="hidden">
-          </div>
-        </div>
-        <label for="matching-intent">참여 목적</label>
-        <select id="matching-intent" name="matchingIntent" required>
-          <option value="" disabled selected>참여 목적 선택</option>
-          <option value="romance">썸 - 설레는 이성 매칭</option>
-          <option value="friendship">친목 - 재미로 보는 케미</option>
-        </select>
-        <div id="marital-status-row" class="row">
-          <div>
-            <label for="marital-status">혼인상태</label>
-            <select id="marital-status" name="maritalStatus" required>
-              <option value="" disabled selected>혼인상태 선택</option>
-              <option value="미혼">미혼</option>
-              <option value="기혼">기혼</option>
-              <option value="돌싱">돌싱</option>
-            </select>
-          </div>
-        </div>
-        <div id="marital-range-wrap" class="marital-range-wrap" style="display:none;">
-          <div class="marital-range-label">
-            <strong id="marital-range-my-status"></strong> 외에 매칭이 가능한 범위를 정해주세요. <span>(복수선택 가능)</span>
-          </div>
-          <div class="marital-range-btns" id="marital-range-btns"></div>
-        </div>
+        <h2 style="margin:0 0 4px;color:#FFE8A3;font-size:18px;font-weight:900;">🔮 사주 보기</h2>
+        <p style="margin:0 0 16px;color:#94A3B8;font-size:12.5px;line-height:1.6;">MBTI와 생년월일시를 입력하면 만세력과 사주 리포트만 확인할 수 있습니다. 이벤트 신청과는 별개이며, 입력 정보는 저장되지 않습니다.</p>
+        <label for="name">이름</label>
+        <input id="name" name="name" required placeholder="이름을 입력해주세요">
         <label for="mbti">MBTI</label>
         <select id="mbti" name="mbti" required>
           <option value="" disabled selected>MBTI 선택</option>
@@ -1978,42 +1869,20 @@ function page() {
           <input id="test-mode" name="testMode" type="checkbox" checked>
           생년월일 데이터 표시 (테스트 모드)
         </label>
-        <button type="submit">이벤트 신청 및 운명의 만세력 조회</button>
+        <button type="submit">사주 보기</button>
         <div id="submit-oracle" class="submit-oracle hidden" aria-live="polite">
           <div class="submit-oracle-inner">
             <div class="oracle-ring"><span class="oracle-core"></span></div>
             <div class="oracle-title">운명의 리포트를 작성하고 있어요</div>
             <div id="oracle-message" class="oracle-message">만세력의 별자리를 정렬하는 중...</div>
             <div class="oracle-progress"><span></span></div>
-            <div class="oracle-note">리포트가 완성되어야 신청이 완료됩니다. 실패하면 입력 내용은 유지되니 다시 신청 버튼을 눌러주세요.</div>
+            <div class="oracle-note">리포트가 완성되는데 잠시 시간이 걸립니다. 실패하면 입력 내용은 유지되니 다시 버튼을 눌러주세요.</div>
           </div>
         </div>
-        <p class="hint">출생 정보는 보안 암호화 처리되며, 공개 매칭 화면에는 노출되지 않습니다. 계산된 오행 만세력과 MBTI만을 매칭 엔진에 활용하여 최고의 파트너를 분석합니다.</p>
+        <p class="hint">출생 정보는 사주 계산에만 사용되며 별도로 저장되지 않습니다.</p>
         <div id="error" class="error"></div>
       </form>
     </section>
-  </div>
-
-  <!-- 추가요청 Modal -->
-  <div id="roster-request-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:200;align-items:center;justify-content:center;padding:24px;">
-    <div style="width:min(420px,100%);background:#0a0f1e;border:1px solid rgba(255,232,163,0.28);border-radius:22px;padding:30px 26px;box-shadow:0 40px 100px rgba(0,0,0,0.7);">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
-        <div style="color:#FFE8A3;font-size:18px;font-weight:900;">목록 추가 요청</div>
-        <button type="button" id="roster-request-close" style="width:34px;height:34px;border:1px solid rgba(255,255,255,0.12);border-radius:10px;background:rgba(255,255,255,0.05);color:#94A3B8;font-size:17px;cursor:pointer;">✕</button>
-      </div>
-      <form id="roster-request-form">
-        <label style="display:block;margin:0 0 6px;color:#94A3B8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">이름 <span style="color:#f5576c">*</span></label>
-        <input id="rr-name" type="text" required placeholder="실명을 입력해주세요" style="width:100%;height:44px;border:1px solid rgba(255,255,255,0.08);border-radius:12px;background:rgba(10,14,26,0.65);color:#F8FAFC;padding:0 16px;font-size:14.5px;box-sizing:border-box;margin-bottom:14px;font-family:inherit">
-        <label style="display:block;margin:0 0 6px;color:#94A3B8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">성별 <span style="color:#f5576c">*</span></label>
-        <select id="rr-gender" required style="width:100%;height:44px;border:1px solid rgba(255,255,255,0.08);border-radius:12px;background:rgba(10,14,26,0.65);color:#F8FAFC;padding:0 16px;font-size:14.5px;box-sizing:border-box;margin-bottom:14px;font-family:inherit;appearance:auto">
-          <option value="" disabled selected>성별 선택</option>
-          <option value="남">남</option>
-          <option value="여">여</option>
-        </select>
-        <div id="rr-error" style="color:#f5576c;font-size:13px;font-weight:600;min-height:18px;margin-bottom:8px;text-align:center"></div>
-        <button type="submit" style="width:100%;height:46px;border:0;border-radius:12px;background:linear-gradient(135deg,#FFE8A3 0%,#C59B3F 50%,#FFE8A3 100%);color:#050811;font-weight:900;font-size:15px;cursor:pointer;">추가 요청하기</button>
-      </form>
-    </div>
   </div>
 
   <!-- STAGE 3: Oracle Result Stage -->
@@ -2035,37 +1904,15 @@ function page() {
     const customBirthPlace = document.querySelector("#custom-birth-place");
     const timeInput = document.querySelector("#time");
     const timeUnknown = document.querySelector("#time-unknown");
-    const rosterCombo = document.querySelector("#roster-combobox");
-    const rosterSelect = document.querySelector("#roster-participant-id");
-    const rosterOptions = document.querySelector("#roster-options");
-    const rosterNote = document.querySelector("#roster-note");
-    const nameInput = document.querySelector("#name");
-    const genderInput = document.querySelector("#gender");
-    const genderDisplay = document.querySelector("#gender-display");
-    const matchingIntentSelect = document.querySelector("#matching-intent");
-    let rosterParticipants = [];
-
-    // Stage DOM Elements
-    const stageWelcome = document.querySelector("#stage-welcome");
     const stageInput = document.querySelector("#stage-input");
     const stageResult = document.querySelector("#stage-result");
-    const btnStart = document.querySelector("#btn-start");
     const globalHomeLogo = document.querySelector(".global-home-logo");
+    globalHomeLogo.classList.add("is-visible");
 
-    // Check URL parameters to skip welcome screen and show saju input directly
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("direct") === "saju" || urlParams.get("stage") === "input") {
-      stageWelcome.classList.remove("active");
-      stageWelcome.classList.add("stage-hidden");
-      stageInput.classList.remove("stage-hidden");
-      stageInput.classList.add("active");
-      globalHomeLogo.classList.add("is-visible");
-    }
     const oracleMessages = [
       "만세력의 별자리를 정렬하는 중...",
       "오행의 흐름과 균형을 읽는 중...",
       "MBTI와 사주의 결을 맞춰보는 중...",
-      "관계 리듬과 인연의 단서를 정리하는 중...",
       "완성된 리포트 문장을 다듬는 중..."
     ];
     let oracleTimer = null;
@@ -2079,97 +1926,12 @@ function page() {
         // Force reflow
         to.offsetWidth;
         to.classList.add("active");
-        globalHomeLogo.classList.toggle("is-visible", to !== stageWelcome);
-        
+
         // Scroll back to top smoothly
         window.scrollTo({ top: 0, behavior: "smooth" });
       }, 450);
     }
 
-    // Countdown Timer for btnStart (Event start lock)
-    const eventStartTime = new Date("2026-05-31T16:00:00Z").getTime();
-    
-    function padNum(n) {
-      return String(n).padStart(2, "0");
-    }
-    
-    function updateWelcomeBtnTimer() {
-      const remaining = eventStartTime - Date.now();
-      
-      if (remaining <= 0) {
-        btnStart.disabled = false;
-        btnStart.textContent = "이벤트 신청 및 운명의 만세력 조회";
-        return;
-      }
-      
-      btnStart.disabled = true;
-      
-      const totalSec = Math.floor(remaining / 1000);
-      const days = Math.floor(totalSec / 86400);
-      const hours = Math.floor((totalSec % 86400) / 3600);
-      const minutes = Math.floor((totalSec % 3600) / 60);
-      const seconds = totalSec % 60;
-      
-      let timeStr = "";
-      if (days > 0) {
-        timeStr += days + "일 ";
-      }
-      timeStr += padNum(hours) + ":" + padNum(minutes) + ":" + padNum(seconds);
-      
-      btnStart.textContent = "이벤트 오픈 대기 중... (" + timeStr + " 남음)";
-    }
-    
-    updateWelcomeBtnTimer();
-    const btnTimerInterval = setInterval(updateWelcomeBtnTimer, 1000);
-
-    // Initialize Welcome Gate Action
-    btnStart.addEventListener("click", () => {
-      transitionStage(stageWelcome, stageInput);
-    });
-
-    // 추가요청 모달
-    const rrModal = document.querySelector("#roster-request-modal");
-    document.querySelector("#btn-roster-request").addEventListener("click", () => {
-      rrModal.style.display = "flex";
-      document.querySelector("#rr-name").focus();
-    });
-    document.querySelector("#roster-request-close").addEventListener("click", () => {
-      rrModal.style.display = "none";
-    });
-    rrModal.addEventListener("click", (e) => { if (e.target === rrModal) rrModal.style.display = "none"; });
-    document.querySelector("#roster-request-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const errEl = document.querySelector("#rr-error");
-      errEl.textContent = "";
-      const submitBtn = e.target.querySelector("button[type='submit']");
-      submitBtn.disabled = true;
-      submitBtn.textContent = "요청 중...";
-      try {
-        const res = await fetch("/api/roster/request", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            displayName: document.querySelector("#rr-name").value.trim(),
-            gender: document.querySelector("#rr-gender").value,
-          }),
-        });
-        const body = await res.json();
-        if (!res.ok) throw new Error(body.error || "요청에 실패했습니다.");
-        rrModal.style.display = "none";
-        document.querySelector("#rr-name").value = "";
-        document.querySelector("#rr-gender").value = "";
-        alert("추가 요청이 접수되었습니다. 운영자 승인 후 목록에 추가됩니다.");
-        loadRoster();
-      } catch (error) {
-        errEl.textContent = error.message;
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "추가 요청하기";
-      }
-    });
-
-    loadRoster();
- 
     for (const city of cities) {
       const option = document.createElement("option");
       option.value = city.name;
@@ -2178,8 +1940,6 @@ function page() {
     }
     birthPlace.insertAdjacentHTML("afterbegin", '<option value="" disabled selected>태어난 곳 선택</option>');
     if (useDevDefaults) {
-      document.querySelector("#matching-intent").value = "romance";
-      document.querySelector("#marital-status").value = "미혼";
       document.querySelector("#mbti").value = "ENTP";
       document.querySelector("#date").value = "1982-01-21";
       document.querySelector("#time").value = "15:20";
@@ -2192,82 +1952,24 @@ function page() {
       customBirthPlace.required = isCustom;
       if (isCustom) customBirthPlace.focus();
     });
- 
+
     timeUnknown.addEventListener("change", () => {
       timeInput.disabled = timeUnknown.checked;
       timeInput.required = !timeUnknown.checked;
     });
 
-    const ALL_MARITAL = ["미혼", "기혼", "돌싱"];
-    let selectedMaritalRange = new Set();
-    const maritalRangeWrap = document.querySelector("#marital-range-wrap");
-    const maritalRangeBtns = document.querySelector("#marital-range-btns");
-    const maritalRangeMyStatus = document.querySelector("#marital-range-my-status");
-    const maritalStatusSelect = document.querySelector("#marital-status");
-    const maritalStatusRow = document.querySelector("#marital-status-row");
-
-    function renderMaritalRange() {
-      const current = maritalStatusSelect.value;
-      selectedMaritalRange.clear();
-      if (!current) { maritalRangeWrap.style.display = "none"; return; }
-      maritalRangeMyStatus.textContent = current;
-      const others = ALL_MARITAL.filter((s) => s !== current);
-      maritalRangeBtns.innerHTML = others.map((s) =>
-        '<button type="button" class="marital-range-btn" data-value="' + s + '">' + s + '</button>'
-      ).join("");
-      maritalRangeBtns.querySelectorAll(".marital-range-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const val = btn.dataset.value;
-          if (selectedMaritalRange.has(val)) {
-            selectedMaritalRange.delete(val);
-            btn.classList.remove("selected");
-          } else {
-            selectedMaritalRange.add(val);
-            btn.classList.add("selected");
-          }
-        });
-      });
-      maritalRangeWrap.style.display = "";
-    }
-
-    function syncMaritalFields() {
-      const isFriendship = matchingIntentSelect.value === "friendship";
-      maritalStatusRow.style.display = isFriendship ? "none" : "";
-      maritalStatusSelect.required = !isFriendship;
-      maritalStatusSelect.disabled = isFriendship;
-      if (isFriendship) {
-        maritalStatusSelect.value = "";
-        selectedMaritalRange.clear();
-        maritalRangeBtns.innerHTML = "";
-        maritalRangeWrap.style.display = "none";
-      } else if (maritalStatusSelect.value) {
-        renderMaritalRange();
-      }
-    }
-
-    maritalStatusSelect.addEventListener("change", renderMaritalRange);
-    matchingIntentSelect.addEventListener("change", syncMaritalFields);
-    syncMaritalFields();
- 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       errorEl.textContent = "";
-      if (!rosterSelect.value) {
-        errorEl.textContent = "신청자 명단에서 이름을 선택해주세요.";
-        rosterCombo.focus();
-        openRosterOptions();
-        return;
-      }
-      
+
       const submitBtn = form.querySelector("button[type='submit']");
       const originalText = submitBtn.textContent;
       submitBtn.disabled = true;
-      submitBtn.textContent = "분석 리포트 생성 중...";
+      submitBtn.textContent = "사주 리포트 생성 중...";
       startSubmitOracle();
 
       const data = Object.fromEntries(new FormData(form));
       const payload = {
-        rosterParticipantId: data.rosterParticipantId,
         name: data.name,
         date: data.date,
         time: data.time,
@@ -2275,34 +1977,21 @@ function page() {
         calendar: data.calendar,
         birthPlace: data.birthPlace,
         customBirthPlace: data.customBirthPlace,
-        gender: data.gender,
-        matchingIntent: data.matchingIntent,
-        maritalStatus: data.matchingIntent === "friendship" ? "" : data.maritalStatus,
-        matchingMaritalRange: data.matchingIntent === "friendship" ? [] : [...selectedMaritalRange],
         mbti: data.mbti,
       };
       try {
-        oracleMessage.textContent = "입력 정보를 확인하고 만세력을 계산하는 중...";
-        const startResponse = await fetch("/api/manse/start", {
+        oracleMessage.textContent = "Gemini가 긴 사주 리포트를 작성하는 중...";
+        const analyzeResponse = await fetch("/api/saju/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const startBody = await readJsonResponse(startResponse);
-        if (!startResponse.ok) throw new Error(startBody.error || "계산에 실패했습니다.");
-
-        oracleMessage.textContent = "Gemini가 긴 사주 리포트를 작성하는 중...";
-        const analyzeResponse = await fetch("/api/manse/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ analysisRequest: startBody.analysisRequest }),
-        });
         const body = await readJsonResponse(analyzeResponse);
         if (!analyzeResponse.ok) throw new Error(body.error || "사주 분석에 실패했습니다.");
         if (!body.view?.geminiAnalysis || body.view.geminiAnalysis.status !== "ok") {
-          throw new Error("사주 분석 리포트가 아직 완성되지 않았습니다. 잠시 후 다시 신청 버튼을 눌러주세요.");
+          throw new Error("사주 분석 리포트가 아직 완성되지 않았습니다. 잠시 후 다시 버튼을 눌러주세요.");
         }
-        
+
         render(body.view, Boolean(data.testMode));
         transitionStage(stageInput, stageResult);
       } catch (error) {
@@ -2337,15 +2026,15 @@ function page() {
       const text = await response.text();
       const isTimeoutHtml = /<html|timeout|timed out|function invocation failed/i.test(text);
       if (isTimeoutHtml) {
-        throw new Error("사주 분석 시간이 길어져 신청이 완료되지 않았습니다. 입력 내용은 유지되니 잠시 후 다시 신청 버튼을 눌러주세요.");
+        throw new Error("사주 분석 시간이 길어져 완료되지 않았습니다. 입력 내용은 유지되니 잠시 후 다시 버튼을 눌러주세요.");
       }
-      throw new Error("서버 응답을 확인하지 못했습니다. 입력 내용은 유지되니 다시 신청 버튼을 눌러주세요.");
+      throw new Error("서버 응답을 확인하지 못했습니다. 입력 내용은 유지되니 다시 버튼을 눌러주세요.");
     }
- 
+
     function render(view, showBirthData) {
       const order = ["hour", "day", "month", "year"];
       let html = '';
-      html += '<div class="application-success">이벤트 신청이 완료되었습니다.<span>아래에서 만세력 리포트와 신청 정보를 확인할 수 있습니다.</span></div>';
+      html += '<div class="application-success">사주 리포트가 완성되었습니다.<span>아래에서 만세력 리포트를 확인할 수 있습니다.</span></div>';
       html += '<div class="result-head">';
       html += '<div class="profile">';
       html += '  <div class="avatar">' + escapeHtml(view.name.slice(0, 1) || "M") + '</div>';
@@ -2388,14 +2077,14 @@ function page() {
 
       // Footer Actions (Back Button)
       html += '<div class="result-footer-actions">';
-      html += '  <button type="button" id="btn-view-applicants" class="action-btn">이벤트 신청자 조회하기</button>';
+      html += '  <button type="button" id="btn-view-home" class="action-btn">홈으로 돌아가기</button>';
       html += '</div>';
       
       resultEl.innerHTML = html;
 
       // Bind Back Button Action
-      document.querySelector("#btn-view-applicants").addEventListener("click", () => {
-        window.location.href = "/applicants";
+      document.querySelector("#btn-view-home").addEventListener("click", () => {
+        window.location.href = "/";
       });
       document.querySelector("#btn-save-pdf").addEventListener("click", () => {
         const originalTitle = document.title;
@@ -2406,103 +2095,6 @@ function page() {
         }, 1200);
       });
     }
-
-    async function loadRoster() {
-      try {
-        const response = await fetch("/api/roster", { cache: "no-store" });
-        const body = await response.json();
-        if (!response.ok) throw new Error(body.error || "참가자 명단을 불러오지 못했습니다.");
-        rosterParticipants = body.participants || [];
-        renderRosterOptions();
-        if (useDevDefaults) {
-          const preferred = rosterParticipants.find((item) => item.displayName === "벤지" && !item.hasSubmitted)
-            || rosterParticipants.find((item) => !item.hasSubmitted);
-          if (preferred) selectRosterParticipant(preferred);
-        }
-      } catch (error) {
-        rosterCombo.placeholder = "명단 조회 실패";
-        rosterNote.textContent = error.message;
-      }
-    }
-
-    rosterCombo.addEventListener("focus", () => {
-      renderRosterOptions(rosterCombo.value);
-      openRosterOptions();
-    });
-
-    rosterCombo.addEventListener("input", () => {
-      rosterSelect.value = "";
-      nameInput.value = "";
-      genderInput.value = "";
-      genderDisplay.value = "";
-      rosterNote.textContent = "";
-      renderRosterOptions(rosterCombo.value);
-      openRosterOptions();
-    });
-
-    rosterCombo.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter") return;
-      const first = filteredRoster(rosterCombo.value).find((item) => !item.hasSubmitted);
-      if (!first) return;
-      event.preventDefault();
-      selectRosterParticipant(first);
-    });
-
-    function renderRosterOptions(query = "") {
-      const filtered = filteredRoster(query);
-      if (!filtered.length) {
-        rosterOptions.innerHTML = '<div class="combo-option disabled">검색 결과가 없습니다.<small>명단 확인 필요</small></div>';
-        return;
-      }
-      rosterOptions.innerHTML = filtered.map((item) => {
-        const disabled = item.hasSubmitted ? " disabled" : "";
-        const status = item.hasSubmitted ? "신청완료" : item.gender;
-        return '<div class="combo-option' + disabled + '" role="option" data-id="' + escapeHtml(item.id) + '">' +
-          '<span>' + escapeHtml(item.displayName) + '</span>' +
-          '<small>' + escapeHtml(status) + '</small>' +
-          '</div>';
-      }).join("");
-      rosterOptions.querySelectorAll(".combo-option").forEach((option) => {
-        option.addEventListener("mousedown", (event) => {
-          event.preventDefault();
-          const item = rosterParticipants.find((candidate) => candidate.id === option.dataset.id);
-          if (!item || item.hasSubmitted) return;
-          selectRosterParticipant(item);
-        });
-      });
-    }
-
-    function filteredRoster(query = "") {
-      const keyword = String(query || "").trim().toLocaleLowerCase("ko");
-      return rosterParticipants.filter((item) => {
-        return !keyword || item.displayName.toLocaleLowerCase("ko").includes(keyword);
-      }).slice(0, 18);
-    }
-
-    function selectRosterParticipant(selected) {
-      rosterCombo.value = selected.displayName + " · " + selected.gender;
-      rosterSelect.value = selected.id;
-      nameInput.value = selected.displayName;
-      genderInput.value = selected.gender;
-      genderDisplay.value = selected.gender === "남" ? "남성" : "여성";
-      rosterNote.textContent = "명단 기준으로 이름과 성별이 자동 입력되었습니다.";
-      closeRosterOptions();
-    }
-
-    function openRosterOptions() {
-      rosterOptions.classList.remove("hidden");
-      rosterCombo.setAttribute("aria-expanded", "true");
-    }
-
-    function closeRosterOptions() {
-      rosterOptions.classList.add("hidden");
-      rosterCombo.setAttribute("aria-expanded", "false");
-    }
-
-    document.addEventListener("mousedown", (event) => {
-      if (event.target === rosterCombo || rosterOptions.contains(event.target)) return;
-      closeRosterOptions();
-    });
 
     function pdfTitle(view) {
       const name = sanitizeFilenamePart(view.name || "Moras");
@@ -2742,12 +2334,6 @@ function page() {
       }[char]));
     }
 
-    // 이벤트 신청 영구 종료
-    (function() {
-      var btn = document.getElementById("btn-start");
-      if (btn) { btn.disabled = true; btn.textContent = "이벤트 신청이 마감되었습니다."; }
-    })();
-
   </script>
 </body>
 </html>`;
@@ -2760,4 +2346,4 @@ function shouldUseDevDefaults() {
   return process.env.NODE_ENV !== "production";
 }
 
-module.exports = { page };
+module.exports = { sajuPage };
