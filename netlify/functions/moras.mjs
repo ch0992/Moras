@@ -327,6 +327,7 @@ export default async (request) => {
 export const config = {
   path: [
     "/",
+    "/saju",
     "/upcoming",
     "/applicants",
     "/admin",
@@ -360,6 +361,7 @@ export const config = {
     "/api/manse",
     "/api/manse/start",
     "/api/manse/analyze",
+    "/api/saju/analyze",
     "/api/admin/login",
     "/api/admin/logout",
     "/api/admin/submissions",
